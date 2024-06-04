@@ -29,7 +29,7 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const width = props.width ?? 800;
 const height = props.height ?? 600;
 const state = reactive({
-  isLogScale: true,
+  isLogScale: false,
 });
 const drawLineChart = () => {
   if (!canvas.value) return;
@@ -86,7 +86,7 @@ const drawLineChart = () => {
 
   ctx.strokeStyle = '#ccc';
   ctx.font = '12px Arial';
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = '#fff';
 
   for (let i = 0; i <= numXTicks; i++) {
     const x = padding + (i * (width - padding * 2) / numXTicks);
@@ -119,7 +119,6 @@ const drawLineChart = () => {
     } else {
       ctx.lineTo(x, y);
     }
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
   });
   ctx.stroke();
 }; 

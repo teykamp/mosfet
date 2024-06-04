@@ -1,6 +1,6 @@
 import { add, subtract, multiply, divide, pow, exp, log, unit, type Unit } from 'mathjs'
 
-export const ekvNmos = (Vg: Unit, Vs: Unit, Vd: Unit, Vb: Unit) => {
+export const ekvNmos = (Vg: Unit, Vs: Unit = unit(0, 'V'), Vd: Unit = unit(5, 'V'), Vb: Unit = unit(0, 'V')) => {
   const Vgb = subtract(Vg, Vb)
   const Vsb = subtract(Vs, Vb)
   const Vdb = subtract(Vd, Vb)
@@ -19,10 +19,10 @@ export const ekvNmos = (Vg: Unit, Vs: Unit, Vd: Unit, Vb: Unit) => {
   const IR = multiply(Is, pow(log(add(1, exp((IR_exponent as number)))), 2))
 
   const I = subtract(IF, IR)
-  return I
+  return I as Unit
 }
 
-export const ekvPmos = (Vg: Unit, Vs: Unit, Vd: Unit, Vb: Unit) => {
+export const ekvPmos = (Vg: Unit, Vs: Unit = unit(5, 'V'), Vd: Unit = unit(0, 'V'), Vb: Unit = unit(5, 'V')) => {
   const Vbg = subtract(Vb, Vg)
   const Vbs = subtract(Vb, Vs)
   const Vbd = subtract(Vb, Vd)
@@ -41,5 +41,5 @@ export const ekvPmos = (Vg: Unit, Vs: Unit, Vd: Unit, Vb: Unit) => {
   const IR = multiply(Is, pow(log(add(1, exp((IR_exponent as number)))), 2))
 
   const I = subtract(IF, IR)
-  return I
+  return I as Unit
 }

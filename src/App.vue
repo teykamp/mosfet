@@ -7,10 +7,42 @@
 <script setup lang="ts">
 import Chart from './components/Chart.vue'
 
-const points = [
-  { x: 1, y: 1 },
-  { x: 2, y: 2 },
-  { x: 3, y: 3 },
-  { x: 4, y: 4 },
-]
+
+import { ekvNmos, ekvPmos } from './functions/ekvModel'
+import { unit } from 'mathjs'
+
+
+function linspace(start: number, end: number, num: number): number[] {
+  if (num <= 0) {
+    throw new Error("num must be a positive integer");
+  }
+  if (num === 1) {
+    return [start];
+  }
+
+  const step = (end - start) / (num - 1);
+  const result: number[] = [];
+
+  for (let i = 0; i < num; i++) {
+    result.push(start + step * i);
+  }
+
+  return result;
+}
+
+const linNums = linspace(4, 4.9, 1000);
+
+const result = linNums.map(n => ekvPmos(unit(4.8, 'V'), undefined, unit(n, 'V')))
+
+interface Point {
+  x: number;
+  y: number;
+}
+const points: Point[] = []
+for (let i = 0; i < result.length; i++) {
+  points.push({
+    x: linNums[i],
+    y: result[i].toNumber('A')
+  })
+}
 </script>
