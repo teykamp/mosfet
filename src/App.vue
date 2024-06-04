@@ -8,10 +8,12 @@
 import Chart from './components/Chart.vue'
 
 const points = [
-  { x: 0, y: 0 },
-  { x: 1, y: 10 },
-  { x: 2, y: 5 },
-  { x: 3, y: 15 },
-  { x: 4, y: 10 },
-]
+  { x: 1, y: 1 },
+  { x: 2, y: 2 },
+  { x: 3, y: 3 },
+  { x: 4, y: 4 },
+].map(p => ({
+  x: p.x, 
+  y: Math.log10(p.y)
+}))
 </script>
