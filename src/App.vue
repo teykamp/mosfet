@@ -12,8 +12,5 @@ const points = [
   { x: 2, y: 2 },
   { x: 3, y: 3 },
   { x: 4, y: 4 },
-].map(p => ({
-  x: p.x, 
-  y: Math.log10(p.y)
-}))
+]
 </script>

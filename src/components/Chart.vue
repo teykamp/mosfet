@@ -29,7 +29,7 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const width = props.width ?? 800;
 const height = props.height ?? 600;
 const state = reactive({
-  isLogScale: false,
+  isLogScale: true,
 });
 const drawLineChart = () => {
   if (!canvas.value) return;
@@ -39,8 +39,13 @@ const drawLineChart = () => {
   ctx.clearRect(0, 0, width, height);
 
   // Find min and max values to scale points
-  const xValues = props.points.map(p => p.x);
-  const yValues = props.points.map(p => p.y)
+  const plottingValues = props.points.map(p => ({
+    x: p.x,
+    y: state.isLogScale ? Math.log10(p.y) : p.y
+  }))
+
+  const xValues = plottingValues.map(p => p.x);
+  const yValues = plottingValues.map(p => p.y)
 
   const xMin = Math.min(...xValues);
   const xMax = Math.max(...xValues);
@@ -106,7 +111,7 @@ const drawLineChart = () => {
   // Draw points and lines
   ctx.strokeStyle = '#f00';
   ctx.beginPath();
-  props.points.forEach((point, index) => {
+  plottingValues.forEach((point, index) => {
     const x = padding + (point.x - xMin) * xScale;
     const y = height - padding - (point.y - yMin) * yScale;
     if (index === 0) {
