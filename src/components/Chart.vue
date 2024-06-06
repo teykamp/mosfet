@@ -136,7 +136,7 @@ const drawLineChart = () => {
     ctx.moveTo(dragX, dragY)
     ctx.lineTo(dragX, height - padding)
     ctx.stroke()
-    ctx.fillText(plottingValues[state.currentPointIndex].y.toString(), dragX, dragY - 10)
+    ctx.fillText(plottingValues[state.currentPointIndex].y.toExponential(2), dragX, dragY - 10)
   }
 };
 
