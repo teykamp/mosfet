@@ -2,7 +2,7 @@
   <div>
     <canvas ref="canvas" :width="width" :height="height" @mousedown="onMouseDown" @mouseup="onMouseUp"
       @mousemove="onMouseMove"></canvas>
-    <!-- <button @click="toggleScale">Toggle Y-Axis Scale</button> -->
+      <button @click="toggleYAxisLog"></button>
   </div>
 </template>
 
@@ -29,11 +29,15 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const width = props.width ?? 800;
 const height = props.height ?? 600;
 const state = reactive({
-  isLogScale: false,
+  isLogScale: true,
   dragging: false,
   currentPointIndex: 0,
 });
 const padding = 50;
+
+const toggleYAxisLog = () => {
+  state.isLogScale = !state.isLogScale
+}
 
 const drawLineChart = () => {
   if (!canvas.value) return;
@@ -111,7 +115,7 @@ const drawLineChart = () => {
     ctx.fillText((10 ** value).toFixed(2), padding - 35, y + 5);
   }
 
-  // Draw points and lines
+  // draw line
   ctx.strokeStyle = '#f00';
   ctx.beginPath();
   plottingValues.forEach((point, index) => {
@@ -126,7 +130,8 @@ const drawLineChart = () => {
   ctx.stroke();
 
   // Draw draggable circle
-  const dragPoint = props.points[state.currentPointIndex];
+  const dragPoint = plottingValues[state.currentPointIndex];
+  console.log(dragPoint.y)
   if (dragPoint) {
     const dragX = padding + (dragPoint.x - xMin) * xScale;
     const dragY = height - padding - (dragPoint.y - yMin) * yScale;
@@ -164,7 +169,6 @@ const getClosestPointIndex = (mouseX: number) => {
       closestIndex = index;
     }
   });
-
   return closestIndex;
 };
 

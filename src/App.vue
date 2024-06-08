@@ -30,9 +30,9 @@ function linspace(start: number, end: number, num: number): number[] {
   return result;
 }
 
-const linNums = linspace(4, 4.9, 1000);
+const linNums = linspace(0, 1, 1000);
 
-const result = linNums.map(n => ekvPmos(unit(4.8, 'V'), undefined, unit(n, 'V')))
+const result = linNums.map(n => ekvNmos(unit(n, 'V')))
 
 interface Point {
   x: number;
