@@ -112,7 +112,7 @@ const drawLineChart = () => {
     ctx.moveTo(padding, y);
     ctx.lineTo(padding - 5, y);
     ctx.stroke();
-    ctx.fillText((10 ** value).toFixed(2), padding - 35, y + 5);
+    ctx.fillText((10 ** value).toExponential(2), padding - 35, y + 5);
   }
 
   // draw line
@@ -131,7 +131,6 @@ const drawLineChart = () => {
 
   // Draw draggable circle
   const dragPoint = plottingValues[state.currentPointIndex];
-  console.log(dragPoint.y)
   if (dragPoint) {
     const dragX = padding + (dragPoint.x - xMin) * xScale;
     const dragY = height - padding - (dragPoint.y - yMin) * yScale;
