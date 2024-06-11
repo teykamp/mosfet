@@ -55,10 +55,10 @@ const drawLineChart = () => {
   let xValues = props.points.map(p => p.x);
   let yValues = props.points.map(p => state.isLogScale ? Math.log10(p.y) : p.y);
 
-  const xMin = customXTicks.length > 0 ? Math.min(...customXTicks) : Math.min(...xValues);
-  const xMax = customXTicks.length > 0 ? Math.max(...customXTicks) : Math.max(...xValues);
-  const yMin = customYTicks.length > 0 ? Math.min(...customYTicks) : Math.min(...yValues);
-  const yMax = customYTicks.length > 0 ? Math.max(...customYTicks) : Math.max(...yValues);
+  const xMin = customXTicks.length > 1 ? Math.min(...customXTicks) : Math.min(...xValues);
+  const xMax = customXTicks.length > 1 ? Math.max(...customXTicks) : Math.max(...xValues);
+  const yMin = customYTicks.length > 1 ? Math.min(...customYTicks) : Math.min(...yValues);
+  const yMax = customYTicks.length > 1 ? Math.max(...customYTicks) : Math.max(...yValues);
 
   // Filter points to be within the range of the custom ticks
   xValues = xValues.filter(x => x >= xMin && x <= xMax);
@@ -100,8 +100,8 @@ const drawLineChart = () => {
   ctx.font = '12px Arial';
   ctx.fillStyle = '#000';
 
-  const xTicks = customXTicks.length > 0 ? customXTicks : Array.from({ length: 11 }, (_, i) => xMin + i * (xMax - xMin) / 10);
-  const yTicks = customYTicks.length > 0 ? customYTicks : Array.from({ length: 11 }, (_, i) => yMin + i * (yMax - yMin) / 10);
+  const xTicks = customXTicks.length > 1 ? customXTicks : Array.from({ length: 11 }, (_, i) => xMin + i * (xMax - xMin) / 10);
+  const yTicks = customYTicks.length > 1 ? customYTicks : Array.from({ length: 11 }, (_, i) => yMin + i * (yMax - yMin) / 10);
 
   xTicks.forEach((value) => {
     const x = padding + (value - xMin) * xScale;

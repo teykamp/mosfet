@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Chart :points="points" xAxisLabel="Time" yAxisLabel="Value" xUnit="s" yUnit="mV" />
+    <Chart :points="points" xAxisLabel="Time" yAxisLabel="Value" xUnit="s" yUnit="mV" :customXTicks="[1, 2]" />
   </div>
 </template>
 
