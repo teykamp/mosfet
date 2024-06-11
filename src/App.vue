@@ -1,14 +1,22 @@
 <template>
   <div>
-    <Chart :points="points" xAxisLabel="Time" yAxisLabel="Value" xUnit="s" yUnit="mV" :customYTicks="{log: [-11, -4]}"/>
+    <Chart :points="points" xAxisLabel="Time" yAxisLabel="Value" xUnit="s" yUnit="mV" 
+    :customYTicks="{
+      log: getTickLabelListLog(yMin, yMax).map(p => Math.log10(p)),
+      linear: getTickLabelList(yMin, yMax)
+    }"
+    :customXTicks="{
+      log: getTickLabelListLog(xMin, xMax),
+      linear: getTickLabelList(xMin, xMax)
+    }"/>
   </div>
 </template>
 
 <script setup lang="ts">
 import Chart from './components/Chart.vue'
 
-
-import { ekvNmos, ekvPmos } from './functions/ekvModel'
+import { getTickLabelList, getTickLabelListLog } from './functions/getTickLabelList'
+import { ekvNmos } from './functions/ekvModel'
 import { unit } from 'mathjs'
 
 
@@ -45,4 +53,13 @@ for (let i = 0; i < result.length; i++) {
     y: result[i].toNumber('A')
   })
 }
+
+const xValues = points.map(p => p.x)
+const yValues = points.map(p => p.y)
+const xMin = Math.min(...xValues)
+const xMax = Math.max(...xValues)
+const yMin = Math.min(...yValues)
+const yMax = Math.max(...yValues)
+
+
 </script>

@@ -123,12 +123,12 @@ const drawLineChart = () => {
     ctx.moveTo(x, height - padding)
     ctx.lineTo(x, height - padding + 5)
     ctx.stroke()
-    ctx.fillText(value.toFixed(2), x - 10, height - padding + 20)
+    ctx.fillText(value.toExponential(2), x - 10, height - padding + 20)
   })
 
   yTicks.forEach((value) => {
     const y = height - padding - (value - yMin) * yScale
-    const displayValue = state.scaleType === 'log' ? (10 ** value).toExponential(2) : value.toFixed(2)
+    const displayValue = state.scaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
     ctx.beginPath()
     ctx.moveTo(padding, y)
     ctx.lineTo(padding - 5, y)
