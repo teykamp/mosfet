@@ -12,10 +12,57 @@ const getNextRoundMultiple = (n: number, increment: number) => {
  * Given the range of the data points displayed along an axis of a graph, return a list of tick labels for that axis.
  * There should be between roughly 3 and 8 tick labels which are round numbers and span most of the range of points.
  * For example, for the range from [1.5 to 6.5], appropriate tick labels would be 2, 3, 4, 5, and 6.
- * @param lower_bound the lower range for the data points
- * @param upper_bound the upper range for the data points
+ * @param lowerBound the lower range for the data points
+ * @param upperBound the upper range for the data points
  * @return a list of the tick labels to be displayed
  */
 export const getTickLabelList = (lowerBound: number, upperBound: number) => {
+    const difference = upperBound - lowerBound
 
+    let tickSpacing = 10 ** Math.floor(Math.log10(difference))
+    const nTicks = Math.floor(difference / tickSpacing)
+
+    // adjust the tick spacing up or down to get within the desired range of ticks
+    if (nTicks >= 6) {
+        // increasing tick spacing (removing ticks)
+        tickSpacing = tickSpacing * 2
+    }
+    else if (nTicks <= 2) {
+        // decreasing tick spacing (adding more ticks)
+        tickSpacing = tickSpacing / 2
+    }
+
+    const starting_tick = getNextRoundMultiple(lowerBound, tickSpacing)
+    let next_tick = starting_tick
+    let ticks: number[] = []
+    while (next_tick <= upperBound) {
+        ticks.push(next_tick)
+        next_tick = next_tick + tickSpacing
+    }
+    ticks.push(next_tick) // one more time
+
+    return ticks
+}
+
+const unconvertLog = (n: number) => {
+    if (Math.abs(Math.round(n) - n) < 0.1) {
+        return 10 ** Math.round(n)
+    }
+    else {
+        return 5 * 10 ** Math.floor(n)
+    }
+}
+
+export const getTickLabelListLog = (lowerBound: number, upperBound: number) => {
+    const logLowerBound = Math.log10(lowerBound)
+    const logUpperBound = Math.log10(upperBound)
+
+    const difference = logUpperBound - logLowerBound
+    if (difference < 1) {
+        // Resorting to linear
+        return getTickLabelList(lowerBound, upperBound)
+    }
+
+    const logTicks = getTickLabelList(logLowerBound, logUpperBound)
+    return logTicks.map(unconvertLog)
 }
