@@ -1,10 +1,10 @@
 <template>
   <div>
-    <canvas ref="canvas" :width="width" :height="height"></canvas>
-    <!-- <button @click="toggleScale">Toggle Y-Axis Scale</button> -->
+    <canvas ref="canvas" :width="width" :height="height" @mousedown="onMouseDown" @mouseup="onMouseUp"
+      @mousemove="onMouseMove"></canvas>
+      <button @click="toggleYAxisLog"></button>
   </div>
 </template>
-
 
 <script setup lang="ts">
 import { ref, onMounted, watch, reactive } from 'vue';
@@ -29,8 +29,16 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const width = props.width ?? 800;
 const height = props.height ?? 600;
 const state = reactive({
-  isLogScale: false,
+  isLogScale: true,
+  dragging: false,
+  currentPointIndex: 0,
 });
+const padding = 50;
+
+const toggleYAxisLog = () => {
+  state.isLogScale = !state.isLogScale
+}
+
 const drawLineChart = () => {
   if (!canvas.value) return;
   const ctx = canvas.value.getContext('2d');
@@ -42,19 +50,18 @@ const drawLineChart = () => {
   const plottingValues = props.points.map(p => ({
     x: p.x,
     y: state.isLogScale ? Math.log10(p.y) : p.y
-  }))
+  }));
 
   const xValues = plottingValues.map(p => p.x);
-  const yValues = plottingValues.map(p => p.y)
+  const yValues = plottingValues.map(p => p.y);
 
   const xMin = Math.min(...xValues);
   const xMax = Math.max(...xValues);
   const yMin = Math.min(...yValues);
   const yMax = Math.max(...yValues);
 
-  const padding = 50;
   const xScale = (width - padding * 2) / (xMax - xMin);
-  const yScale = (height - padding * 2) / ((yMax) - yMin);
+  const yScale = (height - padding * 2) / (yMax - yMin);
 
   // Draw axis
   ctx.strokeStyle = '#000';
@@ -86,7 +93,7 @@ const drawLineChart = () => {
 
   ctx.strokeStyle = '#ccc';
   ctx.font = '12px Arial';
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = '#000';
 
   for (let i = 0; i <= numXTicks; i++) {
     const x = padding + (i * (width - padding * 2) / numXTicks);
@@ -105,10 +112,10 @@ const drawLineChart = () => {
     ctx.moveTo(padding, y);
     ctx.lineTo(padding - 5, y);
     ctx.stroke();
-    ctx.fillText((10 ** value).toFixed(2), padding - 35, y + 5);
+    ctx.fillText((10 ** value).toExponential(2), padding - 35, y + 5);
   }
 
-  // Draw points and lines
+  // draw line
   ctx.strokeStyle = '#f00';
   ctx.beginPath();
   plottingValues.forEach((point, index) => {
@@ -121,10 +128,68 @@ const drawLineChart = () => {
     }
   });
   ctx.stroke();
-}; 
+
+  // Draw draggable circle
+  const dragPoint = plottingValues[state.currentPointIndex];
+  if (dragPoint) {
+    const dragX = padding + (dragPoint.x - xMin) * xScale;
+    const dragY = height - padding - (dragPoint.y - yMin) * yScale;
+    ctx.beginPath();
+    ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.moveTo(dragX, dragY)
+    ctx.lineTo(dragX, height - padding)
+    ctx.stroke()
+    ctx.fillText(plottingValues[state.currentPointIndex].y.toExponential(2), dragX, dragY - 10)
+  }
+};
+
+const getMousePos = (event: MouseEvent) => {
+  if (!canvas.value) return { mouseX: 0, mouseY: 0 };
+  const rect = canvas.value.getBoundingClientRect();
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+  return { mouseX, mouseY };
+};
+
+const getClosestPointIndex = (mouseX: number) => {
+  const xMin = Math.min(...props.points.map(p => p.x));
+  const xMax = Math.max(...props.points.map(p => p.x));
+  const xScale = (width - padding * 2) / (xMax - xMin);
+
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+
+  props.points.forEach((point, index) => {
+    const pointX = padding + (point.x - xMin) * xScale;
+    const distance = Math.abs(pointX - mouseX);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  });
+  return closestIndex;
+};
+
+const onMouseDown = (event: MouseEvent) => {
+  state.dragging = true;
+};
+
+const onMouseMove = (event: MouseEvent) => {
+  if (!state.dragging) return;
+  const { mouseX } = getMousePos(event);
+  const closestIndex = getClosestPointIndex(mouseX);
+  state.currentPointIndex = closestIndex;
+  drawLineChart();
+};
+
+const onMouseUp = () => {
+  state.dragging = false;
+};
 
 onMounted(drawLineChart);
-watch(() => [props.points, state.isLogScale], drawLineChart, { deep: true });
+watch(() => [props.points, state.isLogScale, state.currentPointIndex], drawLineChart, { deep: true });
+
 </script>
 
 <style scoped>
