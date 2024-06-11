@@ -2,7 +2,7 @@
   <div>
     <canvas ref="canvas" :width="width" :height="height" @mousedown="onMouseDown" @mouseup="onMouseUp"
       @mousemove="onMouseMove"></canvas>
-      <button @click="toggleYAxisLog"></button>
+    <button @click="toggleYAxisLog">Toggle Y Axis Log Scale</button>
   </div>
 </template>
 
@@ -22,6 +22,8 @@ interface Props {
   yUnit: string;
   width?: number;
   height?: number;
+  customXTicks?: number[];
+  customYTicks?: number[];
 }
 
 const props = defineProps<Props>();
@@ -35,8 +37,11 @@ const state = reactive({
 });
 const padding = 50;
 
+const customXTicks = props.customXTicks ?? [];
+const customYTicks = props.customYTicks ?? [];
+
 const toggleYAxisLog = () => {
-  state.isLogScale = !state.isLogScale
+  state.isLogScale = !state.isLogScale;
 }
 
 const drawLineChart = () => {
@@ -47,18 +52,24 @@ const drawLineChart = () => {
   ctx.clearRect(0, 0, width, height);
 
   // Find min and max values to scale points
-  const plottingValues = props.points.map(p => ({
-    x: p.x,
-    y: state.isLogScale ? Math.log10(p.y) : p.y
-  }));
+  let xValues = props.points.map(p => p.x);
+  let yValues = props.points.map(p => state.isLogScale ? Math.log10(p.y) : p.y);
 
-  const xValues = plottingValues.map(p => p.x);
-  const yValues = plottingValues.map(p => p.y);
+  const xMin = customXTicks.length > 0 ? Math.min(...customXTicks) : Math.min(...xValues);
+  const xMax = customXTicks.length > 0 ? Math.max(...customXTicks) : Math.max(...xValues);
+  const yMin = customYTicks.length > 0 ? Math.min(...customYTicks) : Math.min(...yValues);
+  const yMax = customYTicks.length > 0 ? Math.max(...customYTicks) : Math.max(...yValues);
 
-  const xMin = Math.min(...xValues);
-  const xMax = Math.max(...xValues);
-  const yMin = Math.min(...yValues);
-  const yMax = Math.max(...yValues);
+  // Filter points to be within the range of the custom ticks
+  xValues = xValues.filter(x => x >= xMin && x <= xMax);
+  yValues = yValues.filter(y => y >= yMin && y <= yMax);
+
+  const plottingValues = props.points
+    .map(p => ({
+      x: p.x,
+      y: state.isLogScale ? Math.log10(p.y) : p.y
+    }))
+    .filter(p => p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax);
 
   const xScale = (width - padding * 2) / (xMax - xMin);
   const yScale = (height - padding * 2) / (yMax - yMin);
@@ -85,37 +96,33 @@ const drawLineChart = () => {
   ctx.fillText(props.yUnit, padding - 30, padding - 10);
 
   // Calculate and draw ticks
-  const numXTicks = 10;
-  const numYTicks = 10;
-
-  const xTickInterval = (xMax - xMin) / numXTicks;
-  const yTickInterval = (yMax - yMin) / numYTicks;
-
   ctx.strokeStyle = '#ccc';
   ctx.font = '12px Arial';
   ctx.fillStyle = '#000';
 
-  for (let i = 0; i <= numXTicks; i++) {
-    const x = padding + (i * (width - padding * 2) / numXTicks);
-    const value = xMin + i * xTickInterval;
+  const xTicks = customXTicks.length > 0 ? customXTicks : Array.from({ length: 11 }, (_, i) => xMin + i * (xMax - xMin) / 10);
+  const yTicks = customYTicks.length > 0 ? customYTicks : Array.from({ length: 11 }, (_, i) => yMin + i * (yMax - yMin) / 10);
+
+  xTicks.forEach((value) => {
+    const x = padding + (value - xMin) * xScale;
     ctx.beginPath();
     ctx.moveTo(x, height - padding);
     ctx.lineTo(x, height - padding + 5);
     ctx.stroke();
     ctx.fillText(value.toFixed(2), x - 10, height - padding + 20);
-  }
+  });
 
-  for (let i = 0; i <= numYTicks; i++) {
-    const y = height - padding - (i * (height - padding * 2) / numYTicks);
-    const value = yMin + i * yTickInterval;
+  yTicks.forEach((value) => {
+    const y = height - padding - (value - yMin) * yScale;
+    const displayValue = state.isLogScale ? (10 ** value).toExponential(2) : value.toFixed(2);
     ctx.beginPath();
     ctx.moveTo(padding, y);
     ctx.lineTo(padding - 5, y);
     ctx.stroke();
-    ctx.fillText((10 ** value).toExponential(2), padding - 35, y + 5);
-  }
+    ctx.fillText(displayValue, padding - 35, y + 5);
+  });
 
-  // draw line
+  // Draw line
   ctx.strokeStyle = '#f00';
   ctx.beginPath();
   plottingValues.forEach((point, index) => {
@@ -137,10 +144,10 @@ const drawLineChart = () => {
     ctx.beginPath();
     ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI);
     ctx.fill();
-    ctx.moveTo(dragX, dragY)
-    ctx.lineTo(dragX, height - padding)
-    ctx.stroke()
-    ctx.fillText(plottingValues[state.currentPointIndex].y.toExponential(2), dragX, dragY - 10)
+    ctx.moveTo(dragX, dragY);
+    ctx.lineTo(dragX, height - padding);
+    ctx.stroke();
+    ctx.fillText(dragPoint.y.toExponential(2), dragX, dragY - 10);
   }
 };
 
@@ -153,8 +160,8 @@ const getMousePos = (event: MouseEvent) => {
 };
 
 const getClosestPointIndex = (mouseX: number) => {
-  const xMin = Math.min(...props.points.map(p => p.x));
-  const xMax = Math.max(...props.points.map(p => p.x));
+  const xMin = customXTicks.length > 0 ? Math.min(...customXTicks) : Math.min(...props.points.map(p => p.x));
+  const xMax = customXTicks.length > 0 ? Math.max(...customXTicks) : Math.max(...props.points.map(p => p.x));
   const xScale = (width - padding * 2) / (xMax - xMin);
 
   let closestIndex = 0;
