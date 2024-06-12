@@ -2,12 +2,12 @@
   <div>
     <canvas ref="canvas" :width="width" :height="height" @mousedown="onMouseDown" @mouseup="onMouseUp"
       @mousemove="onMouseMove"></canvas>
-    <!-- <button @click="toggleYAxisLog">Toggle Y Axis Log Scale</button> -->
+    <button @click="toggleYAxisLog">Toggle Log Scale</button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, reactive } from 'vue'
+import { ref, onMounted, watch, reactive, computed } from 'vue'
 
 interface Point {
   x: number
@@ -38,11 +38,13 @@ const width = props.width ?? 800
 const height = props.height ?? 600
 
 const state = reactive<{
-  scaleType: 'log' | 'linear',
+  xScaleType: 'log' | 'linear',
+  yScaleType: 'log' | 'linear',
   dragging: boolean,
   currentPointIndex: number,
 }>({
-  scaleType: 'log',
+  xScaleType: 'linear',
+  yScaleType: 'log',
   dragging: false,
   currentPointIndex: 0,
 })
@@ -58,35 +60,52 @@ const customYTicks = {
   linear: props.customYTicks?.linear ?? [],
 } ?? { log: [], linear: [] }
 
+const xValues = ref<number[]>([])
+const yValues = ref<number[]>([])
+const xMin = ref<number>(0)
+const xMax = ref<number>(0)
+const yMin = ref<number>(0)
+const yMax = ref<number>(0)
 
-const xValues = props.points.map(p => p.x)
-// the following need to be regenerated after ever toggle of chart (make them refs??)
-const yValues = props.points.map(p => state.scaleType === 'log' ? Math.log10(p.y) : p.y)
-const xMin = customXTicks[state.scaleType].length > 1 ? Math.min(...customXTicks[state.scaleType]) : Math.min(...xValues)
-const xMax = customXTicks[state.scaleType].length > 1 ? Math.max(...customXTicks[state.scaleType]) : Math.max(...xValues)
-const yMin = customYTicks[state.scaleType].length > 1 ? Math.min(...customYTicks[state.scaleType]) : Math.min(...yValues)
-const yMax = customYTicks[state.scaleType].length > 1 ? Math.max(...customYTicks[state.scaleType]) : Math.max(...yValues)
+const xTicks = ref<number[]>([])
+const yTicks = ref<number[]>([])
+const xScale = ref<number>(0)
+const yScale = ref<number>(0)
 
-const xTicks = customXTicks[state.scaleType].length > 1 ? customXTicks[state.scaleType] : Array.from({ length: 11 }, (_, i) => xMin + i * (xMax - xMin) / 10)
-const yTicks = customYTicks[state.scaleType].length > 1 ? customYTicks[state.scaleType] : Array.from({ length: 11 }, (_, i) => yMin + i * (yMax - yMin) / 10)
-const xScale = (width - padding * 2) / (xMax - xMin)
-const yScale = (height - padding * 2) / (yMax - yMin)
-
-const plottingValues = props.points
+const plottingValues = computed(() => props.points
   .map(p => ({
-    x: p.x,
-    y: state.scaleType === 'log' ? Math.log10(p.y) : p.y
+    x: state.xScaleType === 'log' ? Math.log10(p.x) : p.x,
+    y: state.yScaleType === 'log' ? Math.log10(p.y) : p.y
   }))
-  .filter(p => p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax)
+  .filter(p => p.x >= xMin.value && p.x <= xMax.value && p.y >= yMin.value && p.y <= yMax.value)
+)
 
-// const toggleYAxisLog = () => {
-//   state.scaleType = state.scaleType === 'log' ? 'linear' : 'log'
-// }
+const calculateValues = () => {
+  xValues.value = props.points.map(p => state.xScaleType === 'log' ? Math.log10(p.x) : p.x)
+  yValues.value = props.points.map(p => state.yScaleType === 'log' ? Math.log10(p.y) : p.y)
+  xMin.value = customXTicks[state.xScaleType].length > 1 ? Math.min(...customXTicks[state.xScaleType]) : Math.min(...xValues.value)
+  xMax.value = customXTicks[state.xScaleType].length > 1 ? Math.max(...customXTicks[state.xScaleType]) : Math.max(...xValues.value)
+  yMin.value = customYTicks[state.yScaleType].length > 1 ? Math.min(...customYTicks[state.yScaleType]) : Math.min(...yValues.value)
+  yMax.value = customYTicks[state.yScaleType].length > 1 ? Math.max(...customYTicks[state.yScaleType]) : Math.max(...yValues.value)
+
+  xTicks.value = customXTicks[state.xScaleType].length > 1 ? customXTicks[state.xScaleType] : Array.from({ length: 11 }, (_, i) => xMin.value + i * (xMax.value - xMin.value) / 10)
+  yTicks.value = customYTicks[state.yScaleType].length > 1 ? customYTicks[state.yScaleType] : Array.from({ length: 11 }, (_, i) => yMin.value + i * (yMax.value - yMin.value) / 10)
+  xScale.value = (width - padding * 2) / (xMax.value - xMin.value)
+  yScale.value = (height - padding * 2) / (yMax.value - yMin.value)
+}
+
+
+const toggleYAxisLog = () => {
+  // state.xScaleType = state.xScaleType === 'log' ? 'linear' : 'log'
+  state.yScaleType = state.yScaleType === 'log' ? 'linear' : 'log'
+}
 
 const drawLineChart = () => {
   if (!canvas.value) return
   const ctx = canvas.value.getContext('2d')
   if (!ctx) return
+
+  calculateValues()
 
   ctx.clearRect(0, 0, width, height)
 
@@ -117,18 +136,20 @@ const drawLineChart = () => {
   ctx.fillStyle = '#000'
 
   
-  xTicks.forEach((value) => {
-    const x = padding + (value - xMin) * xScale
+  xTicks.value.forEach((value) => {
+    const x = padding + (value - xMin.value) * xScale.value
+    const displayValue = state.xScaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
+    console.log(displayValue)
     ctx.beginPath()
     ctx.moveTo(x, height - padding)
     ctx.lineTo(x, height - padding + 5)
     ctx.stroke()
-    ctx.fillText(value.toExponential(2), x - 10, height - padding + 20)
+    ctx.fillText(displayValue, x - 10, height - padding + 20)
   })
 
-  yTicks.forEach((value) => {
-    const y = height - padding - (value - yMin) * yScale
-    const displayValue = state.scaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
+  yTicks.value.forEach((value) => {
+    const y = height - padding - (value - yMin.value) * yScale.value
+    const displayValue = state.yScaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
     ctx.beginPath()
     ctx.moveTo(padding, y)
     ctx.lineTo(padding - 5, y)
@@ -139,9 +160,9 @@ const drawLineChart = () => {
   // Draw line
   ctx.strokeStyle = '#f00'
   ctx.beginPath()
-  plottingValues.forEach((point, index) => {
-    const x = padding + (point.x - xMin) * xScale
-    const y = height - padding - (point.y - yMin) * yScale
+  plottingValues.value.forEach((point, index) => {
+    const x = padding + (point.x - xMin.value) * xScale.value
+    const y = height - padding - (point.y - yMin.value) * yScale.value
     if (index === 0) {
       ctx.moveTo(x, y)
     } else {
@@ -151,10 +172,10 @@ const drawLineChart = () => {
   ctx.stroke()
 
   // Draw draggable circle
-  const dragPoint = plottingValues[state.currentPointIndex]
+  const dragPoint = plottingValues.value[state.currentPointIndex]
   if (dragPoint) {
-    const dragX = padding + (dragPoint.x - xMin) * xScale
-    const dragY = height - padding - (dragPoint.y - yMin) * yScale
+    const dragX = padding + (dragPoint.x - xMin.value) * xScale.value
+    const dragY = height - padding - (dragPoint.y - yMin.value) * yScale.value
     ctx.beginPath()
     ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI)
     ctx.fill()
@@ -177,8 +198,8 @@ const getClosestPointIndex = (mouseX: number) => {
   let closestIndex = 0
   let closestDistance = Infinity
 
-  plottingValues.forEach((point, index) => {
-    const pointX = padding + (point.x - xMin) * xScale
+  plottingValues.value.forEach((point, index) => {
+    const pointX = padding + (point.x - xMin.value) * xScale.value
     const distance = Math.abs(pointX - mouseX)
     if (distance < closestDistance) {
       closestDistance = distance
@@ -204,7 +225,7 @@ const onMouseUp = () => {
 }
 
 onMounted(drawLineChart)
-watch(() => [props.points, state.scaleType, state.currentPointIndex], drawLineChart, { deep: true })
+watch(() => [props.points, state.xScaleType, state.yScaleType, state.currentPointIndex], drawLineChart, { deep: true })
 
 </script>
 
