@@ -139,7 +139,6 @@ const drawLineChart = () => {
   xTicks.value.forEach((value) => {
     const x = padding + (value - xMin.value) * xScale.value
     const displayValue = state.xScaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
-    console.log(displayValue)
     ctx.beginPath()
     ctx.moveTo(x, height - padding)
     ctx.lineTo(x, height - padding + 5)
@@ -182,7 +181,7 @@ const drawLineChart = () => {
     ctx.moveTo(dragX, dragY)
     ctx.lineTo(dragX, height - padding)
     ctx.stroke()
-    ctx.fillText(dragPoint.y.toExponential(2), dragX, dragY - 10)
+    ctx.fillText((10 ** dragPoint.y).toExponential(2), dragX, dragY - 10)
   }
 }
 

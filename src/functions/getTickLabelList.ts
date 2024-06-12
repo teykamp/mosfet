@@ -54,6 +54,8 @@ const unconvertLog = (n: number) => {
 }
 
 export const getTickLabelListLog = (lowerBound: number, upperBound: number) => {
+    if (lowerBound <= 0) console.error(`Lower bound, ${lowerBound} <= 0. Log will return NaN`)
+    
     const logLowerBound = Math.log10(lowerBound)
     const logUpperBound = Math.log10(upperBound)
 

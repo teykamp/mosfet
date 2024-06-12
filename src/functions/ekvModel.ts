@@ -19,7 +19,7 @@ export const ekvNmos = (Vg: Unit, Vs: Unit = unit(0, 'V'), Vd: Unit = unit(5, 'V
   const IR = multiply(Is, pow(log(add(1, exp((IR_exponent as number)))), 2))
 
   const I = subtract(IF, IR)
-  return I as Unit
+  return I === unit(0, 'A') ? unit(1, 'fA') : I  as Unit
 }
 
 export const ekvPmos = (Vg: Unit, Vs: Unit = unit(5, 'V'), Vd: Unit = unit(0, 'V'), Vb: Unit = unit(5, 'V')) => {
