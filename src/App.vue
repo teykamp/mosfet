@@ -9,11 +9,13 @@
       log: getTickLabelListLog(xMin, xMax),
       linear: getTickLabelList(xMin, xMax)
     }"/>
+    <Diagram />
   </div>
 </template>
 
 <script setup lang="ts">
 import Chart from './components/Chart.vue'
+import Diagram from './components/Diagram.vue'
 
 import { getTickLabelList, getTickLabelListLog } from './functions/getTickLabelList'
 import { ekvNmos } from './functions/ekvModel'
