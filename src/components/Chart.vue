@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, reactive, computed } from 'vue'
+import { getTickLabelList, getTickLabelListLog } from '../functions/getTickLabelList'
 
 interface Point {
   x: number
@@ -22,14 +23,6 @@ interface Props {
   yUnit: string
   width?: number
   height?: number
-  customXTicks?: {
-    linear?: number[],
-    log?: number[],
-  }
-  customYTicks?: {
-    log?: number[],
-    linear?: number[],
-  }
 }
 
 const props = defineProps<Props>()
@@ -50,16 +43,6 @@ const state = reactive<{
 })
 const padding = 50
 
-const customXTicks = {
-  log: props.customXTicks?.log ?? [],
-  linear: props.customXTicks?.linear ?? [],
-} ?? { log: [], linear: [] }
-
-const customYTicks = {
-  log: props.customYTicks?.log ?? [],
-  linear: props.customYTicks?.linear ?? [],
-} ?? { log: [], linear: [] }
-
 const xValues = ref<number[]>([])
 const yValues = ref<number[]>([])
 const xMin = ref<number>(0)
@@ -73,23 +56,25 @@ const xScale = ref<number>(0)
 const yScale = ref<number>(0)
 
 const plottingValues = computed(() => props.points
-  .map(p => ({
+  .map((p: Point) => ({
     x: state.xScaleType === 'log' ? Math.log10(p.x) : p.x,
     y: state.yScaleType === 'log' ? Math.log10(p.y) : p.y
   }))
-  .filter(p => p.x >= xMin.value && p.x <= xMax.value && p.y >= yMin.value && p.y <= yMax.value)
+  .filter((p: Point) => p.x >= xMin.value && p.x <= xMax.value && p.y >= yMin.value && p.y <= yMax.value)
 )
 
 const calculateValues = () => {
-  xValues.value = props.points.map(p => state.xScaleType === 'log' ? Math.log10(p.x) : p.x)
-  yValues.value = props.points.map(p => state.yScaleType === 'log' ? Math.log10(p.y) : p.y)
-  xMin.value = customXTicks[state.xScaleType].length > 1 ? Math.min(...customXTicks[state.xScaleType]) : Math.min(...xValues.value)
-  xMax.value = customXTicks[state.xScaleType].length > 1 ? Math.max(...customXTicks[state.xScaleType]) : Math.max(...xValues.value)
-  yMin.value = customYTicks[state.yScaleType].length > 1 ? Math.min(...customYTicks[state.yScaleType]) : Math.min(...yValues.value)
-  yMax.value = customYTicks[state.yScaleType].length > 1 ? Math.max(...customYTicks[state.yScaleType]) : Math.max(...yValues.value)
+  xValues.value = props.points.map((p: Point) => state.xScaleType === 'log' ? Math.log10(p.x) : p.x)
+  yValues.value = props.points.map((p: Point) => state.yScaleType === 'log' ? Math.log10(p.y) : p.y)
 
-  xTicks.value = customXTicks[state.xScaleType].length > 1 ? customXTicks[state.xScaleType] : Array.from({ length: 11 }, (_, i) => xMin.value + i * (xMax.value - xMin.value) / 10)
-  yTicks.value = customYTicks[state.yScaleType].length > 1 ? customYTicks[state.yScaleType] : Array.from({ length: 11 }, (_, i) => yMin.value + i * (yMax.value - yMin.value) / 10)
+  xTicks.value = state.xScaleType === 'log' ? getTickLabelListLog(Math.min(...props.points.map((p: Point) => p.x)), Math.max(...props.points.map((p: Point) => p.x))).map(Math.log10) : getTickLabelList(Math.min(...props.points.map((p: Point) => p.x)), Math.max(...props.points.map((p: Point) => p.x)))
+  yTicks.value = state.yScaleType === 'log' ? getTickLabelListLog(Math.min(...props.points.map((p: Point) => p.y)), Math.max(...props.points.map((p: Point) => p.y))).map(Math.log10) : getTickLabelList(Math.min(...props.points.map((p: Point) => p.y)), Math.max(...props.points.map((p: Point) => p.y)))
+
+  xMin.value = xTicks.value.length > 1 ? Math.min(...xTicks.value) : Math.min(...xValues.value)
+  xMax.value = xTicks.value.length > 1 ? Math.max(...xTicks.value) : Math.max(...xValues.value)
+  yMin.value = yTicks.value.length > 1 ? Math.min(...yTicks.value) : Math.min(...yValues.value)
+  yMax.value = yTicks.value.length > 1 ? Math.max(...yTicks.value) : Math.max(...yValues.value)
+
   xScale.value = (width - padding * 2) / (xMax.value - xMin.value)
   yScale.value = (height - padding * 2) / (yMax.value - yMin.value)
 }
@@ -135,8 +120,8 @@ const drawLineChart = () => {
   ctx.font = '12px Arial'
   ctx.fillStyle = '#000'
 
-  
-  xTicks.value.forEach((value) => {
+
+  xTicks.value.forEach((value: number) => {
     const x = padding + (value - xMin.value) * xScale.value
     const displayValue = state.xScaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
     ctx.beginPath()
@@ -146,7 +131,7 @@ const drawLineChart = () => {
     ctx.fillText(displayValue, x - 10, height - padding + 20)
   })
 
-  yTicks.value.forEach((value) => {
+  yTicks.value.forEach((value: number) => {
     const y = height - padding - (value - yMin.value) * yScale.value
     const displayValue = state.yScaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
     ctx.beginPath()
@@ -159,7 +144,7 @@ const drawLineChart = () => {
   // Draw line
   ctx.strokeStyle = '#f00'
   ctx.beginPath()
-  plottingValues.value.forEach((point, index) => {
+  plottingValues.value.forEach((point: Point, index: number) => {
     const x = padding + (point.x - xMin.value) * xScale.value
     const y = height - padding - (point.y - yMin.value) * yScale.value
     if (index === 0) {
@@ -197,7 +182,7 @@ const getClosestPointIndex = (mouseX: number) => {
   let closestIndex = 0
   let closestDistance = Infinity
 
-  plottingValues.value.forEach((point, index) => {
+  plottingValues.value.forEach((point: Point, index: number) => {
     const pointX = padding + (point.x - xMin.value) * xScale.value
     const distance = Math.abs(pointX - mouseX)
     if (distance < closestDistance) {

@@ -1,14 +1,7 @@
 <template>
   <div>
-    <Chart :points="points" xAxisLabel="Time" yAxisLabel="Value" xUnit="s" yUnit="mV"
-    :customYTicks="{
-      log: getTickLabelListLog(yMin, yMax).map(p => Math.log10(p)),
-      linear: getTickLabelList(yMin, yMax)
-    }"
-    :customXTicks="{
-      log: getTickLabelListLog(xMin, xMax),
-      linear: getTickLabelList(xMin, xMax)
-    }"/>
+    <Chart :points="currents" xAxisLabel="Time" yAxisLabel="Value" xUnit="s" yUnit="mV"/>
+    <Chart :points="saturationLevels" xAxisLabel="Time" yAxisLabel="Value" xUnit="s" yUnit="mV"/>
     <Diagram />
   </div>
 </template>
@@ -17,7 +10,6 @@
 import Chart from './components/Chart.vue'
 import Diagram from './components/Diagram.vue'
 
-import { getTickLabelList, getTickLabelListLog } from './functions/getTickLabelList'
 import { ekvNmos } from './functions/ekvModel'
 import { unit } from 'mathjs'
 
@@ -40,28 +32,31 @@ function linspace(start: number, end: number, num: number): number[] {
   return result;
 }
 
-const linNums = linspace(0, 1, 1000);
-
-const result = linNums.map(n => ekvNmos(unit(n, 'V')).I)
-
 interface Point {
   x: number;
   y: number;
 }
-const points: Point[] = []
-for (let i = 0; i < result.length; i++) {
-  points.push({
-    x: linNums[i],
-    y: result[i].toNumber('A')
+
+// current
+const currents: Point[] = []
+const Vgs = linspace(0, 1, 1000);
+const current = Vgs.map(n => ekvNmos(unit(n, 'V'), unit(0, 'V')).I)
+for (let i = 0; i < current.length; i++) {
+  currents.push({
+    x: Vgs[i],
+    y: current[i].toNumber('A')
   })
 }
 
-const xValues = points.map(p => p.x)
-const yValues = points.map(p => p.y)
-const xMin = Math.min(...xValues)
-const xMax = Math.max(...xValues)
-const yMin = Math.min(...yValues)
-const yMax = Math.max(...yValues)
-
+// saturation level
+const saturationLevels: Point[] = []
+const Vds = linspace(0, 1, 1000);
+const saturationLevel = Vds.map(n => ekvNmos(unit(1, 'V'), unit(0, 'V'), unit(n, 'V')).saturationLevel)
+for (let i = 0; i < current.length; i++) {
+  saturationLevels.push({
+    x: Vgs[i],
+    y: saturationLevel[i]
+  })
+}
 
 </script>

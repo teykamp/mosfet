@@ -19,7 +19,7 @@ export const ekvNmos = (Vg: Unit, Vs: Unit = unit(0, 'V'), Vd: Unit = unit(5, 'V
   const IR = multiply(Is, pow(log(add(1, exp((IR_exponent as number)))), 2))
 
   const I = add(subtract(IF, IR), unit(1, 'fA')) as Unit
-  const saturationLevel = divide(IF, I) as number
+  const saturationLevel = divide(I, IF) as number
   return {
     I,
     saturationLevel
@@ -45,7 +45,7 @@ export const ekvPmos = (Vg: Unit, Vs: Unit = unit(5, 'V'), Vd: Unit = unit(0, 'V
   const IR = multiply(Is, pow(log(add(1, exp((IR_exponent as number)))), 2))
 
   const I = add(subtract(IF, IR), unit(1, 'fA')) as Unit
-  const saturationLevel = divide(IF, I) as number
+  const saturationLevel = divide(I, IF) as number
   return {
     I,
     saturationLevel
