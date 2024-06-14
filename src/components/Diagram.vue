@@ -21,19 +21,19 @@ const dots = ref([
 ])
 
 const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, thickness: number = 5, fill: boolean = true) => {
-  const width = Math.abs(endX - startX);
-  const height = Math.abs(endY - startY);
+  const width = Math.abs(endX - startX)
+  const height = Math.abs(endY - startY)
 
   if (width === 0) {
     // Vertical line
-    const x = startX - thickness / 2;
-    const y = Math.min(startY, endY);
+    const x = startX - thickness / 2
+    const y = Math.min(startY, endY)
     fill ? ctx.fillRect(x, y, thickness, height) : ctx.rect(x, y, thickness, height)
   } else if (height === 0) {
     // Horizontal line
-    const x = Math.min(startX, endX);
-    const y = startY - thickness / 2;
-    fill ? ctx.fillRect(x, y, width, thickness) : ctx.rect(x, y, width, thickness);
+    const x = Math.min(startX, endX)
+    const y = startY - thickness / 2
+    fill ? ctx.fillRect(x, y, width, thickness) : ctx.rect(x, y, width, thickness)
   }
 }
 
