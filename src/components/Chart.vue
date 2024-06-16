@@ -9,6 +9,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, reactive, computed } from 'vue'
 import { getTickLabelList, getTickLabelListLog } from '../functions/getTickLabelList'
+import { toSiPrefix } from '../functions/toSiPrefix'
 
 interface Point {
   x: number
@@ -23,12 +24,14 @@ interface Props {
   yUnit: string
   width?: number
   height?: number
+  cornerToCornerGraph?: boolean
 }
 
 const props = defineProps<Props>()
 const canvas = ref<HTMLCanvasElement | null>(null)
 const width = props.width ?? 800
 const height = props.height ?? 600
+const cornerToCornerGraph = props.cornerToCornerGraph ?? true
 
 const state = reactive<{
   xScaleType: 'log' | 'linear',
@@ -70,10 +73,10 @@ const calculateValues = () => {
   xTicks.value = state.xScaleType === 'log' ? getTickLabelListLog(Math.min(...props.points.map((p: Point) => p.x)), Math.max(...props.points.map((p: Point) => p.x))).map(Math.log10) : getTickLabelList(Math.min(...props.points.map((p: Point) => p.x)), Math.max(...props.points.map((p: Point) => p.x)))
   yTicks.value = state.yScaleType === 'log' ? getTickLabelListLog(Math.min(...props.points.map((p: Point) => p.y)), Math.max(...props.points.map((p: Point) => p.y))).map(Math.log10) : getTickLabelList(Math.min(...props.points.map((p: Point) => p.y)), Math.max(...props.points.map((p: Point) => p.y)))
 
-  xMin.value = xTicks.value.length > 1 ? Math.min(...xTicks.value) : Math.min(...xValues.value)
-  xMax.value = xTicks.value.length > 1 ? Math.max(...xTicks.value) : Math.max(...xValues.value)
-  yMin.value = yTicks.value.length > 1 ? Math.min(...yTicks.value) : Math.min(...yValues.value)
-  yMax.value = yTicks.value.length > 1 ? Math.max(...yTicks.value) : Math.max(...yValues.value)
+  xMin.value = cornerToCornerGraph ? Math.min(...xValues.value) : Math.min(...xTicks.value)
+  xMax.value = cornerToCornerGraph ? Math.max(...xValues.value) : Math.max(...xTicks.value)
+  yMin.value = cornerToCornerGraph ? Math.min(...yValues.value) : Math.min(...yTicks.value)
+  yMax.value = cornerToCornerGraph ? Math.max(...yValues.value) : Math.max(...yTicks.value)
 
   xScale.value = (width - padding * 2) / (xMax.value - xMin.value)
   yScale.value = (height - padding * 2) / (yMax.value - yMin.value)
@@ -123,7 +126,7 @@ const drawLineChart = () => {
 
   xTicks.value.forEach((value: number) => {
     const x = padding + (value - xMin.value) * xScale.value
-    const displayValue = state.xScaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
+    const displayValue = toSiPrefix(state.xScaleType === 'log' ? (10 ** value) : value, props.xUnit)
     ctx.beginPath()
     ctx.moveTo(x, height - padding)
     ctx.lineTo(x, height - padding + 5)
@@ -133,7 +136,7 @@ const drawLineChart = () => {
 
   yTicks.value.forEach((value: number) => {
     const y = height - padding - (value - yMin.value) * yScale.value
-    const displayValue = state.yScaleType === 'log' ? (10 ** value).toExponential(2) : value.toExponential(2)
+    const displayValue = toSiPrefix(state.yScaleType === 'log' ? (10 ** value) : value, props.yUnit)
     ctx.beginPath()
     ctx.moveTo(padding, y)
     ctx.lineTo(padding - 5, y)
@@ -166,7 +169,7 @@ const drawLineChart = () => {
     ctx.moveTo(dragX, dragY)
     ctx.lineTo(dragX, height - padding)
     ctx.stroke()
-    ctx.fillText((10 ** dragPoint.y).toExponential(2), dragX, dragY - 10)
+    ctx.fillText(toSiPrefix(state.yScaleType === 'log' ? 10 ** dragPoint.y : dragPoint.y, props.yUnit), dragX, dragY - 10)
   }
 }
 
