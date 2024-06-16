@@ -89,7 +89,7 @@ const draw = () => {
   if (!ctx.value || !canvas.value) return
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
-  mosfets.value.forEach(mosfet => drawMosfet(ctx.value, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots))
+  mosfets.value.forEach(mosfet => drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots))
 }
 
 const animate = () => {
