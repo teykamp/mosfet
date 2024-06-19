@@ -62,11 +62,11 @@ mosfets.push({
   vds: {
     dragging: false,
     location: {
-      x: Math.cos((5 - 0 / 5) * 120 * (Math.PI / 180)) * 90 + 100,
-      y: Math.sin((5 - 0 / 5) * 120 * (Math.PI / 180)) * 90 + 100,
+      x: Math.cos(110 * Math.PI / 180) * 80 + 100,
+      y: Math.sin(110 * Math.PI / 180) * 80 + 100,
     },
-    startAngle: 0,
-    angle: 85,
+    startAngle: 110,
+    angle: 140,
   },
 })
 
@@ -81,23 +81,41 @@ const getMousePos = (event: MouseEvent) => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   mosfets.forEach(mosfet => {
-    const dx = mouseX - mosfet.vgs.location.x
-    const dy = mouseY - mosfet.vgs.location.y
-    if ((dx * dx + dy * dy) <= 10 ** 2) mosfet.vgs.dragging = true
+    if (((mouseX - mosfet.vgs.location.x) ** 2 + (mouseY - mosfet.vgs.location.y) ** 2) <= 10 ** 2) mosfet.vgs.dragging = true
+    if (((mouseX - mosfet.vds.location.x) ** 2 + (mouseY - mosfet.vds.location.y) ** 2) <= 10 ** 2) mosfet.vds.dragging = true
   })
+}
+
+const normalizeAngle = (angle: number) => {
+  while (angle < 0) {
+    angle += 2 * Math.PI
+  }
+  while (angle >= 2 * Math.PI) {
+    angle -= 2 * Math.PI
+  }
+  return angle
 }
 
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
+  const radius = 80
 
   mosfets.forEach(mosfet => {
     if (mosfet.vgs.dragging) {
-      const mouseAngle = Math.max(Math.min(Math.atan2(mouseY - mosfet.originY, mouseX - mosfet.originX), (mosfet.vgs.angle + mosfet.vgs.startAngle) * Math.PI / 180), mosfet.vgs.startAngle * Math.PI / 180)
+      const mouseAngle = Math.max(Math.min(normalizeAngle(Math.atan2(mouseY - mosfet.originY, mouseX - mosfet.originX)), (mosfet.vgs.angle + mosfet.vgs.startAngle) * Math.PI / 180), mosfet.vgs.startAngle * Math.PI / 180)
 
-      const radius = 80
       mosfet.vgs.location = {
-        x: Math.max(Math.cos(mouseAngle)) * radius + mosfet.originX,
-        y: Math.max(Math.sin(mouseAngle)) * radius + mosfet.originY
+        x: Math.cos(mouseAngle) * radius + mosfet.originX,
+        y: Math.sin(mouseAngle) * radius + mosfet.originY
+      }
+    }
+
+    if (mosfet.vds.dragging) {
+      const mouseAngle = Math.max(Math.min(normalizeAngle(Math.atan2(mouseY - mosfet.originY, mouseX - mosfet.originX)), (mosfet.vds.angle + mosfet.vds.startAngle) * Math.PI / 180), mosfet.vds.startAngle * Math.PI / 180)
+
+      mosfet.vds.location = {
+        x: Math.cos(mouseAngle) * radius + mosfet.originX,
+        y: Math.sin(mouseAngle) * radius + mosfet.originY
       }
     }
   })
@@ -128,7 +146,7 @@ const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number,
   }
 }
 
-const drawAngleSlider = (ctx: CanvasRenderingContext2D, state: Pick<Mosfet, 'vgs'>['vgs'], angle: number, startAngle: number, radius: number, centerX: number, centerY: number) => {
+const drawAngleSlider = (ctx: CanvasRenderingContext2D, state: Pick<Mosfet, 'vgs'>['vgs'] | Pick<Mosfet, 'vds'>['vds'], angle: number, startAngle: number, radius: number, centerX: number, centerY: number) => {
   const points: Point[] = []
   const increment = angle / (angle < 360 ? angle : 360)
 
@@ -157,7 +175,8 @@ const drawAngleSlider = (ctx: CanvasRenderingContext2D, state: Pick<Mosfet, 'vgs
 }
 
 
-const drawMosfet = (ctx: CanvasRenderingContext2D, originX: number, originY: number, gradientSize: number = 100, dots: {x: number, y: number}[]) => {
+const drawMosfet = (ctx: CanvasRenderingContext2D, originX: number, originY: number, gradientSize: number = 100, dots: {x: number, y: number}[]) => { 
+  // TODO: should porbably just pass mosfet in here then can draw sliders as well
   ctx.fillStyle = 'lightblue'
 
   drawLine(ctx, originX, originY + 17, originX, originY + 60)
@@ -202,6 +221,7 @@ const draw = () => {
   mosfets.forEach(mosfet => {
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs, mosfet.vgs.angle, mosfet.vgs.startAngle, 80, mosfet.originX, mosfet.originY)
+    drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds, mosfet.vds.angle, mosfet.vds.startAngle, 80, mosfet.originX, mosfet.originY)
   })
 }
 
