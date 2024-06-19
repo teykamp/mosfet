@@ -108,8 +108,6 @@ const normalizeAngle = (angle: number, startAngle: number, angleSpan: number) =>
     value = 1
   }
   
-  console.log(returnAngle)
-
   return {
     returnAngle, 
     value

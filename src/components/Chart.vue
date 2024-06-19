@@ -1,7 +1,6 @@
 <template>
   <div>
-    <canvas ref="canvas" :width="width" :height="height" @mousedown="onMouseDown" @mouseup="onMouseUp"
-      @mousemove="onMouseMove"></canvas>
+    <canvas ref="canvas" :width="width" :height="height" @mousedown="onMouseDown"></canvas>
     <button @click="toggleYAxisLog">Toggle Log Scale</button>
   </div>
 </template>
@@ -25,8 +24,8 @@ interface Props {
 
 const props = defineProps<Props>()
 const canvas = ref<HTMLCanvasElement | null>(null)
-const width = props.width ?? 800
-const height = props.height ?? 600
+const width = props.width ?? 800 / 4
+const height = props.height ?? 600 / 4
 const cornerToCornerGraph = props.cornerToCornerGraph ?? true
 
 const state = reactive<{
