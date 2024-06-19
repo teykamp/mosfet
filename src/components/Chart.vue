@@ -192,8 +192,10 @@ const getClosestPointIndex = (mouseX: number) => {
   return closestIndex
 }
 
-const onMouseDown = (event: MouseEvent) => {
+const onMouseDown = () => {
   state.dragging = true
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)  
 }
 
 const onMouseMove = (event: MouseEvent) => {
@@ -205,6 +207,8 @@ const onMouseMove = (event: MouseEvent) => {
 
 const onMouseUp = () => {
   state.dragging = false
+  document.removeEventListener('mousemove', onMouseMove)
+  document.removeEventListener('mouseup', onMouseUp)
 }
 
 onMounted(drawLineChart)

@@ -1,5 +1,5 @@
 <template>
-  <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag" @mousemove="drag" @mouseup="mouseUp"></canvas>
+  <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
   <!-- {{ ((Math.atan2(mosfets[0].vgs.location.x, mosfets[0].vgs.location.y) * 180 / Math.PI - 29) / 32* 5).toFixed(0) }} -->
 </template>
 
@@ -70,22 +70,6 @@ mosfets.push({
   },
 })
 
-const getMousePos = (event: MouseEvent) => {
-  if (!canvas.value) return { mouseX: 0, mouseY: 0 }
-  const rect = canvas.value.getBoundingClientRect()
-  const mouseX = event.clientX - rect.left
-  const mouseY = event.clientY - rect.top
-  return { mouseX, mouseY }
-}
-
-const checkDrag = (event: MouseEvent) => {
-  const { mouseX, mouseY } = getMousePos(event)
-  mosfets.forEach(mosfet => {
-    if (((mouseX - mosfet.vgs.location.x) ** 2 + (mouseY - mosfet.vgs.location.y) ** 2) <= 10 ** 2) mosfet.vgs.dragging = true
-    if (((mouseX - mosfet.vds.location.x) ** 2 + (mouseY - mosfet.vds.location.y) ** 2) <= 10 ** 2) mosfet.vds.dragging = true
-  })
-}
-
 const normalizeAngle = (angle: number) => {
   while (angle < 0) {
     angle += 2 * Math.PI
@@ -94,6 +78,25 @@ const normalizeAngle = (angle: number) => {
     angle -= 2 * Math.PI
   }
   return angle
+}
+
+const getMousePos = (event: MouseEvent) => {
+  if (!canvas.value) return { mouseX: 0, mouseY: 0 }
+  const rect = canvas.value.getBoundingClientRect()
+  const mouseX = event.clientX - rect.left
+  const mouseY = event.clientY - rect.top
+  return { mouseX, mouseY }
+}
+
+
+const checkDrag = (event: MouseEvent) => {
+  const { mouseX, mouseY } = getMousePos(event)
+  mosfets.forEach(mosfet => {
+    if (((mouseX - mosfet.vgs.location.x) ** 2 + (mouseY - mosfet.vgs.location.y) ** 2) <= 10 ** 2) mosfet.vgs.dragging = true
+    if (((mouseX - mosfet.vds.location.x) ** 2 + (mouseY - mosfet.vds.location.y) ** 2) <= 10 ** 2) mosfet.vds.dragging = true
+  })
+  document.addEventListener('mousemove', drag)
+  document.addEventListener('mouseup', mouseUp)
 }
 
 const drag = (event: MouseEvent) => {
@@ -127,6 +130,9 @@ const mouseUp = () => {
     mosfet.vgs.dragging = false
     mosfet.vds.dragging = false
   })
+
+  document.removeEventListener('mousemove', drag)
+  document.removeEventListener('mouseup', mouseUp)
 }
 
 const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, thickness: number = 5, fill: boolean = true) => {
