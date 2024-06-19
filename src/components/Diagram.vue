@@ -1,24 +1,40 @@
 <template>
-  <canvas ref="canvas" width="500" height="500"></canvas>
+  <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag" @mousemove="drag" @mouseup="mouseUp"></canvas>
+  {{ ((Math.atan2(mosfets[0].vgs.location.x, mosfets[0].vgs.location.y) * 180 / Math.PI - 29) / 32* 5).toFixed(0) }}
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
+import type { Point } from '../types'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
 
-const mosfets = ref<{
+type Mosfet = {
   originX: number,
   originY: number,
   gradientSize: number,
-  dots: {
-    x: number,
-    y: number
-  }[]
-}[]>([])
+  dots: Point[]
+  vgs: {
+    dragging: boolean
+    location: {
+      x: number,
+      y: number,
+    }
+  },
+  vds: {
+    dragging: boolean
+    location: {
+      x: number,
+      y: number,
+    }
+  },
+}
 
-mosfets.value.push({
+
+const mosfets = reactive<Mosfet[]>([])
+
+mosfets.push({
   originX: 100,
   originY: 100,
   gradientSize: 100,
@@ -29,8 +45,63 @@ mosfets.value.push({
     { x: 90, y: 100 },
     { x: 90, y: 120 },
     { x: 90, y: 140 },
-  ]
+  ],
+  vgs: {
+    dragging: false,
+    location: {
+      x: Math.cos(Math.PI / 2) * 80 + 100,
+      y: Math.sin(Math.PI / 2) * 80 + 100,
+    }
+  },
+  vds: {
+    dragging: false,
+    location: {
+      x: Math.cos((5 - 0 / 5) * 120 * (Math.PI / 180)) * 90 + 100,
+      y: Math.sin((5 - 0 / 5) * 120 * (Math.PI / 180)) * 90 + 100,
+    }
+  },
 })
+
+const getMousePos = (event: MouseEvent) => {
+  if (!canvas.value) return { mouseX: 0, mouseY: 0 }
+  const rect = canvas.value.getBoundingClientRect()
+  const mouseX = event.clientX - rect.left
+  const mouseY = event.clientY - rect.top
+  return { mouseX, mouseY }
+}
+
+const checkDrag = (event: MouseEvent) => {
+  const { mouseX, mouseY } = getMousePos(event)
+  mosfets.forEach(mosfet => {
+    const dx = mouseX - mosfet.vgs.location.x
+    const dy = mouseY - mosfet.vgs.location.y
+    if ((dx * dx + dy * dy) <= 10 ** 2) mosfet.vgs.dragging = true
+  })
+}
+
+const drag = (event: MouseEvent) => {
+  const { mouseX, mouseY } = getMousePos(event)
+
+  mosfets.forEach(mosfet => {
+    if (mosfet.vgs.dragging) {
+      const mouseAngle = Math.max(Math.min(Math.atan2(mouseY - mosfet.originY, mouseX - mosfet.originX), Math.PI / 2), 0)
+
+      const radius = 80
+      mosfet.vgs.location = {
+        x: Math.max(Math.cos(mouseAngle)) * radius + mosfet.originX,
+        y: Math.max(Math.sin(mouseAngle)) * radius + mosfet.originY
+      }
+    }
+  })
+
+}
+
+const mouseUp = () => {
+  mosfets.forEach(mosfet => {
+    mosfet.vgs.dragging = false
+    mosfet.vds.dragging = false
+  })
+}
 
 const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, thickness: number = 5, fill: boolean = true) => {
   const width = Math.abs(endX - startX)
@@ -49,8 +120,38 @@ const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number,
   }
 }
 
-const drawMosfet = (ctx: CanvasRenderingContext2D ,originX: number, originY: number, gradientSize: number = 100, dots: {x: number, y: number}[]) => {
+const drawAngleSlider = (ctx: CanvasRenderingContext2D, state: Pick<Mosfet, 'vgs'>['vgs'], angle: number, radius: number, centerX: number, centerY: number) => {
+  const points: Point[] = []
+  const increment = angle / (angle < 360 ? angle : 360) // ensures we handle full circles correctly
+
+  for (let i = 0; i <= angle; i += increment) {
+    const radian = i * (Math.PI / 180)
+    const x = centerX + radius * Math.cos(radian)
+    const y = centerY + radius * Math.sin(radian)
+    points.push({ x, y });
+  }
+  ctx.strokeStyle = 'orange'
+  ctx.lineWidth = 5
+  ctx.beginPath()
+  points.forEach((point, index) => {
+    if (index === 0) {
+      ctx.moveTo(point.x, point.y)
+    } else {
+      ctx.lineTo(point.x, point.y)
+    }
+  })
+  ctx.stroke()
+
+  ctx.beginPath()
+  ctx.arc(state.location.x, state.location.y, 5, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgb(255, 0, 0)'
+  ctx.fill()
+}
+
+
+const drawMosfet = (ctx: CanvasRenderingContext2D, originX: number, originY: number, gradientSize: number = 100, dots: {x: number, y: number}[]) => {
   ctx.fillStyle = 'lightblue'
+
   drawLine(ctx, originX, originY + 17, originX, originY + 60)
   drawLine(ctx, originX, originY + 20, originX + 30, originY + 20)
   drawLine(ctx, originX, originY - 17, originX, originY - 60)
@@ -83,17 +184,21 @@ const drawMosfet = (ctx: CanvasRenderingContext2D ,originX: number, originY: num
     ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
     ctx.fill()
   })
+
 }
 
 const draw = () => {
   if (!ctx.value || !canvas.value) return
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
-  mosfets.value.forEach(mosfet => drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots))
+  mosfets.forEach(mosfet => {
+    drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
+    drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs, 90, 80, mosfet.originX, mosfet.originY)
+  })
 }
 
 const animate = () => {
-  mosfets.value.forEach(mosfet => mosfet.dots.forEach(dot => {
+  mosfets.forEach(mosfet => mosfet.dots.forEach(dot => {
     dot.y += 1
     if (dot.y > mosfet.originY + 60) {
       dot.y = mosfet.originY - 60

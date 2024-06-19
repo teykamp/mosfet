@@ -10,11 +10,7 @@
 import { ref, onMounted, watch, reactive, computed } from 'vue'
 import { getTickLabelList, getTickLabelListLog } from '../functions/getTickLabelList'
 import { toSiPrefix } from '../functions/toSiPrefix'
-
-interface Point {
-  x: number
-  y: number
-}
+import type { Point } from '../types'
 
 interface Props {
   points: Point[]
