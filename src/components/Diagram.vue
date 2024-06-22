@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import type { Point } from '../types'
+import { Point, Visibility, RelativeDirection } from '../types'
 import { unit } from 'mathjs'
 import { ekvNmos } from '../functions/ekvModel'
 import Chart from '../components/Chart.vue'
@@ -31,13 +31,6 @@ const generateCurrent = () => {
   return currents
 }
 
-enum RelativeDirection {
-  Right,
-  Left,
-  Up,
-  Down,
-}
-
 type AngleSlider = {
     dragging: boolean
     location: {
@@ -57,6 +50,7 @@ type AngleSlider = {
     minValue: number,
     maxValue: number,
     value: number,
+    visibility: Visibility
     data: Point[],
 }
 
@@ -69,7 +63,7 @@ type Mosfet = {
   vds: AngleSlider,
 }
 
-const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string): AngleSlider => {
+const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility): AngleSlider => {
   return {
     dragging: false,
     location: {
@@ -86,6 +80,7 @@ const makeAngleSlider = (centerX: number, centerY: number, radius: number, start
     value: minValue,
     displayText: name,
     displayTextLocation: CCW ? RelativeDirection.Right : RelativeDirection.Left,
+    visibility: visibility,
     data: generateCurrent()
   }
 }
@@ -103,28 +98,14 @@ const makeMosfet = (originX: number, originY: number): Mosfet => {
       { x: originX - 10, y: originY + 20 },
       { x: originX - 10, y: originY + 40 },
     ],
-    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true, 0, 3, 'Vgs'),
-    vds: makeAngleSlider(originX + 30, originY, 75, toRadians(140), toRadians(-140), false, 0, 5, 'Vds'),
+    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true, 0, 3, 'Vgs', Visibility.Visible),
+    vds: makeAngleSlider(originX + 30, originY, 75, toRadians(140), toRadians(-140), false, 0, 5, 'Vds', Visibility.Locked),
   }
 }
 
 const mosfets = reactive<Mosfet[]>([])
 
 mosfets.push(makeMosfet(100, 100), makeMosfet(400, 400))
-
-const generateSaturationLevel = (currents: Point[]) => {
-  const saturationLevels: Point[] = []
-  const vds = linspace(0, 1, 1000);
-  const saturationLevel = vds.map(n => ekvNmos(unit(1, 'V'), unit(0, 'V'), unit(n, 'V')).saturationLevel * 100) // to percent
-  for (let i = 0; i < vds.length; i++) { // used to be current.length from above
-    saturationLevels.push({
-      x: currents[i].x,
-      y: saturationLevel[i]
-    })
-  }
-
-  return saturationLevels
-}
 
 const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
   const angleSpan = modulo(CCW ? startAngle - endAngle : endAngle - startAngle, 2 * Math.PI)
@@ -170,15 +151,17 @@ const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   mosfets.forEach(mosfet => {
     [mosfet.vds, mosfet.vgs].forEach(slider => {
-      const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
-      const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
-      const sliderValue = normalizeAngle(mouseTheta, slider.startAngle, slider.endAngle, slider.CCW).value
-      if (
-        (((mouseX - slider.location.x) ** 2 + (mouseY - slider.location.y) ** 2) <= 10 ** 2) || // mouse hovering over slider knob
-        (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
-      ) {
-        slider.dragging = true
-        drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging)
+      if (slider.visibility == Visibility.Visible) {
+          const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
+          const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
+          const sliderValue = normalizeAngle(mouseTheta, slider.startAngle, slider.endAngle, slider.CCW).value
+        if (
+          (((mouseX - slider.location.x) ** 2 + (mouseY - slider.location.y) ** 2) <= 10 ** 2) || // mouse hovering over slider knob
+          (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
+        ) {
+          slider.dragging = true
+          drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging)
+        }
       }
     })
   })
@@ -238,8 +221,12 @@ const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number,
 }
 
 const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: Pick<Mosfet, 'vgs'>['vgs'] | Pick<Mosfet, 'vds'>['vds']) => {
+  if (slider.visibility == Visibility.Hidden) {
+    return
+  }
+
   // draw slider path
-  ctx.strokeStyle = 'orange'
+  ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
   ctx.lineWidth = 5
   ctx.beginPath()
   ctx.arc(slider.center.x, slider.center.y, slider.radius, slider.startAngle, slider.endAngle, slider.CCW)
@@ -261,10 +248,10 @@ const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: Pick<Mosfet, 'vg
   // draw draggable slider circle
   ctx.beginPath()
   ctx.arc(slider.location.x, slider.location.y, 5, 0, Math.PI * 2)
-  ctx.fillStyle = 'rgb(255, 0, 0)'
+  ctx.fillStyle = slider.visibility == Visibility.Visible ? 'rgb(255, 0, 0)' : 'lightgrey'
   ctx.fill()
 
-  ctx.fillStyle = '#000'
+  ctx.fillStyle = slider.visibility == Visibility.Visible ? '#000' : 'lightgrey'
   ctx.font = '16px Arial'
   if (slider.displayTextLocation == RelativeDirection.Right) {
     ctx.fillText(slider.displayText, slider.location.x + 10, slider.location.y)

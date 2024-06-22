@@ -1,4 +1,6 @@
 import { add, subtract, multiply, divide, pow, exp, log, unit, type Unit } from 'mathjs'
+import { linspace } from '../functions/extraMath'
+import { Point } from '../types'
 
 export const ekvNmos = (Vg: Unit, Vs: Unit = unit(0, 'V'), Vd: Unit = unit(5, 'V'), Vb: Unit = unit(0, 'V')) => {
   const Vgb = subtract(Vg, Vb)
@@ -50,4 +52,18 @@ export const ekvPmos = (Vg: Unit, Vs: Unit = unit(5, 'V'), Vd: Unit = unit(0, 'V
     I,
     saturationLevel
   }
+}
+
+export const generateSaturationLevel = (currents: Point[]) => {
+  const saturationLevels: Point[] = []
+  const vds = linspace(0, 1, 1000);
+  const saturationLevel = vds.map(n => ekvNmos(unit(1, 'V'), unit(0, 'V'), unit(n, 'V')).saturationLevel * 100) // to percent
+  for (let i = 0; i < vds.length; i++) { // used to be current.length from above
+    saturationLevels.push({
+      x: currents[i].x,
+      y: saturationLevel[i]
+    })
+  }
+
+  return saturationLevels
 }
