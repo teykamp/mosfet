@@ -1,7 +1,7 @@
 <template>
   <Chart :points="mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
     v-bind:cornerToCornerGraph="true" />
-  <Chart :points="mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% of Max. Current" xUnit="V" yUnit="%"
+  <Chart :points="mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
     v-bind:cornerToCornerGraph="true" />
   <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
 </template>
@@ -13,6 +13,7 @@ import { unit } from 'mathjs'
 import { ekvNmos } from '../functions/ekvModel'
 import Chart from '../components/Chart.vue'
 import { toRadians, linspace, modulo } from '../functions/extraMath'
+import { toSiPrefix } from '../functions/toSiPrefix'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -30,6 +31,13 @@ const generateCurrent = () => {
   return currents
 }
 
+enum RelativeDirection {
+  Right,
+  Left,
+  Up,
+  Down,
+}
+
 type AngleSlider = {
     dragging: boolean
     location: {
@@ -44,7 +52,12 @@ type AngleSlider = {
     startAngle: number,
     endAngle: number,
     CCW: boolean,
-    data: Point[]
+    displayText: string,
+    displayTextLocation: RelativeDirection,
+    minValue: number,
+    maxValue: number,
+    value: number,
+    data: Point[],
 }
 
 type Mosfet = {
@@ -56,7 +69,7 @@ type Mosfet = {
   vds: AngleSlider,
 }
 
-const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean): AngleSlider => {
+const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string): AngleSlider => {
   return {
     dragging: false,
     location: {
@@ -68,6 +81,11 @@ const makeAngleSlider = (centerX: number, centerY: number, radius: number, start
     startAngle: startAngle,
     endAngle: endAngle,
     CCW: CCW,
+    minValue: minValue,
+    maxValue: maxValue,
+    value: minValue,
+    displayText: name,
+    displayTextLocation: CCW ? RelativeDirection.Right : RelativeDirection.Left,
     data: generateCurrent()
   }
 }
@@ -85,8 +103,8 @@ const makeMosfet = (originX: number, originY: number): Mosfet => {
       { x: originX - 10, y: originY + 20 },
       { x: originX - 10, y: originY + 40 },
     ],
-    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true),
-    vds: makeAngleSlider(originX + 30, originY, 75, toRadians(140), toRadians(-140), false),
+    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true, 0, 3, 'Vgs'),
+    vds: makeAngleSlider(originX + 30, originY, 75, toRadians(140), toRadians(-140), false, 0, 5, 'Vds'),
   }
 }
 
@@ -170,17 +188,18 @@ const checkDrag = (event: MouseEvent) => {
 
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-  const radius = 80
 
   mosfets.forEach(mosfet => {
     [mosfet.vgs, mosfet.vds].forEach(slider => {
       if (slider.dragging) {
-        const mouseAngle = normalizeAngle(
+        const result = normalizeAngle(
           Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x),
           slider.startAngle,
           slider.endAngle,
           slider.CCW
-        ).returnAngle
+        )
+        const mouseAngle = result.returnAngle
+        slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
 
         slider.location = {
           x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
@@ -218,32 +237,44 @@ const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number,
   }
 }
 
-const drawAngleSlider = (ctx: CanvasRenderingContext2D, state: Pick<Mosfet, 'vgs'>['vgs'] | Pick<Mosfet, 'vds'>['vds']) => {
+const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: Pick<Mosfet, 'vgs'>['vgs'] | Pick<Mosfet, 'vds'>['vds']) => {
   // draw slider path
   ctx.strokeStyle = 'orange'
   ctx.lineWidth = 5
   ctx.beginPath()
-  ctx.arc(state.center.x, state.center.y, state.radius, state.startAngle, state.endAngle, state.CCW)
+  ctx.arc(slider.center.x, slider.center.y, slider.radius, slider.startAngle, slider.endAngle, slider.CCW)
 
   // draw tail flourish on slider path
   const tailSize = 7
-  ctx.moveTo(state.center.x + (state.radius + tailSize) * Math.cos(state.startAngle), state.center.y + (state.radius + tailSize) * Math.sin(state.startAngle))
-  ctx.lineTo(state.center.x + (state.radius - tailSize) * Math.cos(state.startAngle), state.center.y + (state.radius - tailSize) * Math.sin(state.startAngle))
+  ctx.moveTo(slider.center.x + (slider.radius + tailSize) * Math.cos(slider.startAngle), slider.center.y + (slider.radius + tailSize) * Math.sin(slider.startAngle))
+  ctx.lineTo(slider.center.x + (slider.radius - tailSize) * Math.cos(slider.startAngle), slider.center.y + (slider.radius - tailSize) * Math.sin(slider.startAngle))
 
   // draw head flourish on slider path
   const headSize = 7
-  const headDirection = state.CCW ? 1 : -1
+  const headDirection = slider.CCW ? 1 : -1
   const headAngle = headDirection * toRadians(5)
-  ctx.moveTo(state.center.x + (state.radius + headSize) * Math.cos(state.endAngle + headAngle), state.center.y + (state.radius + headSize) * Math.sin(state.endAngle + headAngle))
-  ctx.lineTo(state.center.x + (state.radius           ) * Math.cos(state.endAngle            ), state.center.y + (state.radius           ) * Math.sin(state.endAngle            ))
-  ctx.lineTo(state.center.x + (state.radius - headSize) * Math.cos(state.endAngle + headAngle), state.center.y + (state.radius - headSize) * Math.sin(state.endAngle + headAngle))
+  ctx.moveTo(slider.center.x + (slider.radius + headSize) * Math.cos(slider.endAngle + headAngle), slider.center.y + (slider.radius + headSize) * Math.sin(slider.endAngle + headAngle))
+  ctx.lineTo(slider.center.x + (slider.radius           ) * Math.cos(slider.endAngle            ), slider.center.y + (slider.radius           ) * Math.sin(slider.endAngle            ))
+  ctx.lineTo(slider.center.x + (slider.radius - headSize) * Math.cos(slider.endAngle + headAngle), slider.center.y + (slider.radius - headSize) * Math.sin(slider.endAngle + headAngle))
   ctx.stroke()
 
   // draw draggable slider circle
   ctx.beginPath()
-  ctx.arc(state.location.x, state.location.y, 5, 0, Math.PI * 2)
+  ctx.arc(slider.location.x, slider.location.y, 5, 0, Math.PI * 2)
   ctx.fillStyle = 'rgb(255, 0, 0)'
   ctx.fill()
+
+  ctx.fillStyle = '#000'
+  ctx.font = '16px Arial'
+  if (slider.displayTextLocation == RelativeDirection.Right) {
+    ctx.fillText(slider.displayText, slider.location.x + 10, slider.location.y)
+    ctx.font = '14px Arial'
+    ctx.fillText(toSiPrefix(slider.value, 'V', 3), slider.location.x + 10, slider.location.y + 15)
+  } else {
+    ctx.fillText(slider.displayText, slider.location.x - 40, slider.location.y)
+    ctx.font = '14px Arial'
+    ctx.fillText(toSiPrefix(slider.value, 'V', 3), slider.location.x - 40, slider.location.y + 15)
+  }
 }
 
 
