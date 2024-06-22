@@ -1,7 +1,7 @@
 <template>
   <div>
     <Chart :points="currents" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A" v-bind:cornerToCornerGraph="true"/>
-    <Chart :points="saturationLevels" xAxisLabel="Vds" yAxisLabel="% of Max. Current" xUnit="V" yUnit="%" v-bind:cornerToCornerGraph="true"/>
+    <Chart :points="saturationLevels" xAxisLabel="Vds" yAxisLabel="% Saturation Current" xUnit="V" yUnit="%" v-bind:cornerToCornerGraph="true"/>
     <Diagram />
   </div>
 </template>

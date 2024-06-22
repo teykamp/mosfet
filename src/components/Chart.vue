@@ -25,7 +25,7 @@ interface Props {
 const props = defineProps<Props>()
 const canvas = ref<HTMLCanvasElement | null>(null)
 const width = props.width ?? 800 / 4
-const height = props.height ?? 600 / 4
+const height = props.height ?? 600 / 6
 const cornerToCornerGraph = props.cornerToCornerGraph ?? true
 
 const state = reactive<{
@@ -39,7 +39,10 @@ const state = reactive<{
   dragging: false,
   currentPointIndex: 0,
 })
-const padding = 50
+const paddingL = 40
+const paddingR = 40
+const paddingT = 25
+const paddingB = 30
 
 const xValues = ref<number[]>([])
 const yValues = ref<number[]>([])
@@ -73,8 +76,14 @@ const calculateValues = () => {
   yMin.value = cornerToCornerGraph ? Math.min(...yValues.value) : Math.min(...yTicks.value)
   yMax.value = cornerToCornerGraph ? Math.max(...yValues.value) : Math.max(...yTicks.value)
 
-  xScale.value = (width - padding * 2) / (xMax.value - xMin.value)
-  yScale.value = (height - padding * 2) / (yMax.value - yMin.value)
+  if (cornerToCornerGraph) {
+    const margin = 0
+    xTicks.value = xTicks.value.filter((x) => (xMin.value - Math.abs(xMin.value) * margin <= x) && (x <= xMax.value + Math.abs(xMax.value) * margin))
+    yTicks.value = yTicks.value.filter((y) => (yMin.value - Math.abs(yMin.value) * margin <= y) && (y <= yMax.value + Math.abs(yMax.value) * margin))
+  }
+
+  xScale.value = (width - paddingL - paddingR) / (xMax.value - xMin.value)
+  yScale.value = (height - paddingT - paddingB) / (yMax.value - yMin.value)
 }
 
 
@@ -95,23 +104,20 @@ const drawLineChart = () => {
   // Draw axis
   ctx.strokeStyle = '#000'
   ctx.beginPath()
-  ctx.moveTo(padding, height - padding)
-  ctx.lineTo(width - padding, height - padding) // X axis
-  ctx.moveTo(padding, height - padding)
-  ctx.lineTo(padding, padding) // Y axis
+  ctx.moveTo(paddingL, height - paddingB)
+  ctx.lineTo(width - paddingR, height - paddingB) // X axis
+  ctx.moveTo(paddingL, height - paddingB)
+  ctx.lineTo(paddingL, paddingT) // Y axis
   ctx.stroke()
 
   // Draw axis labels
   ctx.font = '16px Arial'
-  ctx.fillText(props.xAxisLabel, width / 2, height - 10)
-  ctx.save()
-  ctx.rotate(-Math.PI / 2)
-  ctx.fillText(props.yAxisLabel, -height / 2, 20)
-  ctx.restore()
+  ctx.fillText(props.xAxisLabel, width - paddingL + 5, height - paddingB + 5)
+  ctx.fillText(props.yAxisLabel, paddingL / 2, 20)
 
   // Draw units
-  ctx.fillText(props.xUnit, width - padding + 10, height - padding)
-  ctx.fillText(props.yUnit, padding - 30, padding - 10)
+  // ctx.fillText(props.xUnit, width - paddingL + 10, height - paddingB)
+  // ctx.fillText(props.yUnit, paddingL - 30, paddingT - 10)
 
   // Calculate and draw ticks
   ctx.strokeStyle = '#ccc'
@@ -120,31 +126,31 @@ const drawLineChart = () => {
 
 
   xTicks.value.forEach((value: number) => {
-    const x = padding + (value - xMin.value) * xScale.value
+    const x = paddingL + (value - xMin.value) * xScale.value
     const displayValue = toSiPrefix(state.xScaleType === 'log' ? (10 ** value) : value, props.xUnit)
     ctx.beginPath()
-    ctx.moveTo(x, height - padding)
-    ctx.lineTo(x, height - padding + 5)
+    ctx.moveTo(x, height - paddingB)
+    ctx.lineTo(x, height - paddingB + 5)
     ctx.stroke()
-    ctx.fillText(displayValue, x - 10, height - padding + 20)
+    ctx.fillText(displayValue, x - 10, height - paddingB + 20)
   })
 
   yTicks.value.forEach((value: number) => {
-    const y = height - padding - (value - yMin.value) * yScale.value
+    const y = height - paddingB - (value - yMin.value) * yScale.value
     const displayValue = toSiPrefix(state.yScaleType === 'log' ? (10 ** value) : value, props.yUnit)
     ctx.beginPath()
-    ctx.moveTo(padding, y)
-    ctx.lineTo(padding - 5, y)
+    ctx.moveTo(paddingL, y)
+    ctx.lineTo(paddingL - 5, y)
     ctx.stroke()
-    ctx.fillText(displayValue, padding - 35, y + 5)
+    ctx.fillText(displayValue, paddingL - 35, y + 5, 30) // last parameter specifies a maximum width of the text
   })
 
   // Draw line
   ctx.strokeStyle = '#f00'
   ctx.beginPath()
   plottingValues.value.forEach((point: Point, index: number) => {
-    const x = padding + (point.x - xMin.value) * xScale.value
-    const y = height - padding - (point.y - yMin.value) * yScale.value
+    const x = paddingL + (point.x - xMin.value) * xScale.value
+    const y = height - paddingB - (point.y - yMin.value) * yScale.value
     if (index === 0) {
       ctx.moveTo(x, y)
     } else {
@@ -156,13 +162,13 @@ const drawLineChart = () => {
   // Draw draggable circle
   const dragPoint = plottingValues.value[state.currentPointIndex]
   if (dragPoint) {
-    const dragX = padding + (dragPoint.x - xMin.value) * xScale.value
-    const dragY = height - padding - (dragPoint.y - yMin.value) * yScale.value
+    const dragX = paddingL + (dragPoint.x - xMin.value) * xScale.value
+    const dragY = height - paddingB - (dragPoint.y - yMin.value) * yScale.value
     ctx.beginPath()
     ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI)
     ctx.fill()
     ctx.moveTo(dragX, dragY)
-    ctx.lineTo(dragX, height - padding)
+    ctx.lineTo(dragX, height - paddingB)
     ctx.stroke()
     ctx.fillText(toSiPrefix(state.yScaleType === 'log' ? 10 ** dragPoint.y : dragPoint.y, props.yUnit), dragX, dragY - 10)
   }
@@ -181,7 +187,7 @@ const getClosestPointIndex = (mouseX: number) => {
   let closestDistance = Infinity
 
   plottingValues.value.forEach((point: Point, index: number) => {
-    const pointX = padding + (point.x - xMin.value) * xScale.value
+    const pointX = paddingL + (point.x - xMin.value) * xScale.value
     const distance = Math.abs(pointX - mouseX)
     if (distance < closestDistance) {
       closestDistance = distance
@@ -194,7 +200,7 @@ const getClosestPointIndex = (mouseX: number) => {
 const onMouseDown = () => {
   state.dragging = true
   document.addEventListener('mousemove', onMouseMove)
-  document.addEventListener('mouseup', onMouseUp)  
+  document.addEventListener('mouseup', onMouseUp)
 }
 
 const onMouseMove = (event: MouseEvent) => {

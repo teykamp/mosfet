@@ -23,7 +23,11 @@ export const getTickLabelList = (lowerBound: number, upperBound: number) => {
     const nTicks = Math.floor(difference / tickSpacing)
 
     // adjust the tick spacing up or down to get within the desired range of ticks
-    if (nTicks >= 6) {
+    if (nTicks >= 5) {
+        // increasing tick spacing (removing ticks)
+        tickSpacing = tickSpacing * 5
+    }
+    else if (nTicks >= 4) {
         // increasing tick spacing (removing ticks)
         tickSpacing = tickSpacing * 2
     }
@@ -46,18 +50,18 @@ export const getTickLabelList = (lowerBound: number, upperBound: number) => {
 
 const unconvertLog = (n: number) => {
     if (Math.abs(Math.round(n) - n) < 0.1) {
-        return 10 ** Math.round(n)
+        return 10 ** Math.round(3 * n)
     }
     else {
-        return 5 * 10 ** Math.floor(n)
+        return 5 * 10 ** Math.floor(3 * n)
     }
 }
 
 export const getTickLabelListLog = (lowerBound: number, upperBound: number) => {
     if (lowerBound <= 0) console.error(`Lower bound, ${lowerBound} <= 0. Log will return NaN`)
-    
-    const logLowerBound = Math.log10(lowerBound)
-    const logUpperBound = Math.log10(upperBound)
+
+    const logLowerBound = Math.log10(lowerBound) / 3
+    const logUpperBound = Math.log10(upperBound) / 3
 
     const difference = logUpperBound - logLowerBound
     if (difference < 1) {
