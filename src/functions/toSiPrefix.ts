@@ -29,7 +29,10 @@ export const toSiPrefix = (n: number, unit: string, sigFigs: number = 3) => {
     '-30': 'q',
     }
     const exponent = Math.floor(Math.log10(magnitude) / 3) * 3
-    const prefix = prefixes[exponent.toString()]
+    let prefix = prefixes[exponent.toString()]
+    if (prefix == undefined) {
+        prefix = 'e' + exponent.toString() + ' '
+    }
     const mantissa = parseFloat((magnitude / (10 ** exponent)).toPrecision(sigFigs))
     return sign + mantissa + prefix + unit
 }
