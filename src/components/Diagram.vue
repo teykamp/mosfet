@@ -1,22 +1,17 @@
 <template>
+  <Chart :points="mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
+    v-bind:cornerToCornerGraph="true" />
+  <Chart :points="mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% of Max. Current" xUnit="V" yUnit="%"
+    v-bind:cornerToCornerGraph="true" />
   <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
-  <!-- {{ ((Math.atan2(mosfets[0].vgs.location.x, mosfets[0].vgs.location.y) * 180 / Math.PI - 29) / 32* 5).toFixed(0) }} -->
-  <br>
-  StartAngle {{ mosfets[0].vgs.startAngle }}
-  <br>
-  vgs.location ({{ mosfets[0].vgs.location.x - mosfets[0].originX }}, {{ mosfets[0].vgs.location.y - mosfets[0].originY
-  }})
-  <br>
-  Angle {{ Math.atan2(mosfets[0].vgs.location.y - mosfets[0].originY, mosfets[0].vgs.location.x - mosfets[0].originX) *
-  180 / Math.PI }}
-  <!-- <br>
-  N Angle {{ normalizeAngle(Math.atan2(mosfets[0].vds.location.y - mosfets[0].originY, mosfets[0].vds.location.x -
-    mosfets[0].originX), mosfets[0].vds.startAngle, mosfets[0].vds.angle).returnAngle * 180 / Math.PI }} -->
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import type { Point } from '../types'
+import { unit } from 'mathjs'
+import { ekvNmos } from '../functions/ekvModel'
+import Chart from '../components/Chart.vue'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -34,6 +29,7 @@ type Mosfet = {
     },
     startAngle: number,
     angle: number,
+    data: Point[]
   },
   vds: {
     dragging: boolean
@@ -43,7 +39,53 @@ type Mosfet = {
     },
     startAngle: number,
     angle: number,
+    data: Point[]
   },
+}
+
+function linspace(start: number, end: number, num: number): number[] {
+  if (num <= 0) {
+    throw new Error("num must be a positive integer");
+  }
+  if (num === 1) {
+    return [start];
+  }
+
+  const step = (end - start) / (num - 1);
+  const result: number[] = [];
+
+  for (let i = 0; i < num; i++) {
+    result.push(start + step * i);
+  }
+
+  return result;
+}
+
+const generateCurrent = () => {
+  const currents: Point[] = []
+  const vgs = linspace(0, 1, 1000);
+  const current = vgs.map(n => ekvNmos(unit(n, 'V'), unit(0, 'V')).I)
+  for (let i = 0; i < current.length; i++) {
+    currents.push({
+      x: vgs[i],
+      y: current[i].toNumber('A')
+    })
+  }
+  return currents
+}
+
+const generateSaturationLevel = (currents: Point[]) => {
+  const saturationLevels: Point[] = []
+  const vds = linspace(0, 1, 1000);
+  const saturationLevel = vds.map(n => ekvNmos(unit(1, 'V'), unit(0, 'V'), unit(n, 'V')).saturationLevel * 100) // to percent
+  for (let i = 0; i < vds.length; i++) { // used to be current.length from above
+    saturationLevels.push({
+      x: currents[i].x,
+      y: saturationLevel[i]
+    })
+  }
+
+  return saturationLevels
 }
 
 
@@ -69,6 +111,7 @@ mosfets.push({
     },
     startAngle: 5 * Math.PI / 180,
     angle: 80 * Math.PI / 180,
+    data: generateCurrent()
   },
   vds: {
     dragging: false,
@@ -78,7 +121,41 @@ mosfets.push({
     },
     startAngle: 110 * Math.PI / 180,
     angle: 140 * Math.PI / 180,
+    data: generateSaturationLevel(generateCurrent())
   },
+},
+{
+  originX: 400,
+  originY: 400,
+  gradientSize: 100,
+  dots: [
+    { x: 390, y: 340 },
+    { x: 390, y: 360 },
+    { x: 390, y: 380 },
+    { x: 390, y: 400 },
+    { x: 390, y: 420 },
+    { x: 390, y: 440 },
+  ],
+  vgs: {
+    dragging: false,
+    location: {
+      x: Math.cos(85 * Math.PI / 180) * 80 + 400,
+      y: Math.sin(85 * Math.PI / 180) * 80 + 400,
+    },
+    startAngle: 5 * Math.PI / 180,
+    angle: 80 * Math.PI / 180,
+    data: generateCurrent()
+  },
+  vds: {
+    dragging: false,
+    location: {
+      x: Math.cos(110 * Math.PI / 180) * 80 + 400,
+      y: Math.sin(110 * Math.PI / 180) * 80 + 400,
+    },
+    startAngle: 110 * Math.PI / 180,
+    angle: 140 * Math.PI / 180,
+    data: generateSaturationLevel(generateCurrent())
+  }
 })
 
 const modulo = (a: number, b: number)  => {
