@@ -85,8 +85,8 @@ const makeMosfet = (originX: number, originY: number): Mosfet => {
       { x: originX - 10, y: originY + 20 },
       { x: originX - 10, y: originY + 40 },
     ],
-    vgs: makeAngleSlider(originX, originY, 80, toRadians(85), toRadians(5), true),
-    vds: makeAngleSlider(originX, originY, 80, toRadians(110), toRadians(-110), false),
+    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true),
+    vds: makeAngleSlider(originX + 30, originY, 75, toRadians(140), toRadians(-140), false),
   }
 }
 
@@ -156,8 +156,8 @@ const checkDrag = (event: MouseEvent) => {
       const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
       const sliderValue = normalizeAngle(mouseTheta, slider.startAngle, slider.endAngle, slider.CCW).value
       if (
-        (((mouseX - slider.location.x) ** 2 + (mouseY - slider.location.y) ** 2) <= 10 ** 2) ||
-        (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1))
+        (((mouseX - slider.location.x) ** 2 + (mouseY - slider.location.y) ** 2) <= 10 ** 2) || // mouse hovering over slider knob
+        (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
       ) {
         slider.dragging = true
         drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging)
@@ -173,35 +173,22 @@ const drag = (event: MouseEvent) => {
   const radius = 80
 
   mosfets.forEach(mosfet => {
-    if (mosfet.vgs.dragging) {
-      const mouseAngle = normalizeAngle(
-        Math.atan2(mouseY - mosfet.originY, mouseX - mosfet.originX),
-        mosfet.vgs.startAngle,
-        mosfet.vgs.endAngle,
-        mosfet.vgs.CCW
-      ).returnAngle
+    [mosfet.vgs, mosfet.vds].forEach(slider => {
+      if (slider.dragging) {
+        const mouseAngle = normalizeAngle(
+          Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x),
+          slider.startAngle,
+          slider.endAngle,
+          slider.CCW
+        ).returnAngle
 
-      mosfet.vgs.location = {
-        x: Math.cos(mouseAngle) * radius + mosfet.originX,
-        y: Math.sin(mouseAngle) * radius + mosfet.originY
+        slider.location = {
+          x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
+          y: Math.sin(mouseAngle) * slider.radius + slider.center.y
+        }
       }
-    }
-
-    else if (mosfet.vds.dragging) {
-      const mouseAngle = normalizeAngle(
-              Math.atan2(mouseY - mosfet.originY, mouseX - mosfet.originX),
-              mosfet.vds.startAngle,
-              mosfet.vds.endAngle,
-              mosfet.vds.CCW
-      ).returnAngle
-
-      mosfet.vds.location = {
-        x: Math.cos(mouseAngle) * radius + mosfet.originX,
-        y: Math.sin(mouseAngle) * radius + mosfet.originY
-      }
-    }
+    })
   })
-
 }
 
 const mouseUp = () => {
