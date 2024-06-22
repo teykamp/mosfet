@@ -237,6 +237,19 @@ const drawAngleSlider = (ctx: CanvasRenderingContext2D, state: Pick<Mosfet, 'vgs
   ctx.lineWidth = 5
   ctx.beginPath()
   ctx.arc(state.center.x, state.center.y, state.radius, state.startAngle, state.endAngle, state.CCW)
+
+  // draw tail flourish on slider path
+  const tailSize = 7
+  ctx.moveTo(state.center.x + (state.radius + tailSize) * Math.cos(state.startAngle), state.center.y + (state.radius + tailSize) * Math.sin(state.startAngle))
+  ctx.lineTo(state.center.x + (state.radius - tailSize) * Math.cos(state.startAngle), state.center.y + (state.radius - tailSize) * Math.sin(state.startAngle))
+
+  // draw head flourish on slider path
+  const headSize = 7
+  const headDirection = state.CCW ? 1 : -1
+  const headAngle = headDirection * toRadians(5)
+  ctx.moveTo(state.center.x + (state.radius + headSize) * Math.cos(state.endAngle + headAngle), state.center.y + (state.radius + headSize) * Math.sin(state.endAngle + headAngle))
+  ctx.lineTo(state.center.x + (state.radius           ) * Math.cos(state.endAngle            ), state.center.y + (state.radius           ) * Math.sin(state.endAngle            ))
+  ctx.lineTo(state.center.x + (state.radius - headSize) * Math.cos(state.endAngle + headAngle), state.center.y + (state.radius - headSize) * Math.sin(state.endAngle + headAngle))
   ctx.stroke()
 
   // draw draggable slider circle
