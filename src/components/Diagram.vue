@@ -27,13 +27,23 @@ type Mosfet = {
       x: number,
       y: number,
     },
+    radius: number,
+    center: {
+      x: number,
+      y: number,
+    },
     startAngle: number,
     angle: number,
     data: Point[]
   },
-  vds: {
+  vds: { // TODO: make this into an AngleSlider class
     dragging: boolean
     location: {
+      x: number,
+      y: number,
+    },
+    radius: number,
+    center: {
       x: number,
       y: number,
     },
@@ -109,6 +119,8 @@ mosfets.push({
       x: Math.cos(85 * Math.PI / 180) * 80 + 100,
       y: Math.sin(85 * Math.PI / 180) * 80 + 100,
     },
+    center: {x: 100, y: 100},
+    radius: 80,
     startAngle: 5 * Math.PI / 180,
     angle: 80 * Math.PI / 180,
     data: generateCurrent()
@@ -119,6 +131,8 @@ mosfets.push({
       x: Math.cos(110 * Math.PI / 180) * 80 + 100,
       y: Math.sin(110 * Math.PI / 180) * 80 + 100,
     },
+    center: {x: 100, y: 100},
+    radius: 80,
     startAngle: 110 * Math.PI / 180,
     angle: 140 * Math.PI / 180,
     data: generateSaturationLevel(generateCurrent())
@@ -142,6 +156,8 @@ mosfets.push({
       x: Math.cos(85 * Math.PI / 180) * 80 + 400,
       y: Math.sin(85 * Math.PI / 180) * 80 + 400,
     },
+    center: {x: 400, y: 400},
+    radius: 80,
     startAngle: 5 * Math.PI / 180,
     angle: 80 * Math.PI / 180,
     data: generateCurrent()
@@ -152,6 +168,8 @@ mosfets.push({
       x: Math.cos(110 * Math.PI / 180) * 80 + 400,
       y: Math.sin(110 * Math.PI / 180) * 80 + 400,
     },
+    center: {x: 400, y: 400},
+    radius: 80,
     startAngle: 110 * Math.PI / 180,
     angle: 140 * Math.PI / 180,
     data: generateSaturationLevel(generateCurrent())
@@ -165,15 +183,15 @@ const modulo = (a: number, b: number)  => {
 const normalizeAngle = (angle: number, startAngle: number, angleSpan: number) => {
   // subtract out the starting angle so what was once the starting angle is now considered zero.
   // mod by 2pi so that angles just to the left of the starting angle are considered to be +2pi;
-  // angles just to the right of the starting angle are considered close to zero; 
+  // angles just to the right of the starting angle are considered close to zero;
   // and angles about opposite from the starting angle are about +pi.
   const normalizedAngle = modulo(angle - startAngle, 2 * Math.PI)
-  
+
   // default case: the angle is in between the starting and ending angles.
   let returnAngle = angle
   // calculate the value of the slider as the fraction of the way between the start and end angles
   let value = normalizedAngle / angleSpan
-  
+
   // if the angle is outside the bounds of [0, angleSpan], then
   // check whether the angle is closer to the starting angle or closer to the ending angle
   if (normalizedAngle > Math.PI + angleSpan / 2) {
@@ -184,9 +202,9 @@ const normalizeAngle = (angle: number, startAngle: number, angleSpan: number) =>
     returnAngle = startAngle + angleSpan
     value = 1
   }
-  
+
   return {
-    returnAngle, 
+    returnAngle,
     value
   }
 }
@@ -203,8 +221,18 @@ const getMousePos = (event: MouseEvent) => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   mosfets.forEach(mosfet => {
-    if (((mouseX - mosfet.vgs.location.x) ** 2 + (mouseY - mosfet.vgs.location.y) ** 2) <= 10 ** 2) mosfet.vgs.dragging = true
-    if (((mouseX - mosfet.vds.location.x) ** 2 + (mouseY - mosfet.vds.location.y) ** 2) <= 10 ** 2) mosfet.vds.dragging = true
+    [mosfet.vds, mosfet.vgs].forEach(slider => {
+      const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
+      const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
+      const sliderValue = normalizeAngle(mouseTheta, slider.startAngle, slider.angle).value
+      if (
+        (((mouseX - slider.location.x) ** 2 + (mouseY - slider.location.y) ** 2) <= 10 ** 2) ||
+        (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1))
+      ) {
+        slider.dragging = true
+        drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging)
+      }
+    })
   })
   document.addEventListener('mousemove', drag)
   document.addEventListener('mouseup', mouseUp)
@@ -227,7 +255,7 @@ const drag = (event: MouseEvent) => {
     else if (mosfet.vds.dragging) {
       const mouseAngle = normalizeAngle(
               Math.atan2(mouseY - mosfet.originY, mouseX - mosfet.originX),
-              mosfet.vds.startAngle, 
+              mosfet.vds.startAngle,
               mosfet.vds.angle
       ).returnAngle
 
@@ -298,7 +326,7 @@ const drawAngleSlider = (ctx: CanvasRenderingContext2D, state: Pick<Mosfet, 'vgs
 }
 
 
-const drawMosfet = (ctx: CanvasRenderingContext2D, originX: number, originY: number, gradientSize: number = 100, dots: {x: number, y: number}[]) => { 
+const drawMosfet = (ctx: CanvasRenderingContext2D, originX: number, originY: number, gradientSize: number = 100, dots: {x: number, y: number}[]) => {
   // TODO: should porbably just pass mosfet in here then can draw sliders as well
   ctx.fillStyle = 'lightblue'
 
