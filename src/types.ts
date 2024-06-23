@@ -18,6 +18,18 @@ export enum RelativeDirection {
   Down,
 }
 
+
+export type Chart = {
+  points: Point[]
+  xAxisLabel: string
+  yAxisLabel: string
+  xUnit: string
+  yUnit: string
+  width?: number
+  height?: number
+  cornerToCornerGraph?: boolean
+}
+
 export type AngleSlider = {
   dragging: boolean
   location: {
@@ -37,8 +49,11 @@ export type AngleSlider = {
   minValue: number,
   maxValue: number,
   value: number,
-  visibility: Visibility
-  data: Point[],
+  visibility: Visibility,
+  chartFunctions: {
+    drawLineChart: () => null,
+    toggleYAxisLog: () => null
+  }
 }
 
 export type Mosfet = {

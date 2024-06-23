@@ -1,27 +1,25 @@
 <template>
-  <Chart :points="mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
+  <!-- <Chart :points="mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
     v-bind:cornerToCornerGraph="true" />
   <Chart :points="mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
-    v-bind:cornerToCornerGraph="true" />
+    v-bind:cornerToCornerGraph="true" /> -->
   <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
-import { Point, Visibility, RelativeDirection, AngleSlider, Mosfet } from '../types'
-import { unit } from 'mathjs'
-import { ekvNmos } from '../functions/ekvModel'
-import Chart from '../components/Chart.vue'
-import { toRadians, linspace, modulo } from '../functions/extraMath'
+import { ref, onMounted, reactive, Ref } from 'vue'
+import { Visibility, RelativeDirection, Mosfet } from '../types'
+import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet } from '../functions/makeMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
 
+
 const mosfets = reactive<Mosfet[]>([])
 
-mosfets.push(makeMosfet(100, 100), makeMosfet(400, 400))
+mosfets.push(makeMosfet(100, 100, canvas as Ref<HTMLCanvasElement>), makeMosfet(400, 400, canvas as Ref<HTMLCanvasElement>))
 
 const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
   const angleSpan = modulo(CCW ? startAngle - endAngle : endAngle - startAngle, 2 * Math.PI)
@@ -228,7 +226,10 @@ const draw = () => {
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds)
+    mosfet.vgs.chartFunctions.drawLineChart()
+    mosfet.vds.chartFunctions.drawLineChart()
   })
+
 }
 
 const animate = () => {
@@ -248,6 +249,7 @@ onMounted(() => {
     ctx.value = canvas.value.getContext('2d')
     draw()
     animate()
+
   }
 })
 </script>
