@@ -51,8 +51,8 @@ export type AngleSlider = {
   value: number,
   visibility: Visibility,
   chartFunctions: {
-    drawLineChart: () => null,
-    toggleYAxisLog: () => null
+    drawLineChart: () => void,
+    toggleYAxisLog: () => void
   }
 }
 
