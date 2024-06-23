@@ -67,3 +67,16 @@ export const generateSaturationLevel = (currents: Point[]) => {
 
   return saturationLevels
 }
+
+export const generateCurrent = () => {
+  const currents: Point[] = []
+  const vgs = linspace(0, 1, 1000);
+  const current = vgs.map(n => ekvNmos(unit(n, 'V'), unit(0, 'V')).I)
+  for (let i = 0; i < current.length; i++) {
+    currents.push({
+      x: vgs[i],
+      y: current[i].toNumber('A')
+    })
+  }
+  return currents
+}

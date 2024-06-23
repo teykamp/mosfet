@@ -8,100 +8,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { Point, Visibility, RelativeDirection } from '../types'
+import { Point, Visibility, RelativeDirection, AngleSlider, Mosfet } from '../types'
 import { unit } from 'mathjs'
 import { ekvNmos } from '../functions/ekvModel'
 import Chart from '../components/Chart.vue'
 import { toRadians, linspace, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
+import { makeMosfet } from '../functions/makeMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
-
-const generateCurrent = () => {
-  const currents: Point[] = []
-  const vgs = linspace(0, 1, 1000);
-  const current = vgs.map(n => ekvNmos(unit(n, 'V'), unit(0, 'V')).I)
-  for (let i = 0; i < current.length; i++) {
-    currents.push({
-      x: vgs[i],
-      y: current[i].toNumber('A')
-    })
-  }
-  return currents
-}
-
-type AngleSlider = {
-    dragging: boolean
-    location: {
-      x: number,
-      y: number,
-    },
-    radius: number,
-    center: {
-      x: number,
-      y: number,
-    },
-    startAngle: number,
-    endAngle: number,
-    CCW: boolean,
-    displayText: string,
-    displayTextLocation: RelativeDirection,
-    minValue: number,
-    maxValue: number,
-    value: number,
-    visibility: Visibility
-    data: Point[],
-}
-
-type Mosfet = {
-  originX: number,
-  originY: number,
-  gradientSize: number,
-  dots: Point[]
-  vgs: AngleSlider,
-  vds: AngleSlider,
-}
-
-const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility): AngleSlider => {
-  return {
-    dragging: false,
-    location: {
-      x: Math.cos(startAngle) * radius + centerX,
-      y: Math.sin(startAngle) * radius + centerY,
-    },
-    center: {x: centerX, y: centerY},
-    radius: radius,
-    startAngle: startAngle,
-    endAngle: endAngle,
-    CCW: CCW,
-    minValue: minValue,
-    maxValue: maxValue,
-    value: minValue,
-    displayText: name,
-    displayTextLocation: CCW ? RelativeDirection.Right : RelativeDirection.Left,
-    visibility: visibility,
-    data: generateCurrent()
-  }
-}
-
-const makeMosfet = (originX: number, originY: number): Mosfet => {
-  return {
-    originX: originX,
-    originY: originY,
-    gradientSize: 100,
-    dots: [
-      { x: originX - 10, y: originY - 60 },
-      { x: originX - 10, y: originY - 40 },
-      { x: originX - 10, y: originY - 20 },
-      { x: originX - 10, y: originY      },
-      { x: originX - 10, y: originY + 20 },
-      { x: originX - 10, y: originY + 40 },
-    ],
-    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true, 0, 3, 'Vgs', Visibility.Visible),
-    vds: makeAngleSlider(originX + 30, originY, 75, toRadians(140), toRadians(-140), false, 0, 5, 'Vds', Visibility.Locked),
-  }
-}
 
 const mosfets = reactive<Mosfet[]>([])
 
