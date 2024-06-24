@@ -3,7 +3,7 @@
     v-bind:cornerToCornerGraph="true" />
   <Chart :points="mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
     v-bind:cornerToCornerGraph="true" /> -->
-  <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
+  <canvas ref="canvas" width="1000" height="1000" @mousedown="checkDrag"></canvas>
 </template>
 
 <script setup lang="ts">
@@ -19,7 +19,7 @@ const ctx = ref<null | CanvasRenderingContext2D>(null)
 
 const mosfets = reactive<Mosfet[]>([])
 
-mosfets.push(makeMosfet(100, 100, canvas as Ref<HTMLCanvasElement>), makeMosfet(400, 400, canvas as Ref<HTMLCanvasElement>))
+mosfets.push(makeMosfet(300, 100, canvas as Ref<HTMLCanvasElement>), makeMosfet(400, 400, canvas as Ref<HTMLCanvasElement>))
 
 const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
   const angleSpan = modulo(CCW ? startAngle - endAngle : endAngle - startAngle, 2 * Math.PI)
