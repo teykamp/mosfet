@@ -33,6 +33,9 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
       yAxisLabel: 'Current',
       xUnit: 'V',
       yUnit: 'A',
+    }, {
+      x: centerX,
+      y: centerY,
     })
   }
 }

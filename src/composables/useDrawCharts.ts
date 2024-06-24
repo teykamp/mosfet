@@ -3,7 +3,7 @@ import type { Chart, Point } from '../types'
 import { getTickLabelList, getTickLabelListLog } from '../functions/getTickLabelList'
 import { toSiPrefix } from '../functions/toSiPrefix'
 
-const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart) => {
+const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart, origin: Point) => {
   const width = chartData.width ?? 800 / 4
   const height = chartData.height ?? 600 / 6
   const cornerToCornerGraph = chartData.cornerToCornerGraph ?? true
@@ -79,21 +79,22 @@ const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart) => {
 
     calculateValues()
 
-    ctx.clearRect(0, 0, width, height)
+    ctx.clearRect(origin.x, origin.y, width, height) //  if you want blank background
 
     // Draw axis
     ctx.strokeStyle = '#000'
+    ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(paddingL, height - paddingB)
-    ctx.lineTo(width - paddingR, height - paddingB) // X axis
-    ctx.moveTo(paddingL, height - paddingB)
-    ctx.lineTo(paddingL, paddingT) // Y axis
+    ctx.moveTo(paddingL + origin.x, height - paddingB + origin.y)
+    ctx.lineTo(width - paddingR + origin.x, height - paddingB + origin.y) // X axis
+    ctx.moveTo(paddingL + origin.x, height - paddingB + origin.y)
+    ctx.lineTo(paddingL + origin.x, paddingT + origin.y) // Y axis
     ctx.stroke()
 
     // Draw axis labels
     ctx.font = '16px Arial'
-    ctx.fillText(chartData.xAxisLabel, width - paddingL + 5, height - paddingB + 5)
-    ctx.fillText(chartData.yAxisLabel, paddingL / 2, 20)
+    ctx.fillText(chartData.xAxisLabel, width - paddingL + 5 + origin.x, height - paddingB + 5 + origin.y)
+    ctx.fillText(chartData.yAxisLabel, paddingL / 2 + origin.x, 20 + origin.y)
 
     // Draw units
     // ctx.fillText(chartData.xUnit, width - paddingL + 10, height - paddingB)
@@ -106,31 +107,31 @@ const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart) => {
 
 
     xTicks.value.forEach((value: number) => {
-      const x = paddingL + (value - xMin.value) * xScale.value
+      const x = paddingL + (value - xMin.value) * xScale.value + + origin.x
       const displayValue = toSiPrefix(state.xScaleType === 'log' ? (10 ** value) : value, chartData.xUnit)
       ctx.beginPath()
-      ctx.moveTo(x, height - paddingB)
-      ctx.lineTo(x, height - paddingB + 5)
+      ctx.moveTo(x, height - paddingB + origin.y)
+      ctx.lineTo(x, height - paddingB + 5 + origin.y)
       ctx.stroke()
-      ctx.fillText(displayValue, x - 10, height - paddingB + 20)
+      ctx.fillText(displayValue, x - 10, height - paddingB + 20 + origin.y)
     })
 
     yTicks.value.forEach((value: number) => {
-      const y = height - paddingB - (value - yMin.value) * yScale.value
+      const y = height - paddingB - (value - yMin.value) * yScale.value + origin.y
       const displayValue = toSiPrefix(state.yScaleType === 'log' ? (10 ** value) : value, chartData.yUnit)
       ctx.beginPath()
-      ctx.moveTo(paddingL, y)
-      ctx.lineTo(paddingL - 5, y)
+      ctx.moveTo(paddingL + origin.x, y)
+      ctx.lineTo(paddingL - 5 + origin.x, y)
       ctx.stroke()
-      ctx.fillText(displayValue, paddingL - 35, y + 5, 30) // last parameter specifies a maximum width of the text
+      ctx.fillText(displayValue, paddingL - 35 + origin.x, y + 5, 30) // last parameter specifies a maximum width of the text
     })
 
     // Draw line
     ctx.strokeStyle = '#f00'
     ctx.beginPath()
     plottingValues.value.forEach((point: Point, index: number) => {
-      const x = paddingL + (point.x - xMin.value) * xScale.value
-      const y = height - paddingB - (point.y - yMin.value) * yScale.value
+      const x = paddingL + (point.x - xMin.value) * xScale.value + origin.x
+      const y = height - paddingB - (point.y - yMin.value) * yScale.value + origin.y
       if (index === 0) {
         ctx.moveTo(x, y)
       } else {
@@ -142,13 +143,13 @@ const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart) => {
     // Draw draggable circle
     const dragPoint = plottingValues.value[state.currentPointIndex]
     if (dragPoint) {
-      const dragX = paddingL + (dragPoint.x - xMin.value) * xScale.value
-      const dragY = height - paddingB - (dragPoint.y - yMin.value) * yScale.value
+      const dragX = paddingL + (dragPoint.x - xMin.value) * xScale.value + origin.x
+      const dragY = height - paddingB - (dragPoint.y - yMin.value) * yScale.value + origin.y
       ctx.beginPath()
       ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI)
       ctx.fill()
       ctx.moveTo(dragX, dragY)
-      ctx.lineTo(dragX, height - paddingB)
+      ctx.lineTo(dragX, height - paddingB + origin.y)
       ctx.stroke()
       ctx.fillText(toSiPrefix(state.yScaleType === 'log' ? 10 ** dragPoint.y : dragPoint.y, chartData.yUnit), dragX, dragY - 10)
     }
