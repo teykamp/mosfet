@@ -53,7 +53,7 @@ export const makeMosfet = (originX: number, originY: number, canvas: Ref<HTMLCan
       { x: originX - 10, y: originY + 20 },
       { x: originX - 10, y: originY + 40 },
     ],
-    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true, 0, 3, 'Vgs', Visibility.Visible, canvas, { x: originX - 300, y: originY - 100 }),
+    vgs: makeAngleSlider(originX + 15, originY + 10, 60, toRadians(75), toRadians(5), true, 0, 1, 'Vgs', Visibility.Visible, canvas, { x: originX - 300, y: originY - 100 }),
     vds: makeAngleSlider(originX + 30, originY, 75, toRadians(140), toRadians(-140), false, 0, 5, 'Vds', Visibility.Locked, canvas, { x: originX - 300, y: originY }),
   }
 }

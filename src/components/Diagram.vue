@@ -74,7 +74,7 @@ const checkDrag = (event: MouseEvent) => {
           (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
         ) {
           slider.dragging = true
-          drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging)
+          drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
         }
       }
     })
@@ -97,6 +97,7 @@ const drag = (event: MouseEvent) => {
         )
         const mouseAngle = result.returnAngle
         slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
+        slider.chartFunctions.getClosestPointIndex(slider.value)
 
         slider.location = {
           x: Math.cos(mouseAngle) * slider.radius + slider.center.x,

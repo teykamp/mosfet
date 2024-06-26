@@ -37,7 +37,7 @@ const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart, origin:
   const yScale = ref<number>(0)
 
   const plottingValues = computed(() => chartData.points
-    .map((p: Point) => ({
+  .map((p: Point) => ({
       x: state.xScaleType === 'log' ? Math.log10(p.x) : p.x,
       y: state.yScaleType === 'log' ? Math.log10(p.y) : p.y
     }))
@@ -163,20 +163,36 @@ const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart, origin:
     return { mouseX, mouseY }
   }
 
-  const getClosestPointIndex = (mouseX: number) => {
+  const getClosestPointIndex = (xValue: number): void => {
     let closestIndex = 0
     let closestDistance = Infinity
 
     plottingValues.value.forEach((point: Point, index: number) => {
-      const pointX = paddingL + (point.x - xMin.value) * xScale.value
-      const distance = Math.abs(pointX - mouseX)
+      const pointX = point.x
+      const distance = Math.abs(pointX - xValue)
+
       if (distance < closestDistance) {
         closestDistance = distance
         closestIndex = index
       }
     })
-    return closestIndex
+
+    state.currentPointIndex = closestIndex
   }
+  // const getClosestPointIndex = (xValue: number) => {
+  //   let closestIndex = 0
+  //   let closestDistance = Infinity
+
+  //   plottingValues.value.forEach((point: Point, index: number) => {
+  //     const pointX = paddingL + (point.x - xMin.value) * xScale.value
+  //     const distance = Math.abs(pointX - xValue)
+  //     if (distance < closestDistance) {
+  //       closestDistance = distance
+  //       closestIndex = index
+  //     }
+  //   })
+  //   state.currentPointIndex = closestIndex
+  // }
 
   // const onMouseDown = () => {
   //   state.dragging = true
@@ -203,6 +219,7 @@ const useDrawCharts = (canvas: Ref<HTMLCanvasElement>, chartData: Chart, origin:
   return {
     drawLineChart,
     toggleYAxisLog,
+    getClosestPointIndex
   }
 }
 

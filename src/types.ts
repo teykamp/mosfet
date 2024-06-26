@@ -52,7 +52,8 @@ export type AngleSlider = {
   visibility: Visibility,
   chartFunctions: {
     drawLineChart: () => void,
-    toggleYAxisLog: () => void
+    toggleYAxisLog: () => void,
+    getClosestPointIndex: (xValue: number) => void,
   }
 }
 
