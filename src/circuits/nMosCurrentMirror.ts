@@ -2,35 +2,36 @@ import { makeMosfet } from '../functions/makeMosfet'
 import { CircuitNode, Circuit, Mosfet } from '../types'
 import { gndNode } from './circuits'
 import { ref } from 'vue'
+import { unit } from 'mathjs'
 
-const useNmosSingle = () => {
+const useNmosCurrentMirror = () => {
     const nodes = ref<{[nodeId: string] : CircuitNode}>({
         '0': gndNode,
         '1': {
-            description: 'mosfet drain',
-            solveOrder: 2,
-            assumedVoltageUntilSolved: 0,
+            description: 'mosfet gate/drain connection',
+            solveOrder: 1,
+            assumedVoltageUntilSolved: 5,
             solutionProcedure: null,
-            voltage: 0
+            voltage: unit(1, 'V')
         },
         '2': {
-            description: 'mosfet gate',
+            description: 'mirror drain',
             solveOrder: 2,
             assumedVoltageUntilSolved: 0,
             solutionProcedure: null,
-            voltage: 0
+            voltage: unit(0, 'V')
         }
     })
 
-    const mosfets: Mosfet[] = [
-        makeMosfet(100, 100)
-    ]
+    const mosfets: Mosfet[] = {
+        'M1': makeMosfet(100, 100)
+    }
 
-    const nMosSingle: Circuit = {
+    const nMosCurrentMirror: Circuit = {
         devices: mosfets,
         nodes: nodes
     }
 
-    return {nMosSingle}
+    return {nMosCurrentMirror}
 }
-export default useNmosSingle
+export default useNmosCurrentMirror

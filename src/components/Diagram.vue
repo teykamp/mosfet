@@ -8,11 +8,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { Point, Visibility, RelativeDirection, AngleSlider, Mosfet } from '../types'
-import { unit } from 'mathjs'
-import { ekvNmos } from '../functions/ekvModel'
+import { Visibility, RelativeDirection, Mosfet } from '../types'
 import Chart from '../components/Chart.vue'
-import { toRadians, linspace, modulo } from '../functions/extraMath'
+import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet } from '../functions/makeMosfet'
 

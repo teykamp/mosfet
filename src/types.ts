@@ -1,4 +1,5 @@
 import { Ref } from 'vue'
+import { Unit } from "mathjs"
 
 export type Point = {
   x: number
@@ -48,17 +49,21 @@ gradientSize: number,
 dots: Point[],
 vgs: AngleSlider,
 vds: AngleSlider,
+Vg: Unit,
+Vs: Unit,
+Vd: Unit,
+Vb: Unit,
 }
 
 export type CircuitNode = {
   description: string,
   solveOrder: number,
   assumedVoltageUntilSolved: number,
-  solutionProcedure?: ((...args: any) => number) | null,
-  voltage: number
+  solutionProcedure?: ((circuit: Circuit) => number) | null,
+  voltage: Unit
 }
 
 export type Circuit = {
-  devices: Mosfet[],
+  devices: {[name: string]: Mosfet},
   nodes: Ref<{[nodeId: string] : CircuitNode}>
 }
