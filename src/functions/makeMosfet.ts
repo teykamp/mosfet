@@ -18,9 +18,9 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
     startAngle: startAngle,
     endAngle: endAngle,
     CCW: CCW,
-    minValue: minValue,
-    maxValue: maxValue,
-    value: minValue,
+    minValue: minValue, // TODO: rename this to voltageDifference or something
+    maxValue: maxValue, // TODO: rename this to voltageDifference or something
+    value: minValue, // TODO: rename this to voltageDifference or something
     displayText: name,
     displayTextLocation: CCW ? RelativeDirection.Right : RelativeDirection.Left,
     visibility: visibility,

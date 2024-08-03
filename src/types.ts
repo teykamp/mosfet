@@ -74,7 +74,7 @@ export type Node = {
   voltage: number, // in Volts
   netCurrent: number, // in Amps
   capacitance: number, // in Farads
-  fixed: number, // GND and VDD nodes are fixed, as are nodes that are being dragged
+  fixed: boolean, // GND and VDD nodes are fixed, as are nodes that are being dragged
 }
 
 export type Circuit = {

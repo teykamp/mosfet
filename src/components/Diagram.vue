@@ -145,6 +145,18 @@ const drag = (event: MouseEvent) => {
         }
       }
     })
+    if (mosfet.vgs.dragging) {
+      console.log(mosfet)
+      console.log(mosfet.Vg)
+      console.log(typeof mosfet.Vg)
+      console.log(mosfet.Vg.value)
+      mosfet.Vg.value.fixed = true
+      mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
+    }
+    if (mosfet.vds.dragging) {
+      mosfet.Vd.value.fixed = true
+      mosfet.Vd.value.voltage = mosfet.Vs.value.voltage + mosfet.vds.value
+    }
   })
 }
 
@@ -152,6 +164,8 @@ const mouseUp = () => {
   mosfets.forEach(mosfet => {
     mosfet.vgs.dragging = false
     mosfet.vds.dragging = false
+    mosfet.Vg.value.fixed = false
+    mosfet.Vd.value.fixed = false
   })
 
   document.removeEventListener('mousemove', drag)
