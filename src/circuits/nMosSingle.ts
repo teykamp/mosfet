@@ -4,9 +4,9 @@ import { ref, type Ref } from 'vue'
 
 const useNmosSingle = () => {
     const nodes: {[nodeId: string]: Ref<Node>} = {
-        "GND": ref({voltage: 0, netCurrent: 0, capacitance: 0}),
-        "M1_drain": ref({voltage: 5, netCurrent: 0, capacitance: 0}),
-        "M1_gate": ref({voltage: 1, netCurrent: 0, capacitance: 0}),
+        "GND": ref({voltage: 0, netCurrent: 0, capacitance: 100, fixed: true}),
+        "M1_drain": ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+        "M1_gate": ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
     }
 
     const circuit: Circuit = {

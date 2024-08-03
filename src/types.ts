@@ -21,15 +21,9 @@ export enum RelativeDirection {
 
 export type AngleSlider = {
   dragging: boolean
-  location: {
-    x: number,
-    y: number,
-  },
+  location: Point,
   radius: number,
-  center: {
-    x: number,
-    y: number,
-  },
+  center: Point,
   startAngle: number,
   endAngle: number,
   CCW: boolean,
@@ -37,7 +31,7 @@ export type AngleSlider = {
   displayTextLocation: RelativeDirection,
   minValue: number,
   maxValue: number,
-  value: number,
+  value: number, // a number between minValue and maxValue
   visibility: Visibility
   data: Point[],
 }
@@ -54,6 +48,8 @@ export type Mosfet = {
   Vs: Ref<Node>,
   Vd: Ref<Node>,
   Vb: Ref<Node>,
+  current: number, // in Amps
+  saturationLevel: number // as a fraction of total saturation (0 to 1)
 }
 
 export type VoltageSource = {
@@ -78,6 +74,7 @@ export type Node = {
   voltage: number, // in Volts
   netCurrent: number, // in Amps
   capacitance: number, // in Farads
+  fixed: number, // GND and VDD nodes are fixed, as are nodes that are being dragged
 }
 
 export type Circuit = {

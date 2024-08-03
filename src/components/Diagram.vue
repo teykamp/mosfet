@@ -8,18 +8,59 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { Visibility, RelativeDirection, Mosfet } from '../types'
+import { Visibility, RelativeDirection, Mosfet, AngleSlider } from '../types'
 import Chart from '../components/Chart.vue'
 import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
-import { makeMosfet } from '../functions/makeMosfet'
+import { makeMosfet, getMosfetCurrent } from '../functions/makeMosfet'
+import { incrementCircuit } from '../functions/incrementCircuit'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
+let startTime = undefined
 
 const mosfets = reactive<Mosfet[]>([])
+mosfets.push(
+  makeMosfet(
+    0,
+    0,
+    ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
+    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+    ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+  ),
+  makeMosfet(
+    5,
+    5,
+    ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
+    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+    ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+  ),
+)
 
-mosfets.push(makeMosfet(100, 100), makeMosfet(400, 400))
+const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
+  mosfet.current = getMosfetCurrent(mosfet)
+  mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
+
+  mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
+  mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
+
+  [mosfet.vgs, mosfet.vds].forEach((slider) => {
+    if (slider.value > slider.maxValue) {
+      slider.value = slider.maxValue
+    }
+    else if (slider.value < slider.minValue) {
+      slider.value = slider.minValue
+    }
+    const normalizedSliderValue = slider.value / (slider.maxValue - slider.minValue) + slider.minValue
+    const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
+    slider.location = {
+      x: slider.center + slider.radius * cos(sliderAngle),
+      y: slider.center + slider.radius * sin(sliderAngle),
+    }
+  })
+}
 
 const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
   const angleSpan = modulo(CCW ? startAngle - endAngle : endAngle - startAngle, 2 * Math.PI)
@@ -229,13 +270,31 @@ const draw = () => {
   })
 }
 
-const animate = () => {
-  mosfets.forEach(mosfet => mosfet.dots.forEach(dot => {
-    dot.y += 1
-    if (dot.y > mosfet.originY + 60) {
-      dot.y = mosfet.originY - 60
+const animate = (timestamp) => {
+  if (startTime === undefined) {
+    startTime = timestamp
+  }
+  const elapsedTime = timestamp - startTime
+  // TODO: use elapsed time to compute dot movement
+
+  mosfets.forEach(mosfet => {
+    // 100 mA -> speed of 3
+    // 10 mA -> speed of 2
+    // 1 mA -> speed of 1
+    // 100 uA -> speed of 1/2
+    // 10 uA -> speed of 1/3
+    // 1 uA -> speed of 1/4
+    let dotSpeed = Math.log10(mosfet.current / 0.001) + 1
+    if (dotSpeed < 1) {
+      dotSpeed = 1 / (1 - dotSpeed)
     }
-  }))
+    mosfet.dots.forEach(dot => {
+      dot.y += dotSpeed
+      if (dot.y > mosfet.originY + 60) {
+        dot.y = mosfet.originY - 60
+      }
+    })
+  })
 
   draw()
   requestAnimationFrame(animate)
