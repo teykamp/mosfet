@@ -40,6 +40,7 @@ const useNmosSingle = () => {
             assumedVoltageUntilSolved: 1,
             solutionProcedure: (circuit: Circuit) => {
             const Ib: number = getMosfetCurrent(circuit.devices['Mb']).toNumber('A')
+            const funcToSolve =
                 return 5
             },
             voltage: unit(2.5, 'V')

@@ -1,36 +1,26 @@
 import { makeMosfet } from '../functions/makeMosfet'
-import { CircuitNode, Circuit, Mosfet } from '../types'
-import { gndNode } from './circuits'
-import { ref } from 'vue'
+import { Circuit, Node } from '../types'
+import { ref, type Ref } from 'vue'
 
 const useNmosSingle = () => {
-    const nodes = ref<{[nodeId: string] : CircuitNode}>({
-        '0': gndNode,
-        '1': {
-            description: 'mosfet drain',
-            solveOrder: 2,
-            assumedVoltageUntilSolved: 0,
-            solutionProcedure: null,
-            voltage: 0
-        },
-        '2': {
-            description: 'mosfet gate',
-            solveOrder: 2,
-            assumedVoltageUntilSolved: 0,
-            solutionProcedure: null,
-            voltage: 0
-        }
-    })
-
-    const mosfets: Mosfet[] = [
-        makeMosfet(100, 100)
-    ]
-
-    const nMosSingle: Circuit = {
-        devices: mosfets,
-        nodes: nodes
+    const nodes: {[nodeId: string]: Ref<Node>} = {
+        "GND": ref({voltage: 0, netCurrent: 0, capacitance: 0}),
+        "M1_drain": ref({voltage: 5, netCurrent: 0, capacitance: 0}),
+        "M1_gate": ref({voltage: 1, netCurrent: 0, capacitance: 0}),
     }
 
-    return {nMosSingle}
+    const circuit: Circuit = {
+        schematic: {
+            lines: [],
+            vddLocations: [],
+            gndLocations: [{x: 0, y: 2}],
+        },
+        devices: {
+            mosfets: {"M1": makeMosfet(0, 0, nodes["M1_gate"], nodes["GND"], nodes["M1_drain"], nodes["GND"])},
+            voltageSources: {}
+        },
+        nodes: nodes,
+    }
+    return circuit
 }
 export default useNmosSingle
