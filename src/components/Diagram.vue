@@ -12,30 +12,37 @@ import { Visibility, RelativeDirection, Mosfet, AngleSlider } from '../types'
 import Chart from '../components/Chart.vue'
 import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
-import { makeMosfet, getMosfetCurrent } from '../functions/makeMosfet'
+import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
 let startTime = undefined
 
-const mosfets = reactive<Mosfet[]>([])
+const nodes: Node[] = [
+  ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
+  ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+  ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+  ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+]
+
+const mosfets: Mosfet[] = []
 mosfets.push(
   makeMosfet(
     0,
     0,
-    ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
-    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
-    ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
-    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+    nodes[0],
+    nodes[1],
+    nodes[2],
+    nodes[3],
   ),
   makeMosfet(
     5,
     5,
-    ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
-    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
-    ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
-    ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+    nodes[0],
+    nodes[1],
+    nodes[2],
+    nodes[3],
   ),
 )
 
@@ -46,7 +53,8 @@ const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
   mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
   mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
 
-  [mosfet.vgs, mosfet.vds].forEach((slider) => {
+  const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
+  sliders.forEach((slider) => {
     if (slider.value > slider.maxValue) {
       slider.value = slider.maxValue
     }
@@ -56,8 +64,8 @@ const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
     const normalizedSliderValue = slider.value / (slider.maxValue - slider.minValue) + slider.minValue
     const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
     slider.location = {
-      x: slider.center + slider.radius * cos(sliderAngle),
-      y: slider.center + slider.radius * sin(sliderAngle),
+      x: slider.center.x + slider.radius * Math.cos(sliderAngle),
+      y: slider.center.y + slider.radius * Math.sin(sliderAngle),
     }
   })
 }
@@ -146,10 +154,6 @@ const drag = (event: MouseEvent) => {
       }
     })
     if (mosfet.vgs.dragging) {
-      console.log(mosfet)
-      console.log(mosfet.Vg)
-      console.log(typeof mosfet.Vg)
-      console.log(mosfet.Vg.value)
       mosfet.Vg.value.fixed = true
       mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
     }
@@ -278,6 +282,7 @@ const draw = () => {
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   mosfets.forEach(mosfet => {
+    updateMosfetBasedOnNodeVoltages(mosfet) // new line here!!!
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds)

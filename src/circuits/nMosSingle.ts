@@ -19,7 +19,16 @@ const useNmosSingle = () => {
             "M1_gate": ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
         },
     }
-    circuit.devices.mosfets = {"M1": makeMosfet(0, 0, circuit.nodes["M1_gate"], circuit.nodes["GND"], circuit.nodes["M1_drain"], circuit.nodes["GND"])}
+    circuit.devices.mosfets = {
+        "M1": makeMosfet(
+            0,
+            0,
+            circuit.nodes["M1_gate"],
+            circuit.nodes["GND"],
+            circuit.nodes["M1_drain"],
+            circuit.nodes["GND"]
+        )
+    }
     return circuit
 }
 export default useNmosSingle
