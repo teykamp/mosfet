@@ -9,10 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "fzero": "^0.2.4",
     "mathjs": "^13.0.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
+    "@types/node": "^20.14.8",
     "@vitejs/plugin-vue": "^5.0.4",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",

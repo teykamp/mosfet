@@ -1,25 +1,95 @@
 <template>
-  <!-- <Chart :points="mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
+  <!-- <Chart :points="circuit.devices.mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
     v-bind:cornerToCornerGraph="true" />
-  <Chart :points="mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
+  <Chart :points="circuit.devices.mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
     v-bind:cornerToCornerGraph="true" /> -->
-  <canvas ref="canvas" width="1000" height="1000" @mousedown="checkDrag"></canvas>
+    <div>
+      <div>M1_gate: {{ toSiPrefix(circuit.nodes["M1_gate"].value.voltage, "V") }}</div>
+      <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div>
+      <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div>
+      <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div>
+      <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div>
+      <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div>
+    </div>
+  <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, Ref } from 'vue'
-import { Visibility, RelativeDirection, Mosfet } from '../types'
+import { ref, onMounted, reactive } from 'vue'
+import { Visibility, RelativeDirection, Mosfet, AngleSlider } from '../types'
+import Chart from '../components/Chart.vue'
+
 import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
-import { makeMosfet } from '../functions/makeMosfet'
+import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel } from '../functions/makeMosfet'
+import { incrementCircuit } from '../functions/incrementCircuit'
+import { circuits } from '../circuits/circuits'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
+let startTime = undefined
 
+const circuit = circuits["nMosDiffPair"]
 
-const mosfets = reactive<Mosfet[]>([])
+// const nodes: Node[] = [
+//   ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
+//   ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+//   ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+//   ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+// ]
 
-mosfets.push(makeMosfet(300, 100, canvas as Ref<HTMLCanvasElement>), makeMosfet(400, 400, canvas as Ref<HTMLCanvasElement>))
+// const mosfets: Mosfet[] = []
+// mosfets.push(
+//   makeMosfet(
+//     0,
+//     0,
+//     nodes[0],
+//     nodes[1],
+//     nodes[2],
+//     nodes[3],
+
+//   ),
+//   makeMosfet(
+//     5,
+//     5,
+//     nodes[2],
+//     nodes[1],
+//     nodes[2],
+//     nodes[3],
+//   ),
+// )
+
+const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
+  mosfet.current = getMosfetCurrent(mosfet)
+  mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
+
+  mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
+  mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
+
+  const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
+  sliders.forEach((slider) => {
+    if (slider.value > slider.maxValue) {
+      slider.value = slider.maxValue
+    }
+    else if (slider.value < slider.minValue) {
+      slider.value = slider.minValue
+    }
+    const normalizedSliderValue = slider.value / (slider.maxValue - slider.minValue) + slider.minValue
+    if (slider.CCW) {
+      const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
+      slider.location = {
+        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
+        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
+      }
+    } else {
+      const sliderAngle = normalizedSliderValue * (2 * Math.PI - (slider.startAngle - slider.endAngle)) + slider.startAngle
+      slider.location = {
+        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
+        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
+      }
+    }
+  })
+}
 
 const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
   const angleSpan = modulo(CCW ? startAngle - endAngle : endAngle - startAngle, 2 * Math.PI)
@@ -63,7 +133,7 @@ const getMousePos = (event: MouseEvent) => {
 
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     [mosfet.vds, mosfet.vgs].forEach(slider => {
       if (slider.visibility == Visibility.Visible) {
           const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
@@ -86,7 +156,7 @@ const checkDrag = (event: MouseEvent) => {
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     [mosfet.vgs, mosfet.vds].forEach(slider => {
       if (slider.dragging) {
         const result = normalizeAngle(
@@ -105,13 +175,23 @@ const drag = (event: MouseEvent) => {
         }
       }
     })
+    if (mosfet.vgs.dragging) {
+      mosfet.Vg.value.fixed = true
+      mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
+    }
+    if (mosfet.vds.dragging) {
+      mosfet.Vd.value.fixed = true
+      mosfet.Vd.value.voltage = mosfet.Vs.value.voltage + mosfet.vds.value
+    }
   })
 }
 
 const mouseUp = () => {
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     mosfet.vgs.dragging = false
     mosfet.vds.dragging = false
+    mosfet.Vg.value.fixed = false
+    mosfet.Vd.value.fixed = false
   })
 
   document.removeEventListener('mousemove', drag)
@@ -223,7 +303,8 @@ const draw = () => {
   if (!ctx.value || !canvas.value) return
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
+    updateMosfetBasedOnNodeVoltages(mosfet) // new line here!!!
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds)
@@ -233,13 +314,38 @@ const draw = () => {
 
 }
 
-const animate = () => {
-  mosfets.forEach(mosfet => mosfet.dots.forEach(dot => {
-    dot.y += 1
-    if (dot.y > mosfet.originY + 60) {
-      dot.y = mosfet.originY - 60
+const animate = (timestamp) => {
+  if (startTime === undefined) {
+    startTime = timestamp
+  }
+  const elapsedTime = timestamp - startTime
+  incrementCircuit(circuit)
+  // TODO: use elapsed time to compute dot movement
+
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
+    // 100 mA -> speed of 3
+    // 10 mA -> speed of 2
+    // 1 mA -> speed of 1
+    // 100 uA -> speed of 1/2
+    // 10 uA -> speed of 1/3
+    // 1 uA -> speed of 1/4
+    let dotSpeed = Math.log10(mosfet.current / 0.001) + 1
+    if (dotSpeed < 1) {
+      dotSpeed = 1 / (2 - dotSpeed)
     }
-  }))
+    if (dotSpeed > 5) {
+      dotSpeed = 5
+    }
+    else if (dotSpeed < 0.01) {
+      dotSpeed = 0.01
+    }
+    mosfet.dots.forEach(dot => {
+      dot.y += dotSpeed
+      if (dot.y > mosfet.originY + 60) {
+        dot.y = mosfet.originY - 60
+      }
+    })
+  })
 
   draw()
   requestAnimationFrame(animate)
