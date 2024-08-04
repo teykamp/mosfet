@@ -15,7 +15,7 @@ const useNmosSingle = () => {
             voltageSources: {}
         },
         nodes: {
-            gndNodeId: ref({voltage: 0, netCurrent: 0, capacitance: 100, fixed: true}),
+            [gndNodeId]: ref({voltage: 0, netCurrent: 0, capacitance: 100, fixed: true}),
             "M1_drain": ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
             "M1_gate": ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
         },

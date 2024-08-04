@@ -1,8 +1,8 @@
 <template>
-  <Chart :points="mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
+  <!-- <Chart :points="circuit.devices.mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
     v-bind:cornerToCornerGraph="true" />
-  <Chart :points="mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
-    v-bind:cornerToCornerGraph="true" />
+  <Chart :points="circuit.devices.mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
+    v-bind:cornerToCornerGraph="true" /> -->
   <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
 </template>
 
@@ -14,38 +14,41 @@ import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
+import { circuits } from '../circuits/circuits'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
 let startTime = undefined
 
-const nodes: Node[] = [
-  ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
-  ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
-  ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
-  ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
-]
+const circuit = circuits["nMosDiffPair"]
 
-const mosfets: Mosfet[] = []
-mosfets.push(
-  makeMosfet(
-    0,
-    0,
-    nodes[0],
-    nodes[1],
-    nodes[2],
-    nodes[3],
+// const nodes: Node[] = [
+//   ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
+//   ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+//   ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+//   ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
+// ]
 
-  ),
-  makeMosfet(
-    5,
-    5,
-    nodes[0],
-    nodes[1],
-    nodes[2],
-    nodes[3],
-  ),
-)
+// const mosfets: Mosfet[] = []
+// mosfets.push(
+//   makeMosfet(
+//     0,
+//     0,
+//     nodes[0],
+//     nodes[1],
+//     nodes[2],
+//     nodes[3],
+
+//   ),
+//   makeMosfet(
+//     5,
+//     5,
+//     nodes[2],
+//     nodes[1],
+//     nodes[2],
+//     nodes[3],
+//   ),
+// )
 
 const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
   mosfet.current = getMosfetCurrent(mosfet)
@@ -121,7 +124,7 @@ const getMousePos = (event: MouseEvent) => {
 
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     [mosfet.vds, mosfet.vgs].forEach(slider => {
       if (slider.visibility == Visibility.Visible) {
           const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
@@ -144,7 +147,7 @@ const checkDrag = (event: MouseEvent) => {
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     [mosfet.vgs, mosfet.vds].forEach(slider => {
       if (slider.dragging) {
         const result = normalizeAngle(
@@ -174,7 +177,7 @@ const drag = (event: MouseEvent) => {
 }
 
 const mouseUp = () => {
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     mosfet.vgs.dragging = false
     mosfet.vds.dragging = false
     mosfet.Vg.value.fixed = false
@@ -290,7 +293,7 @@ const draw = () => {
   if (!ctx.value || !canvas.value) return
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     updateMosfetBasedOnNodeVoltages(mosfet) // new line here!!!
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
@@ -305,7 +308,7 @@ const animate = (timestamp) => {
   const elapsedTime = timestamp - startTime
   // TODO: use elapsed time to compute dot movement
 
-  mosfets.forEach(mosfet => {
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
     // 100 mA -> speed of 3
     // 10 mA -> speed of 2
     // 1 mA -> speed of 1

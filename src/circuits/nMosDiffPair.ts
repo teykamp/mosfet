@@ -1,64 +1,57 @@
 import { makeMosfet } from '../functions/makeMosfet'
-import { CircuitNode, Circuit, Mosfet } from '../types'
-import { gndNode, vddNode } from './circuits'
-import { getMosfetCurrent } from '../functions/makeMosfet'
+import { Circuit } from '../types'
 import { ref } from 'vue'
-import { unit } from 'mathjs'
+import { gndNodeId } from '../constants'
 
-var fzero = require("fzero");
-
-fzero()
-
-const useNmosSingle = () => {
-    const nodes = ref<{[nodeId: string] : CircuitNode}>({
-        '0': gndNode,
-        '1': vddNode,
-        '2': {
-            description: 'Mb gate',
-            solveOrder: 2,
-            assumedVoltageUntilSolved: 2.5,
-            solutionProcedure: null,
-            voltage: unit(2.5, 'V')
+const useNmosDiffPair = () => {
+    const circuit: Circuit = {
+        schematic: {
+            lines: [],
+            vddLocations: [],
+            gndLocations: [{x: 0, y: 2}],
         },
-        '3': {
-            description: 'M1 gate',
-            solveOrder: 3,
-            assumedVoltageUntilSolved: 2.5,
-            solutionProcedure: null,
-            voltage: unit(2.5, 'V')
+        devices: {
+            mosfets: {},
+            voltageSources: {}
         },
-        '4': {
-            description: 'M2 gate',
-            solveOrder: 4,
-            assumedVoltageUntilSolved: 2.5,
-            solutionProcedure: null,
-            voltage: unit(2.5, 'V')
+        nodes: {
+            [gndNodeId]: ref({voltage: 0, netCurrent: 0, capacitance: 100, fixed: true}),
+            "M1_gate": ref({voltage: 2, netCurrent: 0, capacitance: 1, fixed: false}),
+            "M1_drain": ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+            "M2_gate": ref({voltage: 2, netCurrent: 0, capacitance: 1, fixed: false}),
+            "M2_drain": ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
+            "Mb_gate": ref({voltage: 0.7, netCurrent: 0, capacitance: 1, fixed: false}),
+            "Vnode": ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
         },
-        '5': {
-            description: 'Common-source node',
-            solveOrder: 5,
-            assumedVoltageUntilSolved: 1,
-            solutionProcedure: (circuit: Circuit) => {
-            const Ib: number = getMosfetCurrent(circuit.devices['Mb']).toNumber('A')
-            const funcToSolve =
-                return 5
-            },
-            voltage: unit(2.5, 'V')
-        }
-    })
-
-    const mosfets: {[name: string]: Mosfet} = {
-        //                         Vg,         Vs,         Vd
-        'Mb': makeMosfet(250, 400, nodes.value['2'].voltage, nodes.value['0'].voltage, nodes.value['5'].voltage),
-        'M1': makeMosfet(100, 100, nodes.value['3'].voltage, nodes.value['5'].voltage, nodes.value['1'].voltage),
-        'M2': makeMosfet(400, 100, nodes.value['4'].voltage, nodes.value['5'].voltage, nodes.value['1'].voltage),
     }
-
-    const nMosSingle: Circuit = {
-        devices: mosfets,
-        nodes: nodes
+    console.log(circuit.nodes[gndNodeId])
+    console.log(circuit.nodes["M1_gate"])
+    circuit.devices.mosfets = {
+        "Mb": makeMosfet(
+            0,
+            5,
+            circuit.nodes["Mb_gate"],
+            circuit.nodes[gndNodeId],
+            circuit.nodes["Vnode"],
+            circuit.nodes[gndNodeId]
+        ),
+        "M1": makeMosfet(
+            -2,
+            0,
+            circuit.nodes["M1_gate"],
+            circuit.nodes["Vnode"],
+            circuit.nodes["M1_drain"],
+            circuit.nodes[gndNodeId]
+        ),
+        "M2": makeMosfet(
+            2,
+            0,
+            circuit.nodes["M2_gate"],
+            circuit.nodes["Vnode"],
+            circuit.nodes["M2_drain"],
+            circuit.nodes[gndNodeId]
+        ),
     }
-
-    return {nMosSingle}
+    return circuit
 }
-export default useNmosSingle
+export default useNmosDiffPair

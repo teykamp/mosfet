@@ -60,6 +60,11 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
 }
 
 export const getMosfetCurrent = (mosfet: Mosfet): number => {
+  // console.log(mosfet)
+  // console.log(mosfet.Vg)
+  // console.log(mosfet.Vs)
+  // console.log(mosfet.Vd)
+  // console.log(mosfet.Vb)
   const current: Unit = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).I
   return current.toNumber('A')
 }
