@@ -1,13 +1,27 @@
 
-import { RelativeDirection, Visibility, Mosfet, AngleSlider, Node } from "../types"
+import { RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians } from "./extraMath"
 import { ekvNmos, generateCurrent } from "./ekvModel"
+import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
-import { type Ref } from "vue"
+import { ref, type Ref } from "vue"
 
+export const makeNode = (initialVoltage: number, isPowerSupply: boolean): Ref<Node> => {
+  const historicVoltages: Queue<number> = new Queue<number>()
+  historicVoltages.fill(0, 5)
+  const capacitance = isPowerSupply ? powerSupplyCapacitance : defaultNodeCapacitance // in Farads
+  return ref({
+    voltage: initialVoltage, // in Volts
+    netCurrent: 0, // in Amps
+    capacitance: capacitance,
+    originalCapacitance: capacitance,
+    fixed: isPowerSupply ? true : false, // GND and VDD nodes are fixed, as are nodes that are being dragged
+    historicVoltages: historicVoltages,
+  })
+}
 
-export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, canvas: Ref<HTMLCanvasElement>, chartOrigin: Point): AngleSlider => {
+export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility): AngleSlider => {
   return {
     dragging: false,
     location: {
@@ -15,7 +29,7 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
       y: Math.sin(startAngle) * radius + centerY,
     },
     center: {
-      x: centerX, 
+      x: centerX,
       y: centerY
     },
     radius: radius,
@@ -65,11 +79,6 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
 }
 
 export const getMosfetCurrent = (mosfet: Mosfet): number => {
-  // console.log(mosfet)
-  // console.log(mosfet.Vg)
-  // console.log(mosfet.Vs)
-  // console.log(mosfet.Vd)
-  // console.log(mosfet.Vb)
   const current: Unit = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).I
   return current.toNumber('A')
 }

@@ -1,7 +1,6 @@
-import { makeMosfet } from '../functions/makeMosfet'
+import { makeMosfet, makeNode } from '../functions/makeMosfet'
 import { Circuit } from '../types'
-import { ref } from 'vue'
-import { gndNodeId } from '../constants'
+import { gndNodeId, gndVoltage } from '../constants'
 
 const useNmosSingle = () => {
     const circuit: Circuit = {
@@ -15,9 +14,9 @@ const useNmosSingle = () => {
             voltageSources: {}
         },
         nodes: {
-            [gndNodeId]: ref({voltage: 0, netCurrent: 0, capacitance: 100, fixed: true}),
-            "M1_drain": ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
-            "M1_gate": ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
+            [gndNodeId]: makeNode(gndVoltage, true),
+            "M1_drain": makeNode(5, false),
+            "M1_gate": makeNode(1, false),
         },
     }
     circuit.devices.mosfets = {
