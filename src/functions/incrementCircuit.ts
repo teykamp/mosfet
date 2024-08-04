@@ -1,5 +1,6 @@
 import { Circuit } from "../types"
 import { getMosfetCurrent } from "../functions/makeMosfet"
+import { gndNodeId, gndVoltage, vddNodeId, vddVoltage } from "../constants"
 
 export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
     // first, set all the currents in the circuit to zero
@@ -29,6 +30,14 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
     for (let nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId]
         // skip the node if it is VDD, GND, or being dragged
+        if (nodeId == gndNodeId) {
+            node.value.voltage = gndVoltage
+            continue
+        }
+        if (nodeId == vddNodeId) {
+            node.value.voltage = vddVoltage
+            continue
+        }
         if (node.value.fixed) {
             continue
         }

@@ -70,7 +70,6 @@ const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
         y: slider.center.y + slider.radius * Math.sin(sliderAngle),
       }
     } else {
-      console.log(slider.value)
       const sliderAngle = normalizedSliderValue * (2 * Math.PI - (slider.startAngle - slider.endAngle)) + slider.startAngle
       slider.location = {
         x: slider.center.x + slider.radius * Math.cos(sliderAngle),
