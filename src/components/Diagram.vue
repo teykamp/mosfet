@@ -35,6 +35,7 @@ mosfets.push(
     nodes[1],
     nodes[2],
     nodes[3],
+
   ),
   makeMosfet(
     5,
@@ -62,10 +63,19 @@ const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
       slider.value = slider.minValue
     }
     const normalizedSliderValue = slider.value / (slider.maxValue - slider.minValue) + slider.minValue
-    const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
-    slider.location = {
-      x: slider.center.x + slider.radius * Math.cos(sliderAngle),
-      y: slider.center.y + slider.radius * Math.sin(sliderAngle),
+    if (slider.CCW) {
+      const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
+      slider.location = {
+        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
+        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
+      }
+    } else {
+      console.log(slider.value)
+      const sliderAngle = normalizedSliderValue * (2 * Math.PI - (slider.startAngle - slider.endAngle)) + slider.startAngle
+      slider.location = {
+        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
+        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
+      }
     }
   })
 }

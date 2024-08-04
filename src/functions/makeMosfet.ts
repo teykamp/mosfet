@@ -46,7 +46,7 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
       { x: originXcanvas - 10, y: originYcanvas + 40 },
     ],
     vgs: makeAngleSlider(originXcanvas + 15, originYcanvas + 10, 60, toRadians(75), toRadians(5), true, 0, maxVgs, 'Vgs', Visibility.Visible),
-    vds: makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(-140), false, 0, maxVds, 'Vds', Visibility.Locked),
+    vds: makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(-140), false, 0, maxVds, 'Vds', Visibility.Visible),
     Vg: Vg,
     Vs: Vs,
     Vd: Vd,
