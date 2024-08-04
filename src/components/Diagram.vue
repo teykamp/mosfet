@@ -305,7 +305,13 @@ const animate = (timestamp) => {
     // 1 uA -> speed of 1/4
     let dotSpeed = Math.log10(mosfet.current / 0.001) + 1
     if (dotSpeed < 1) {
-      dotSpeed = 1 / (1 - dotSpeed)
+      dotSpeed = 1 / (2 - dotSpeed)
+    }
+    if (dotSpeed > 5) {
+      dotSpeed = 5
+    }
+    else if (dotSpeed < 0.01) {
+      dotSpeed = 0.01
     }
     mosfet.dots.forEach(dot => {
       dot.y += dotSpeed
