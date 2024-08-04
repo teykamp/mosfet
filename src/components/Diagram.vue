@@ -167,7 +167,6 @@ const drag = (event: MouseEvent) => {
         )
         const mouseAngle = result.returnAngle
         slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
-        slider.chartFunctions.getClosestPointIndex(slider.value)
 
         slider.location = {
           x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
@@ -308,8 +307,6 @@ const draw = () => {
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds)
-    mosfet.vgs.chartFunctions.drawLineChart()
-    mosfet.vds.chartFunctions.drawLineChart()
   })
 
 }
