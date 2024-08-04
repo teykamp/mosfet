@@ -22,7 +22,7 @@ import Chart from '../components/Chart.vue'
 
 import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
-import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel } from '../functions/makeMosfet'
+import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 
@@ -31,34 +31,6 @@ const ctx = ref<null | CanvasRenderingContext2D>(null)
 let startTime = undefined
 
 const circuit = circuits["nMosDiffPair"]
-
-// const nodes: Node[] = [
-//   ref({voltage: 1, netCurrent: 0, capacitance: 1, fixed: false}),
-//   ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
-//   ref({voltage: 5, netCurrent: 0, capacitance: 1, fixed: false}),
-//   ref({voltage: 0, netCurrent: 0, capacitance: 1, fixed: false}),
-// ]
-
-// const mosfets: Mosfet[] = []
-// mosfets.push(
-//   makeMosfet(
-//     0,
-//     0,
-//     nodes[0],
-//     nodes[1],
-//     nodes[2],
-//     nodes[3],
-
-//   ),
-//   makeMosfet(
-//     5,
-//     5,
-//     nodes[2],
-//     nodes[1],
-//     nodes[2],
-//     nodes[3],
-//   ),
-// )
 
 const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
   mosfet.current = getMosfetCurrent(mosfet)
@@ -83,7 +55,7 @@ const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
         y: slider.center.y + slider.radius * Math.sin(sliderAngle),
       }
     } else {
-      const sliderAngle = normalizedSliderValue * (2 * Math.PI - (slider.startAngle - slider.endAngle)) + slider.startAngle
+      const sliderAngle = normalizedSliderValue * modulo((2 * Math.PI - (slider.startAngle - slider.endAngle)), 2 * Math.PI) + slider.startAngle
       slider.location = {
         x: slider.center.x + slider.radius * Math.cos(sliderAngle),
         y: slider.center.y + slider.radius * Math.sin(sliderAngle),
@@ -198,19 +170,19 @@ const mouseUp = () => {
   document.removeEventListener('mouseup', mouseUp)
 }
 
-const drawLine = (ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, thickness: number = 5, fill: boolean = true) => {
-  const width = Math.abs(endX - startX)
-  const height = Math.abs(endY - startY)
+const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5, fill: boolean = true) => {
+  const width = Math.abs(end.x - start.x)
+  const height = Math.abs(end.y - start.y)
 
   if (width === 0) {
     // Vertical line
-    const x = startX - thickness / 2
-    const y = Math.min(startY, endY)
+    const x = start.x - thickness / 2
+    const y = Math.min(start.y, end.y)
     fill ? ctx.fillRect(x, y, thickness, height) : ctx.rect(x, y, thickness, height)
   } else if (height === 0) {
     // Horizontal line
-    const x = Math.min(startX, endX)
-    const y = startY - thickness / 2
+    const x = Math.min(start.x, end.x)
+    const y = start.y - thickness / 2
     fill ? ctx.fillRect(x, y, width, thickness) : ctx.rect(x, y, width, thickness)
   }
 }
@@ -259,39 +231,75 @@ const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: Pick<Mosfet, 'vg
   }
 }
 
+const transformPoint = (point: Point, parameters: transformParameters): Point => {
+  let x = point.x
+  let y = point.y
 
-const drawMosfet = (ctx: CanvasRenderingContext2D, originX: number, originY: number, gradientSize: number = 100, dots: {x: number, y: number}[]) => {
+  // rotation
+  x = x * Math.cos(parameters.rotation) - y * Math.sin(parameters.rotation)
+  y = x * Math.sin(parameters.rotation) + y * Math.cos(parameters.rotation)
+  // mirror
+  if (parameters.mirror.x) {
+    x *= -1
+  }
+  if (parameters.mirror.y) {
+    y *= -1
+  }
+  // scaling
+  x *= parameters.scale.x
+  y *= parameters.scale.y
+  // translation
+  x += parameters.translation.x
+  y += parameters.translation.y
+
+  return {x, y}
+}
+
+const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet) => {
   // TODO: should porbably just pass mosfet in here then can draw sliders as well
   ctx.fillStyle = 'lightblue'
 
-  drawLine(ctx, originX, originY + 17, originX, originY + 60)
-  drawLine(ctx, originX, originY + 20, originX + 30, originY + 20)
-  drawLine(ctx, originX, originY - 17, originX, originY - 60)
-  drawLine(ctx, originX, originY - 20, originX + 30, originY - 20)
-  drawLine(ctx, originX + 30, originY + 40, originX + 30, originY - 40)
-  drawLine(ctx, originX + 40, originY + 30, originX + 40, originY - 30)
-  drawLine(ctx, originX + 40, originY, originX + 60, originY)
+  const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 1, y: 1}, {x: mosfet.originX, y: mosfet.originY})
+  if (mosfet.mirror) {
+    transformParameters.mirror.x = true
+  }
 
-  const gradient = ctx.createRadialGradient(originX, originY - 60, 0, originX, originY - 60, gradientSize)
+  const drawLineTransformed = (start: Point, end: Point, thickness: number = 5, fill: boolean = true) => {
+    drawLine(ctx, transformPoint(start, transformParameters), transformPoint(end, transformParameters), thickness, fill)
+  }
+
+  const drawMosfetBody = (thickness: number = 5, fill: boolean = false) => {
+    drawLineTransformed({x: 0, y: 17}, {x: 0, y: 60}, thickness, fill)
+    drawLineTransformed({x: 0, y: 20}, {x: 30, y: 20}, thickness, fill)
+    drawLineTransformed({x: 0, y: -17}, {x: 0, y: -60}, thickness, fill)
+    drawLineTransformed({x: 0, y: -20}, {x: 30, y: -20}, thickness, fill)
+    drawLineTransformed({x: 30, y: 40}, {x: 30, y: -40}, thickness, fill)
+  }
+  const drawMosfetGate = (thickness: number = 5, fill: boolean = false) => {
+    drawLineTransformed({x: 40, y: 30}, {x: 40, y: -30}, thickness, fill)
+    drawLineTransformed({x: 40, y: 0}, {x: 60, y: 0}, thickness, fill)
+  }
+  ctx.beginPath()
+  drawMosfetBody()
+  drawMosfetGate()
+  ctx.fill()
+
+  const gradient = ctx.createRadialGradient(mosfet.originX, mosfet.originY - 60, 0, mosfet.originX, mosfet.originY - 60, mosfet.gradientSize)
 
   gradient.addColorStop(0, 'rgba(255, 0, 0, 1)')
   gradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
 
   ctx.save()
   ctx.beginPath()
-  drawLine(ctx, originX, originY + 17, originX, originY + 60, undefined, false)
-  drawLine(ctx, originX, originY + 20, originX + 30, originY + 20, undefined, false)
-  drawLine(ctx, originX, originY - 17, originX, originY - 60, undefined, false)
-  drawLine(ctx, originX, originY - 20, originX + 30, originY - 20, undefined, false)
-  drawLine(ctx, originX + 30, originY + 40, originX + 30, originY - 40, undefined, false)
+  drawMosfetBody(undefined, false)
   ctx.clip()
 
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, 500, 500)
   ctx.restore()
 
-  dots.forEach(dot => {
-    ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - originY) / 100)})`
+  mosfet.dots.forEach(dot => {
+    ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`
     ctx.beginPath()
     ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
     ctx.fill()
@@ -305,7 +313,7 @@ const draw = () => {
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
     updateMosfetBasedOnNodeVoltages(mosfet) // new line here!!!
-    drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
+    drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds)
   })

@@ -1,11 +1,20 @@
 
-import { RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue } from "../types"
+import { RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians } from "./extraMath"
 import { ekvNmos, generateCurrent } from "./ekvModel"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
 import { ref, type Ref } from "vue"
+
+export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolean, y: boolean} = {x: false, y: false}, scale: {x: number, y: number} = {x: 1, y: 1}, translation: {x: number, y: number}): TransformParameters => {
+  return {
+    rotation: rotation,
+    mirror: mirror,
+    scale: scale,
+    translation: translation,
+  }
+}
 
 export const makeNode = (initialVoltage: number, isPowerSupply: boolean): Ref<Node> => {
   const historicVoltages: Queue<number> = new Queue<number>()
@@ -46,7 +55,7 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
   }
 }
 
-export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5): Mosfet => {
+export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false): Mosfet => {
   const originXcanvas = originX * schematicScale + schematicOrigin.x
   const originYcanvas = originY * schematicScale + schematicOrigin.y
 
@@ -54,6 +63,7 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
     mosfetType: 'nmos',
     originX: originXcanvas,
     originY: originYcanvas,
+    mirror: mirror,
     gradientSize: 100,
     dots: [
       { x: originXcanvas - 10, y: originYcanvas - 60 },
@@ -75,6 +85,19 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
   }
   mosfet.current = getMosfetCurrent(mosfet)
   mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
+
+  if (mirror) {
+    mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', Visibility.Visible)
+    mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', Visibility.Visible)
+    mosfet.dots = [
+      { x: originXcanvas + 10, y: originYcanvas - 60 },
+      { x: originXcanvas + 10, y: originYcanvas - 40 },
+      { x: originXcanvas + 10, y: originYcanvas - 20 },
+      { x: originXcanvas + 10, y: originYcanvas      },
+      { x: originXcanvas + 10, y: originYcanvas + 20 },
+      { x: originXcanvas + 10, y: originYcanvas + 40 },
+    ]
+  }
   return mosfet
 }
 

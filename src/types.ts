@@ -6,6 +6,13 @@ export type Point = {
   y: number
 }
 
+export type TransformParameters = {
+  rotation: number,
+  mirror: {x: boolean, y: boolean},
+  scale: {x: number, y: number},
+  translation: {x: number, y: number},
+}
+
 export enum Visibility {
   Hidden,
   Locked,
@@ -52,6 +59,7 @@ export type Mosfet = {
   mosfetType: 'nmos' | 'pmos',
   originX: number,
   originY: number,
+  mirror: boolean,
   dots: Point[],
   gradientSize: number,
   vgs: AngleSlider,

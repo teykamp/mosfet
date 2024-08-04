@@ -41,7 +41,10 @@ const useNmosDiffPair = () => {
             circuit.nodes["M1_gate"],
             circuit.nodes["Vnode"],
             circuit.nodes[vddNodeId],
-            circuit.nodes[gndNodeId]
+            circuit.nodes[gndNodeId],
+            undefined,
+            undefined,
+            true
         ),
         "M2": makeMosfet(
             2,
