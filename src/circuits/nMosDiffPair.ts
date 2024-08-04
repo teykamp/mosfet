@@ -1,7 +1,6 @@
-import { makeMosfet } from '../functions/makeMosfet'
+import { makeMosfet, makeNode } from '../functions/makeMosfet'
 import { Circuit } from '../types'
-import { ref } from 'vue'
-import { gndNodeId, vddNodeId, gndVoltage, vddVoltage, defaultNodeCapacitance, powerSupplyCapacitance } from '../constants'
+import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 
 const useNmosDiffPair = () => {
     const circuit: Circuit = {
@@ -15,14 +14,14 @@ const useNmosDiffPair = () => {
             voltageSources: {}
         },
         nodes: {
-            [gndNodeId]: ref({voltage: gndVoltage, netCurrent: 0, capacitance: powerSupplyCapacitance, fixed: true}),
-            [vddNodeId]: ref({voltage: vddVoltage, netCurrent: 0, capacitance: powerSupplyCapacitance, fixed: true}),
-            "M1_gate": ref({voltage: 2, netCurrent: 0, capacitance: defaultNodeCapacitance, fixed: false}),
-            "M1_drain": ref({voltage: 5, netCurrent: 0, capacitance: defaultNodeCapacitance, fixed: false}),
-            "M2_gate": ref({voltage: 2, netCurrent: 0, capacitance: defaultNodeCapacitance, fixed: false}),
-            "M2_drain": ref({voltage: 5, netCurrent: 0, capacitance: defaultNodeCapacitance, fixed: false}),
-            "Mb_gate": ref({voltage: 0.7, netCurrent: 0, capacitance: defaultNodeCapacitance, fixed: false}),
-            "Vnode": ref({voltage: 1, netCurrent: 0, capacitance: defaultNodeCapacitance, fixed: false}),
+            [gndNodeId]: makeNode(gndVoltage, true),
+            [vddNodeId]: makeNode(vddVoltage, true),
+            "M1_gate": makeNode(2, false),
+            // "M1_drain": makeNode(5, false),
+            "M2_gate": makeNode(2, false),
+            // "M2_drain": makeNode(5, false),
+            "Mb_gate": makeNode(0.7, false),
+            "Vnode": makeNode(1, false),
         },
     }
     console.log(circuit.nodes[gndNodeId])
