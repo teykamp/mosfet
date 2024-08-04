@@ -18,6 +18,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { Visibility, RelativeDirection, Mosfet, AngleSlider } from '../types'
 import Chart from '../components/Chart.vue'
+
 import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel } from '../functions/makeMosfet'
@@ -143,7 +144,7 @@ const checkDrag = (event: MouseEvent) => {
           (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
         ) {
           slider.dragging = true
-          drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging)
+          drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
         }
       }
     })
@@ -166,6 +167,7 @@ const drag = (event: MouseEvent) => {
         )
         const mouseAngle = result.returnAngle
         slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
+        slider.chartFunctions.getClosestPointIndex(slider.value)
 
         slider.location = {
           x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
@@ -306,7 +308,10 @@ const draw = () => {
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet.originX, mosfet.originY, mosfet.gradientSize, mosfet.dots)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
     drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds)
+    mosfet.vgs.chartFunctions.drawLineChart()
+    mosfet.vds.chartFunctions.drawLineChart()
   })
+
 }
 
 const animate = (timestamp) => {
@@ -351,6 +356,7 @@ onMounted(() => {
     ctx.value = canvas.value.getContext('2d')
     draw()
     animate()
+
   }
 })
 </script>

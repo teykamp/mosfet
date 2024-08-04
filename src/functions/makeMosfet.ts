@@ -6,14 +6,18 @@ import { ekvNmos, generateCurrent } from "./ekvModel"
 import { unit, type Unit } from "mathjs"
 import { type Ref } from "vue"
 
-export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility): AngleSlider => {
+
+export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, canvas: Ref<HTMLCanvasElement>, chartOrigin: Point): AngleSlider => {
   return {
     dragging: false,
     location: {
       x: Math.cos(startAngle) * radius + centerX,
       y: Math.sin(startAngle) * radius + centerY,
     },
-    center: {x: centerX, y: centerY},
+    center: {
+      x: centerX, 
+      y: centerY
+    },
     radius: radius,
     startAngle: startAngle,
     endAngle: endAngle,
@@ -53,6 +57,7 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
     Vb: Vb,
     current: 0, // to be updated immediately
     saturationLevel: 0, // to be updated immediately
+
   }
   mosfet.current = getMosfetCurrent(mosfet)
   mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
