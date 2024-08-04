@@ -3,6 +3,14 @@
     v-bind:cornerToCornerGraph="true" />
   <Chart :points="circuit.devices.mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
     v-bind:cornerToCornerGraph="true" /> -->
+    <div>
+      <div>M1_gate: {{ toSiPrefix(circuit.nodes["M1_gate"].value.voltage, "V") }}</div>
+      <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div>
+      <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div>
+      <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div>
+      <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div>
+      <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div>
+    </div>
   <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
 </template>
 
@@ -306,6 +314,7 @@ const animate = (timestamp) => {
     startTime = timestamp
   }
   const elapsedTime = timestamp - startTime
+  incrementCircuit(circuit)
   // TODO: use elapsed time to compute dot movement
 
   Object.values(circuit.devices.mosfets).forEach(mosfet => {

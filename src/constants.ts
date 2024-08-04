@@ -8,3 +8,5 @@ export const gndNodeId: string = "GND"
 export const vddNodeId: string = "VDD"
 export const gndVoltage: number = 0 // Volts
 export const vddVoltage: number = 5 // Volts
+export const defaultNodeCapacitance = 10e-6 // Farads
+export const powerSupplyCapacitance = 100 // Farads
