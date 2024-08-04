@@ -80,12 +80,12 @@ const checkNodeBounceAndAdjustCapacitance = (node: Ref<Node>) => {
             direcitonSwitches = 0 // ignore the first result before assigning previousIncreasing and previousVoltage
         }
     })
-    console.log(direcitonSwitches)
+    // console.log(direcitonSwitches)
     if (direcitonSwitches >= 1) {
         node.value.capacitance += node.value.originalCapacitance * 10 // double the capacitance on the node
     }
     if (direcitonSwitches < 1) {
-        node.value.capacitance -= node.value.originalCapacitance * 3 // decrease the capacitance
+        node.value.capacitance -= node.value.originalCapacitance * 10 // decrease the capacitance
     }
     // never let the capacitance get less than it was originally
     if (node.value.capacitance < node.value.originalCapacitance) {

@@ -10,7 +10,7 @@
       <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
       <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div>
       <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div>
-      <div>Vnode: {{ circuit.nodes["Vnode"].value.historicVoltages.toArray().map(x => x.toFixed(7)) }}</div>
+      <!-- <div>Vnode: {{ circuit.nodes["Vnode"].value.historicVoltages.toArray().map(x => x.toFixed(7)) }}</div> -->
     </div>
   <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
 </template>
