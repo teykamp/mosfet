@@ -1,5 +1,5 @@
 
-import { Point, Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit } from '../types'
+import { Point, Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit, VoltageSource } from '../types'
 import { drawLine, transformPoint } from './drawFuncs'
 import { makeTransformParameters } from './makeMosfet'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
@@ -47,22 +47,22 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
 
     const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-      drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 60}, thickness, transformParameters)
-      ctxFunc()
-      drawLine(ctx, {x: 0, y: 20}, {x: 30, y: 20}, thickness, transformParameters)
-      ctxFunc()
-      drawLine(ctx, {x: 0, y: -20}, {x: 0, y: -60}, thickness, transformParameters)
-      ctxFunc()
-      drawLine(ctx, {x: 0, y: -20}, {x: 30, y: -20}, thickness, transformParameters)
-      ctxFunc()
-      drawLine(ctx, {x: 30, y: -40}, {x: 30, y: 40}, thickness, transformParameters)
-      ctxFunc()
+        drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 60}, thickness, transformParameters)
+        ctxFunc()
+        drawLine(ctx, {x: 0, y: 20}, {x: 30, y: 20}, thickness, transformParameters)
+        ctxFunc()
+        drawLine(ctx, {x: 0, y: -20}, {x: 0, y: -60}, thickness, transformParameters)
+        ctxFunc()
+        drawLine(ctx, {x: 0, y: -20}, {x: 30, y: -20}, thickness, transformParameters)
+        ctxFunc()
+        drawLine(ctx, {x: 30, y: -40}, {x: 30, y: 40}, thickness, transformParameters)
+        ctxFunc()
     }
     const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-      drawLine(ctx, {x: 40, y: 30}, {x: 40, y: -30}, thickness, transformParameters)
-      ctxFunc()
-      drawLine(ctx, {x: 40, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
-      ctxFunc()
+        drawLine(ctx, {x: 40, y: 30}, {x: 40, y: -30}, thickness, transformParameters)
+        ctxFunc()
+        drawLine(ctx, {x: 40, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
+        ctxFunc()
     }
 
     ctx.beginPath()
@@ -76,16 +76,53 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     mosfet.schematicEffects[0].color = gateColor
 
     mosfet.dots.forEach(dot => {
-      ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`
-      ctx.beginPath()
-      ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
-      ctx.fill()
+        ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`
+        ctx.beginPath()
+        ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
+        ctx.fill()
     })
 
     drawAngleSlider(ctx, mosfet.vgs)
     drawAngleSlider(ctx, mosfet.vds)
+}
 
-  }
+export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: VoltageSource) => {
+    const radius = 30
+    const symbolSize = 15
+    const symbolHeight = 10
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 5
+    // circle
+    ctx.beginPath()
+    ctx.moveTo(voltageSource.originX + radius, voltageSource.originY)
+    ctx.arc(voltageSource.originX, voltageSource.originY, radius, 0, 2 * Math.PI)
+    ctx.stroke()
+    // top and bottom lines
+    ctx.beginPath()
+    ctx.moveTo(voltageSource.originX, voltageSource.originY + radius)
+    ctx.lineTo(voltageSource.originX, voltageSource.originY + 60)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(voltageSource.originX, voltageSource.originY - radius)
+    ctx.lineTo(voltageSource.originX, voltageSource.originY - 60)
+    ctx.stroke()
+    // plus
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.moveTo(voltageSource.originX - symbolSize / 2, voltageSource.originY - symbolHeight)
+    ctx.lineTo(voltageSource.originX + symbolSize / 2, voltageSource.originY - symbolHeight)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(voltageSource.originX, voltageSource.originY - symbolHeight - symbolSize / 2)
+    ctx.lineTo(voltageSource.originX, voltageSource.originY - symbolHeight + symbolSize / 2)
+    ctx.stroke()
+    // minus
+    ctx.beginPath()
+    ctx.moveTo(voltageSource.originX - symbolSize / 2, voltageSource.originY + symbolHeight)
+    ctx.lineTo(voltageSource.originX + symbolSize / 2, voltageSource.originY + symbolHeight)
+    ctx.stroke()
+    drawAngleSlider(ctx, voltageSource.voltageDrop)
+}
 
 export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlider) => {
     if (slider.visibility == Visibility.Hidden) {

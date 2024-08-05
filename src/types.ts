@@ -55,6 +55,13 @@ export type AngleSlider = {
   data: Point[],
 }
 
+export type SchematicEffect = {
+  node: Ref<Node>,
+  origin: Point,
+  color: string,
+  gradientSize: number,
+}
+
 export type Mosfet = {
   mosfetType: 'nmos' | 'pmos',
   originX: number,
@@ -62,7 +69,7 @@ export type Mosfet = {
   mirror: boolean,
   dots: Point[],
   gradientSize: number,
-  schematicEffects: {node: Ref<Node>, origin: Point, color: string, gradientSize: number}[],
+  schematicEffects: SchematicEffect[],
   vgs: AngleSlider,
   vds: AngleSlider,
   Vg: Ref<Node>,
@@ -76,7 +83,10 @@ export type Mosfet = {
 export type VoltageSource = {
   originX: number,
   originY: number,
-  voltageDrop: Unit,
+  voltageDrop: AngleSlider,
+  vplus: Ref<Node>,
+  vminus: Ref<Node>,
+  schematicEffects: SchematicEffect[],
 }
 
 export type Wire = {

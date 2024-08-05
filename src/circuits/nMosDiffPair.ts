@@ -1,4 +1,4 @@
-import { makeMosfet, makeNode } from '../functions/makeMosfet'
+import { makeMosfet, makeNode, makeVoltageSource } from '../functions/makeMosfet'
 import { Circuit } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 
@@ -67,6 +67,27 @@ const useNmosDiffPair = () => {
             circuit.nodes[vddNodeId],
             circuit.nodes[gndNodeId]
         ),
+    }
+    circuit.devices.voltageSources = {
+        "V1": makeVoltageSource(
+            {x: -5, y: 6},
+            circuit.nodes[gndNodeId],
+            circuit.nodes["M1_gate"],
+            "V1"
+        ),
+        "V2": makeVoltageSource(
+            {x: 5, y: 6},
+            circuit.nodes[gndNodeId],
+            circuit.nodes["M2_gate"],
+            "V1"
+        ),
+        "Vb": makeVoltageSource(
+            {x: 0, y: 0},
+            circuit.nodes[gndNodeId],
+            circuit.nodes["Mb_gate"],
+            "V1"
+        ),
+
     }
     return circuit
 }

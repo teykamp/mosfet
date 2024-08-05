@@ -1,5 +1,5 @@
 
-import { RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters, Line } from "../types"
+import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters, Line, VoltageSource } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians } from "./extraMath"
 import { ekvNmos, generateCurrent } from "./ekvModel"
@@ -53,6 +53,20 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
     displayTextLocation: CCW ? RelativeDirection.Right : RelativeDirection.Left,
     visibility: visibility,
     data: generateCurrent() // TODO: this should not be calculated here
+  }
+}
+
+export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string): VoltageSource => {
+  const originXcanvas = origin.x * schematicScale + schematicOrigin.x
+  const originYcanvas = origin.y * schematicScale + schematicOrigin.y
+
+  return {
+    originX: originXcanvas,
+    originY: originYcanvas,
+    vplus: vplus,
+    vminus: vminus,
+    voltageDrop: makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(40), toRadians(-40), true, 0, 5, name, Visibility.Visible),
+    schematicEffects: [],
   }
 }
 
