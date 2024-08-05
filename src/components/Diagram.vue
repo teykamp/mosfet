@@ -25,6 +25,7 @@ import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
+import { interpolateInferno } from "d3";
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -182,7 +183,6 @@ const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thick
   const corner1: Point = {x: start.x - perpendicularX, y: start.y - perpendicularY}
   const corner2: Point = {x:   end.x - perpendicularX, y:   end.y - perpendicularY}
   const corner3: Point = {x:   end.x + perpendicularX, y:   end.y + perpendicularY}
-  console.log(start.x, start.y, end.x, end.y, " becomes ", corner2.x, corner2.y, corner3.x, corner3.y)
 
   ctx.moveTo(corner0.x, corner0.y)
   ctx.lineTo(corner1.x, corner1.y)
@@ -315,7 +315,9 @@ const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet) => {
   }
   ctx.beginPath()
   drawMosfetBody(lineThickness, ctxFill)
+  ctx.fillStyle = interpolateInferno((mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue))
   drawMosfetGate(lineThickness, ctxFill)
+  ctx.fillStyle = 'black'
   drawMosfetBody(Math.ceil(lineThickness / 2) * 2, ctxGradient)
 
   mosfet.dots.forEach(dot => {
