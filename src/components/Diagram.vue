@@ -25,7 +25,7 @@ import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { interpolateInferno } from "d3";
+import { drawMosfet } from '../functions/drawMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -171,173 +171,13 @@ const mouseUp = () => {
   document.removeEventListener('mouseup', mouseUp)
 }
 
-const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5) => {
-  const deltaX = end.x - start.x
-  const deltaY = end.y - start.y
-  const length = Math.sqrt(deltaX ** 2 + deltaY ** 2)
-
-  const perpendicularX = (thickness / 2) / length * -deltaY
-  const perpendicularY = (thickness / 2) / length * deltaX
-
-  const corner0: Point = {x: start.x + perpendicularX, y: start.y + perpendicularY}
-  const corner1: Point = {x: start.x - perpendicularX, y: start.y - perpendicularY}
-  const corner2: Point = {x:   end.x - perpendicularX, y:   end.y - perpendicularY}
-  const corner3: Point = {x:   end.x + perpendicularX, y:   end.y + perpendicularY}
-
-  ctx.moveTo(corner0.x, corner0.y)
-  ctx.lineTo(corner1.x, corner1.y)
-  ctx.lineTo(corner2.x, corner2.y)
-  ctx.lineTo(corner3.x, corner3.y)
-}
-
-const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: Pick<Mosfet, 'vgs'>['vgs'] | Pick<Mosfet, 'vds'>['vds']) => {
-  if (slider.visibility == Visibility.Hidden) {
-    return
-  }
-
-  // draw slider path
-  ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
-  ctx.lineWidth = 5
-  ctx.beginPath()
-  ctx.arc(slider.center.x, slider.center.y, slider.radius, slider.startAngle, slider.endAngle, slider.CCW)
-
-  // draw tail flourish on slider path
-  const tailSize = 7
-  ctx.moveTo(slider.center.x + (slider.radius + tailSize) * Math.cos(slider.startAngle), slider.center.y + (slider.radius + tailSize) * Math.sin(slider.startAngle))
-  ctx.lineTo(slider.center.x + (slider.radius - tailSize) * Math.cos(slider.startAngle), slider.center.y + (slider.radius - tailSize) * Math.sin(slider.startAngle))
-
-  // draw head flourish on slider path
-  const headSize = 7
-  const headDirection = slider.CCW ? 1 : -1
-  const headAngle = headDirection * toRadians(5)
-  ctx.moveTo(slider.center.x + (slider.radius + headSize) * Math.cos(slider.endAngle + headAngle), slider.center.y + (slider.radius + headSize) * Math.sin(slider.endAngle + headAngle))
-  ctx.lineTo(slider.center.x + (slider.radius           ) * Math.cos(slider.endAngle            ), slider.center.y + (slider.radius           ) * Math.sin(slider.endAngle            ))
-  ctx.lineTo(slider.center.x + (slider.radius - headSize) * Math.cos(slider.endAngle + headAngle), slider.center.y + (slider.radius - headSize) * Math.sin(slider.endAngle + headAngle))
-  ctx.stroke()
-
-  // draw draggable slider circle
-  ctx.beginPath()
-  ctx.arc(slider.location.x, slider.location.y, 5, 0, Math.PI * 2)
-  ctx.fillStyle = slider.visibility == Visibility.Visible ? 'rgb(255, 0, 0)' : 'lightgrey'
-  ctx.fill()
-
-  ctx.fillStyle = slider.visibility == Visibility.Visible ? '#000' : 'lightgrey'
-  ctx.font = '16px Arial'
-  if (slider.displayTextLocation == RelativeDirection.Right) {
-    ctx.fillText(slider.displayText, slider.location.x + 10, slider.location.y)
-    ctx.font = '14px Arial'
-    ctx.fillText(toSiPrefix(slider.value, 'V', 3), slider.location.x + 10, slider.location.y + 15)
-  } else {
-    ctx.fillText(slider.displayText, slider.location.x - 40, slider.location.y)
-    ctx.font = '14px Arial'
-    ctx.fillText(toSiPrefix(slider.value, 'V', 3), slider.location.x - 40, slider.location.y + 15)
-  }
-}
-
-const transformPoint = (point: Point, parameters: transformParameters): Point => {
-  let x = point.x
-  let y = point.y
-
-  // rotation
-  x = x * Math.cos(parameters.rotation) - y * Math.sin(parameters.rotation)
-  y = x * Math.sin(parameters.rotation) + y * Math.cos(parameters.rotation)
-  // mirror
-  if (parameters.mirror.x) {
-    x *= -1
-  }
-  if (parameters.mirror.y) {
-    y *= -1
-  }
-  // scaling
-  x *= parameters.scale.x
-  y *= parameters.scale.y
-  // translation
-  x += parameters.translation.x
-  y += parameters.translation.y
-
-  return {x, y}
-}
-
-const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet) => {
-  ctx.fillStyle = 'black'
-  const lineThickness = 5 // px
-
-  const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 1, y: 1}, {x: mosfet.originX, y: mosfet.originY})
-  if (mosfet.mirror) {
-    transformParameters.mirror.x = true
-  }
-
-  const drawLineTransformed = (start: Point, end: Point, thickness: number = 5) => {
-    drawLine(ctx, transformPoint(start, transformParameters), transformPoint(end, transformParameters), thickness, false)
-  }
-
-  const ctxFill = () => {
-    ctx.fill()
-    ctx.beginPath()
-  }
-
-  // 100 % saturation -> 0 px
-  // 50  % saturation -> 50 px
-  // 0   % saturation -> 100 px
-  mosfet.gradientSize = 125 - mosfet.saturationLevel * 125
-  const gradient = ctx.createRadialGradient(mosfet.originX, mosfet.originY - 60, 0, mosfet.originX, mosfet.originY - 60, mosfet.gradientSize)
-
-  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
-  gradient.addColorStop(0.5, 'rgba(200, 200, 200, 1)')
-  gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
-
-  const ctxGradient = () => {
-    ctx.save()
-    ctx.clip()
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, 500, 500)
-    ctx.restore()
-    ctx.beginPath()
-  }
-
-  const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-    drawLineTransformed({x: 0, y: 17}, {x: 0, y: 60}, thickness)
-    ctxFunc()
-    drawLineTransformed({x: 0, y: 20}, {x: 30, y: 20}, thickness)
-    ctxFunc()
-    drawLineTransformed({x: 0, y: -17}, {x: 0, y: -60}, thickness)
-    ctxFunc()
-    drawLineTransformed({x: 0, y: -20}, {x: 30, y: -20}, thickness)
-    ctxFunc()
-    drawLineTransformed({x: 30, y: -40}, {x: 30, y: 40}, thickness)
-    ctxFunc()
-  }
-  const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-    drawLineTransformed({x: 40, y: 30}, {x: 40, y: -30}, thickness)
-    ctxFunc()
-    drawLineTransformed({x: 40, y: 0}, {x: 60, y: 0}, thickness)
-    ctxFunc()
-  }
-  ctx.beginPath()
-  drawMosfetBody(lineThickness, ctxFill)
-  ctx.fillStyle = interpolateInferno((mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue))
-  drawMosfetGate(lineThickness, ctxFill)
-  ctx.fillStyle = 'black'
-  drawMosfetBody(Math.ceil(lineThickness / 2) * 2, ctxGradient)
-
-  mosfet.dots.forEach(dot => {
-    ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`
-    ctx.beginPath()
-    ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
-    ctx.fill()
-  })
-
-}
-
 const draw = () => {
   if (!ctx.value || !canvas.value) return
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
-    updateMosfetBasedOnNodeVoltages(mosfet) // new line here!!!
+    updateMosfetBasedOnNodeVoltages(mosfet)
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet)
-    drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vgs)
-    drawAngleSlider(ctx.value as CanvasRenderingContext2D, mosfet.vds)
   })
 
 }
