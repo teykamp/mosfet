@@ -7,21 +7,33 @@ import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
 import { schematicOrigin, schematicScale } from '../constants'
 
+const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: CanvasGradient): (() => void) => {
+    const ctxGradient = () => {
+        ctx.save()
+        ctx.clip()
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, 500, 500)
+        ctx.restore()
+        ctx.beginPath()
+    }
+    return ctxGradient
+}
+
+const makeCtxFillFunc = (ctx: CanvasRenderingContext2D, color: string = 'black'): (() => void) => {
+    const ctxFill = () => {
+        ctx.fillStyle = color
+        ctx.fill()
+        ctx.beginPath()
+    }
+    return ctxFill
+}
+
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const lineThickness = 5 // px
 
     const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 1, y: 1}, {x: mosfet.originX, y: mosfet.originY})
     if (mosfet.mirror) {
       transformParameters.mirror.x = true
-    }
-
-    const drawLineTransformed = (start: Point, end: Point, thickness: number = 5) => {
-      drawLine(ctx, transformPoint(start, transformParameters), transformPoint(end, transformParameters), thickness)
-    }
-
-    const ctxFill = () => {
-      ctx.fill()
-      ctx.beginPath()
     }
 
     // 100 % saturation -> 0 px
@@ -34,40 +46,29 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     gradient.addColorStop(0.5, 'rgba(200, 200, 200, 1)')
     gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
 
-    const ctxGradient = () => {
-      ctx.save()
-      ctx.clip()
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, 500, 500)
-      ctx.restore()
-      ctx.beginPath()
-    }
-
     const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-      drawLineTransformed({x: 0, y: 20}, {x: 0, y: 60}, thickness)
+      drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 60}, thickness, transformParameters)
       ctxFunc()
-      drawLineTransformed({x: 0, y: 20}, {x: 30, y: 20}, thickness)
+      drawLine(ctx, {x: 0, y: 20}, {x: 30, y: 20}, thickness, transformParameters)
       ctxFunc()
-      drawLineTransformed({x: 0, y: -20}, {x: 0, y: -60}, thickness)
+      drawLine(ctx, {x: 0, y: -20}, {x: 0, y: -60}, thickness, transformParameters)
       ctxFunc()
-      drawLineTransformed({x: 0, y: -20}, {x: 30, y: -20}, thickness)
+      drawLine(ctx, {x: 0, y: -20}, {x: 30, y: -20}, thickness, transformParameters)
       ctxFunc()
-      drawLineTransformed({x: 30, y: -40}, {x: 30, y: 40}, thickness)
+      drawLine(ctx, {x: 30, y: -40}, {x: 30, y: 40}, thickness, transformParameters)
       ctxFunc()
     }
     const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-      drawLineTransformed({x: 40, y: 30}, {x: 40, y: -30}, thickness)
+      drawLine(ctx, {x: 40, y: 30}, {x: 40, y: -30}, thickness, transformParameters)
       ctxFunc()
-      drawLineTransformed({x: 40, y: 0}, {x: 60, y: 0}, thickness)
+      drawLine(ctx, {x: 40, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
       ctxFunc()
     }
     ctx.beginPath()
-    ctx.fillStyle = 'black'
-    drawMosfetBody(lineThickness, ctxFill)
-    ctx.fillStyle = interpolateInferno((mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue))
-    drawMosfetGate(lineThickness, ctxFill)
-    ctx.fillStyle = 'black'
-    drawMosfetBody(Math.ceil(lineThickness / 2) * 2, ctxGradient)
+    drawMosfetBody(lineThickness, makeCtxFillFunc(ctx, 'black'))
+    const gateColor = interpolateInferno((mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue))
+    drawMosfetGate(lineThickness, makeCtxFillFunc(ctx, gateColor))
+    drawMosfetBody(Math.ceil(lineThickness / 2) * 2, makeCtxGradientFunc(ctx, gradient))
 
     mosfet.dots.forEach(dot => {
       ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`
