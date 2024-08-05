@@ -25,7 +25,7 @@ import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { drawMosfet } from '../functions/drawMosfet'
+import { drawMosfet, drawSchematic } from '../functions/drawMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -177,6 +177,7 @@ const draw = () => {
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
     updateMosfetBasedOnNodeVoltages(mosfet)
+    drawSchematic(ctx.value as CanvasRenderingContext2D, circuit)
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet)
   })
 

@@ -1,5 +1,5 @@
 
-import { RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters } from "../types"
+import { RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters, Line } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians } from "./extraMath"
 import { ekvNmos, generateCurrent } from "./ekvModel"
@@ -7,7 +7,7 @@ import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
 import { ref, type Ref } from "vue"
 
-export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolean, y: boolean} = {x: false, y: false}, scale: {x: number, y: number} = {x: 1, y: 1}, translation: {x: number, y: number}): TransformParameters => {
+export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolean, y: boolean} = {x: false, y: false}, scale: {x: number, y: number} = {x: 1, y: 1}, translation: {x: number, y: number} = {x: 0, y: 0}): TransformParameters => {
   return {
     rotation: rotation,
     mirror: mirror,
@@ -16,7 +16,7 @@ export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolea
   }
 }
 
-export const makeNode = (initialVoltage: number, isPowerSupply: boolean): Ref<Node> => {
+export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: Line[] = []): Ref<Node> => {
   const historicVoltages: Queue<number> = new Queue<number>()
   historicVoltages.fill(0, 5)
   const capacitance = isPowerSupply ? powerSupplyCapacitance : defaultNodeCapacitance // in Farads
@@ -27,6 +27,7 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean): Ref<No
     originalCapacitance: capacitance,
     fixed: isPowerSupply ? true : false, // GND and VDD nodes are fixed, as are nodes that are being dragged
     historicVoltages: historicVoltages,
+    lines: lines,
   })
 }
 
@@ -65,6 +66,26 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
     originY: originYcanvas,
     mirror: mirror,
     gradientSize: 100,
+    schematicEffects: [
+      {
+        node: Vg,
+        origin: {
+          x: (originX + 2 * (mirror ? -1 : 1)) * schematicScale + schematicOrigin.x,
+          y: (originY + 2)                     * schematicScale + schematicOrigin.y,
+        },
+        color: 'black',
+        gradientSize: 0,
+      },
+      {
+        node: Vd,
+        origin: {
+          x: originX * schematicScale + schematicOrigin.x,
+          y: originY * schematicScale + schematicOrigin.y,
+        },
+        color: 'red',
+        gradientSize: 30,
+      },
+    ],
     dots: [
       { x: originXcanvas - 10, y: originYcanvas - 60 },
       { x: originXcanvas - 10, y: originYcanvas - 40 },

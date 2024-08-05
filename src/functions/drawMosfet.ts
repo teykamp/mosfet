@@ -1,10 +1,11 @@
 
-import { Point, Mosfet, Visibility, RelativeDirection, AngleSlider } from '../types'
+import { Point, Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit } from '../types'
 import { drawLine, transformPoint } from './drawFuncs'
 import { makeTransformParameters } from './makeMosfet'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
+import { schematicOrigin, schematicScale } from '../constants'
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const lineThickness = 5 // px
@@ -43,11 +44,11 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     }
 
     const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-      drawLineTransformed({x: 0, y: 17}, {x: 0, y: 60}, thickness)
+      drawLineTransformed({x: 0, y: 20}, {x: 0, y: 60}, thickness)
       ctxFunc()
       drawLineTransformed({x: 0, y: 20}, {x: 30, y: 20}, thickness)
       ctxFunc()
-      drawLineTransformed({x: 0, y: -17}, {x: 0, y: -60}, thickness)
+      drawLineTransformed({x: 0, y: -20}, {x: 0, y: -60}, thickness)
       ctxFunc()
       drawLineTransformed({x: 0, y: -20}, {x: 30, y: -20}, thickness)
       ctxFunc()
@@ -122,4 +123,28 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         ctx.font = '14px Arial'
         ctx.fillText(toSiPrefix(slider.value, 'V', 3), slider.location.x - 40, slider.location.y + 15)
     }
+}
+
+export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
+    const transformParameters = makeTransformParameters(undefined, undefined, {x: schematicScale, y: schematicScale}, schematicOrigin)
+
+    // draw all the lines in black
+    ctx.fillStyle = 'black'
+    for (const nodeId in circuit.nodes) {
+        const node = circuit.nodes[nodeId].value
+        node.lines.forEach((line) => {
+            ctx.beginPath()
+            drawLine(ctx, transformPoint(line.start, transformParameters), transformPoint(line.end, transformParameters), 5)
+            ctx.fill()
+        })
+    }
+
+    // add gradient regions from each of the mosfets
+    for (const mosfetId in circuit.devices.mosfets) {
+        const mosfet = circuit.devices.mosfets[mosfetId]
+        mosfet.schematicEffects.forEach((effectPoint) => {
+            // drawLinesFillWithGradient
+        })
+    }
+
 }

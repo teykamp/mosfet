@@ -5,7 +5,7 @@ import { gndNodeId, gndVoltage } from '../constants'
 const useNmosSingle = () => {
     const circuit: Circuit = {
         schematic: {
-            lines: [],
+            // wires: [],
             vddLocations: [],
             gndLocations: [{x: 0, y: 2}],
         },

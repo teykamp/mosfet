@@ -5,9 +5,15 @@ import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 const useNmosDiffPair = () => {
     const circuit: Circuit = {
         schematic: {
-            lines: [
-
-            ],
+            // wires: [
+            //     {
+            //         endPoints: {
+            //             "Mb_drain":  {x:  0, y: 3},
+            //             "M1_source": {x: -4, y: 2},
+            //             "M2_source": {x:  4, y: 2},
+            //         },
+            //     },
+            // ],
             vddLocations: [],
             gndLocations: [{x: 0, y: 2}],
         },
@@ -23,20 +29,27 @@ const useNmosDiffPair = () => {
             "M2_gate": makeNode(2, false),
             // "M2_drain": makeNode(5, false),
             "Mb_gate": makeNode(0.7, false),
-            "Vnode": makeNode(1, false),
+            "Vnode": makeNode(1, false,
+                [
+                    {start: {x: -4, y: 2}, end: {x: -4, y: 3}},
+                    {start: {x:  4, y: 2}, end: {x:  4, y: 3}},
+                    {start: {x: -4, y: 3}, end: {x:  4, y: 3}},
+                    {start: {x:  0, y: 3}, end: {x:  0, y: 4}},
+                ]
+            ),
         },
     }
     circuit.devices.mosfets = {
         "Mb": makeMosfet(
             0,
-            5,
+            6,
             circuit.nodes["Mb_gate"],
             circuit.nodes[gndNodeId],
             circuit.nodes["Vnode"],
             circuit.nodes[gndNodeId]
         ),
         "M1": makeMosfet(
-            -2,
+            -4,
             0,
             circuit.nodes["M1_gate"],
             circuit.nodes["Vnode"],
@@ -47,7 +60,7 @@ const useNmosDiffPair = () => {
             true
         ),
         "M2": makeMosfet(
-            2,
+            4,
             0,
             circuit.nodes["M2_gate"],
             circuit.nodes["Vnode"],

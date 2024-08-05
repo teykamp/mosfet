@@ -62,6 +62,7 @@ export type Mosfet = {
   mirror: boolean,
   dots: Point[],
   gradientSize: number,
+  schematicEffects: {node: Ref<Node>, origin: Point, color: string, gradientSize: number}[],
   vgs: AngleSlider,
   vds: AngleSlider,
   Vg: Ref<Node>,
@@ -78,14 +79,17 @@ export type VoltageSource = {
   voltageDrop: Unit,
 }
 
-// export type Wire = {
-//   points: Point[],
-//   startColor: color,
-//   endColor: color,
-// }
+export type Wire = {
+  endPoints: {[name: string]: Point},
+  lines: {start: Point, end: Point}[]
+}
+
+export type Line = {
+  start: Point,
+  end: Point,
+}
 
 export type Schematic = {
-  lines: [Point, Point][] // a list of line segments to draw
   vddLocations: Point[], // a list of locations to draw vdd symbols
   gndLocations: Point[], // a list of locations to draw gnd symbols
 }
@@ -97,6 +101,7 @@ export type Node = {
   originalCapacitance: number // in
   fixed: boolean, // GND and VDD nodes are fixed, as are nodes that are being dragged
   historicVoltages: Queue<number>,
+  lines: Line[],
 }
 
 export type Circuit = {
