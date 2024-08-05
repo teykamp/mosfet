@@ -71,19 +71,19 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
         node: Vg,
         origin: {
           x: (originX + 2 * (mirror ? -1 : 1)) * schematicScale + schematicOrigin.x,
-          y: (originY + 2)                     * schematicScale + schematicOrigin.y,
+          y: (originY)                         * schematicScale + schematicOrigin.y,
         },
-        color: 'black',
-        gradientSize: 0,
+        color: 'red',
+        gradientSize: 100,
       },
       {
         node: Vd,
         origin: {
-          x: originX * schematicScale + schematicOrigin.x,
-          y: originY * schematicScale + schematicOrigin.y,
+          x: originX       * schematicScale + schematicOrigin.x,
+          y: (originY - 2) * schematicScale + schematicOrigin.y,
         },
         color: 'red',
-        gradientSize: 30,
+        gradientSize: 100,
       },
     ],
     dots: [
