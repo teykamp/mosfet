@@ -14,13 +14,13 @@ export const ekvNmos = (Vg: Unit, Vs: Unit = unit(0, 'V'), Vd: Unit = unit(5, 'V
 
   // const IF = Is * (np.log(1 + np.exp((Kappa * (Vgb - VT0) - Vsb) / (2 * UT)))) ** 2
   const IF_exponent = divide(subtract(multiply(Kappa, subtract(Vgb, VT0)), Vsb), multiply(2, UT))
-  const IF = multiply(Is, pow(log(add(1, exp((IF_exponent as number)))), 2))
+  const IF = add(multiply(Is, pow(log(add(1, exp((IF_exponent as number)))), 2)), unit(1, 'fA'))
 
   // IR = Is * (np.log(1 + np.exp((Kappa * (Vgb - VT0) - Vdb) / (2 * UT)))) ** 2
   const IR_exponent = divide(subtract(multiply(Kappa, subtract(Vgb, VT0)), Vdb), multiply(2, UT))
   const IR = multiply(Is, pow(log(add(1, exp((IR_exponent as number)))), 2))
 
-  const I = add(subtract(IF, IR), unit(1, 'fA')) as Unit
+  const I = subtract(IF, IR) as Unit
   const saturationLevel = divide(I, IF) as number
   return {
     I,
@@ -40,13 +40,13 @@ export const ekvPmos = (Vg: Unit, Vs: Unit = unit(5, 'V'), Vd: Unit = unit(0, 'V
 
   // IF = Is * (np.log(1 + np.exp((Kappa * (Vbg - VT0) - Vbs) / (2 * UT)))) ** 2
   const IF_exponent = divide(subtract(multiply(Kappa, subtract(Vbg, VT0)), Vbs), multiply(2, UT))
-  const IF = multiply(Is, pow(log(add(1, exp((IF_exponent as number)))), 2))
+  const IF = add(multiply(Is, pow(log(add(1, exp((IF_exponent as number)))), 2)), unit(1, 'fA'))
 
   // IR = Is * (np.log(1 + np.exp((Kappa * (Vbg - VT0) - Vbd) / (2 * UT)))) ** 2
   const IR_exponent = divide(subtract(multiply(Kappa, subtract(Vbg, VT0)), Vbd), multiply(2, UT))
   const IR = multiply(Is, pow(log(add(1, exp((IR_exponent as number)))), 2))
 
-  const I = add(subtract(IF, IR), unit(1, 'fA')) as Unit
+  const I = subtract(IF, IR) as Unit
   const saturationLevel = divide(I, IF) as number
   return {
     I,

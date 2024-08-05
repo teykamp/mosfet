@@ -170,21 +170,24 @@ const mouseUp = () => {
   document.removeEventListener('mouseup', mouseUp)
 }
 
-const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5, fill: boolean = true) => {
-  const width = Math.abs(end.x - start.x)
-  const height = Math.abs(end.y - start.y)
+const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5) => {
+  const deltaX = end.x - start.x
+  const deltaY = end.y - start.y
+  const length = Math.sqrt(deltaX ** 2 + deltaY ** 2)
 
-  if (width === 0) {
-    // Vertical line
-    const x = start.x - thickness / 2
-    const y = Math.min(start.y, end.y)
-    fill ? ctx.fillRect(x, y, thickness, height) : ctx.rect(x, y, thickness, height)
-  } else if (height === 0) {
-    // Horizontal line
-    const x = Math.min(start.x, end.x)
-    const y = start.y - thickness / 2
-    fill ? ctx.fillRect(x, y, width, thickness) : ctx.rect(x, y, width, thickness)
-  }
+  const perpendicularX = (thickness / 2) / length * -deltaY
+  const perpendicularY = (thickness / 2) / length * deltaX
+
+  const corner0: Point = {x: start.x + perpendicularX, y: start.y + perpendicularY}
+  const corner1: Point = {x: start.x - perpendicularX, y: start.y - perpendicularY}
+  const corner2: Point = {x:   end.x - perpendicularX, y:   end.y - perpendicularY}
+  const corner3: Point = {x:   end.x + perpendicularX, y:   end.y + perpendicularY}
+  console.log(start.x, start.y, end.x, end.y, " becomes ", corner2.x, corner2.y, corner3.x, corner3.y)
+
+  ctx.moveTo(corner0.x, corner0.y)
+  ctx.lineTo(corner1.x, corner1.y)
+  ctx.lineTo(corner2.x, corner2.y)
+  ctx.lineTo(corner3.x, corner3.y)
 }
 
 const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: Pick<Mosfet, 'vgs'>['vgs'] | Pick<Mosfet, 'vds'>['vds']) => {
@@ -256,47 +259,64 @@ const transformPoint = (point: Point, parameters: transformParameters): Point =>
 }
 
 const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet) => {
-  // TODO: should porbably just pass mosfet in here then can draw sliders as well
-  ctx.fillStyle = 'lightblue'
+  ctx.fillStyle = 'black'
+  const lineThickness = 5 // px
 
   const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 1, y: 1}, {x: mosfet.originX, y: mosfet.originY})
   if (mosfet.mirror) {
     transformParameters.mirror.x = true
   }
 
-  const drawLineTransformed = (start: Point, end: Point, thickness: number = 5, fill: boolean = true) => {
-    drawLine(ctx, transformPoint(start, transformParameters), transformPoint(end, transformParameters), thickness, fill)
+  const drawLineTransformed = (start: Point, end: Point, thickness: number = 5) => {
+    drawLine(ctx, transformPoint(start, transformParameters), transformPoint(end, transformParameters), thickness, false)
   }
 
-  const drawMosfetBody = (thickness: number = 5, fill: boolean = false) => {
-    drawLineTransformed({x: 0, y: 17}, {x: 0, y: 60}, thickness, fill)
-    drawLineTransformed({x: 0, y: 20}, {x: 30, y: 20}, thickness, fill)
-    drawLineTransformed({x: 0, y: -17}, {x: 0, y: -60}, thickness, fill)
-    drawLineTransformed({x: 0, y: -20}, {x: 30, y: -20}, thickness, fill)
-    drawLineTransformed({x: 30, y: 40}, {x: 30, y: -40}, thickness, fill)
+  const ctxFill = () => {
+    ctx.fill()
+    ctx.beginPath()
   }
-  const drawMosfetGate = (thickness: number = 5, fill: boolean = false) => {
-    drawLineTransformed({x: 40, y: 30}, {x: 40, y: -30}, thickness, fill)
-    drawLineTransformed({x: 40, y: 0}, {x: 60, y: 0}, thickness, fill)
-  }
-  ctx.beginPath()
-  drawMosfetBody()
-  drawMosfetGate()
-  ctx.fill()
 
+  // 100 % saturation -> 0 px
+  // 50  % saturation -> 50 px
+  // 0   % saturation -> 100 px
+  mosfet.gradientSize = 125 - mosfet.saturationLevel * 125
   const gradient = ctx.createRadialGradient(mosfet.originX, mosfet.originY - 60, 0, mosfet.originX, mosfet.originY - 60, mosfet.gradientSize)
 
-  gradient.addColorStop(0, 'rgba(255, 0, 0, 1)')
-  gradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
+  gradient.addColorStop(0.5, 'rgba(200, 200, 200, 1)')
+  gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
 
-  ctx.save()
+  const ctxGradient = () => {
+    ctx.save()
+    ctx.clip()
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 500, 500)
+    ctx.restore()
+    ctx.beginPath()
+  }
+
+  const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
+    drawLineTransformed({x: 0, y: 17}, {x: 0, y: 60}, thickness)
+    ctxFunc()
+    drawLineTransformed({x: 0, y: 20}, {x: 30, y: 20}, thickness)
+    ctxFunc()
+    drawLineTransformed({x: 0, y: -17}, {x: 0, y: -60}, thickness)
+    ctxFunc()
+    drawLineTransformed({x: 0, y: -20}, {x: 30, y: -20}, thickness)
+    ctxFunc()
+    drawLineTransformed({x: 30, y: -40}, {x: 30, y: 40}, thickness)
+    ctxFunc()
+  }
+  const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
+    drawLineTransformed({x: 40, y: 30}, {x: 40, y: -30}, thickness)
+    ctxFunc()
+    drawLineTransformed({x: 40, y: 0}, {x: 60, y: 0}, thickness)
+    ctxFunc()
+  }
   ctx.beginPath()
-  drawMosfetBody(undefined, false)
-  ctx.clip()
-
-  ctx.fillStyle = gradient
-  ctx.fillRect(0, 0, 500, 500)
-  ctx.restore()
+  drawMosfetBody(lineThickness, ctxFill)
+  drawMosfetGate(lineThickness, ctxFill)
+  drawMosfetBody(Math.ceil(lineThickness / 2) * 2, ctxGradient)
 
   mosfet.dots.forEach(dot => {
     ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`

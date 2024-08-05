@@ -5,7 +5,9 @@ import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 const useNmosDiffPair = () => {
     const circuit: Circuit = {
         schematic: {
-            lines: [],
+            lines: [
+
+            ],
             vddLocations: [],
             gndLocations: [{x: 0, y: 2}],
         },
@@ -24,8 +26,6 @@ const useNmosDiffPair = () => {
             "Vnode": makeNode(1, false),
         },
     }
-    console.log(circuit.nodes[gndNodeId])
-    console.log(circuit.nodes["M1_gate"])
     circuit.devices.mosfets = {
         "Mb": makeMosfet(
             0,
