@@ -74,19 +74,22 @@ const useNmosDiffPair = () => {
             {x: -5, y: 6},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
-            "V1"
+            "V1",
+            'gnd'
         ),
         "V2": makeVoltageSource(
             {x: 5, y: 6},
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
-            "V1"
+            "V2",
+            'gnd'
         ),
         "Vb": makeVoltageSource(
             {x: 0, y: 0},
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],
-            "V1"
+            "Vb",
+            'gnd'
         ),
     }
     makeListOfSliders(circuit)

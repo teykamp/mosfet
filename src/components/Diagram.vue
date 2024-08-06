@@ -33,15 +33,20 @@ let startTime = undefined
 
 const circuit = circuits["nMosDiffPair"]
 
-const updateMosfetBasedOnNodeVoltages = (mosfet: Mosfet) => {
-  mosfet.current = getMosfetCurrent(mosfet)
-  mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
+const updateSlidersBasedOnNodeVoltages = () => {
+  Object.values(circuit.devices.mosfets).forEach((mosfet) => {
+    mosfet.current = getMosfetCurrent(mosfet)
+    mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
 
-  mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
-  mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
+    mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
+    mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
+  })
+  Object.values(circuit.devices.voltageSources).forEach((voltageSource) => {
+    voltageSource.voltageDrop.value = voltageSource.vplus.value.voltage - voltageSource.vminus.value.voltage
+  })
 
-  const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
-  sliders.forEach((slider) => {
+  // const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
+  circuit.allSliders.forEach((slider) => {
     if (slider.value > slider.maxValue) {
       slider.value = slider.maxValue
     }
@@ -107,8 +112,7 @@ const getMousePos = (event: MouseEvent) => {
 
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-  Object.values(circuit.devices.mosfets).forEach(mosfet => {
-    [mosfet.vds, mosfet.vgs].forEach(slider => {
+  circuit.allSliders.forEach(slider => {
       if (slider.visibility == Visibility.Visible) {
           const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
           const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
@@ -122,7 +126,6 @@ const checkDrag = (event: MouseEvent) => {
         }
       }
     })
-  })
   document.addEventListener('mousemove', drag)
   document.addEventListener('mouseup', mouseUp)
 }
@@ -130,9 +133,8 @@ const checkDrag = (event: MouseEvent) => {
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  Object.values(circuit.devices.mosfets).forEach(mosfet => {
-    [mosfet.vgs, mosfet.vds].forEach(slider => {
-      if (slider.dragging) {
+  circuit.allSliders.forEach(slider => {
+    if (slider.dragging) {
         const result = normalizeAngle(
           Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x),
           slider.startAngle,
@@ -148,15 +150,30 @@ const drag = (event: MouseEvent) => {
         }
       }
     })
-    if (mosfet.vgs.dragging) {
-      mosfet.Vg.value.fixed = true
-      mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
-    }
-    if (mosfet.vds.dragging) {
-      mosfet.Vd.value.fixed = true
-      mosfet.Vd.value.voltage = mosfet.Vs.value.voltage + mosfet.vds.value
-    }
-  })
+    // evaluate mosfet sliders
+    Object.values(circuit.devices.mosfets).forEach(mosfet => {
+      if (mosfet.vgs.dragging) {
+        mosfet.Vg.value.fixed = true
+        mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
+      }
+      if (mosfet.vds.dragging) {
+        mosfet.Vd.value.fixed = true
+        mosfet.Vd.value.voltage = mosfet.Vs.value.voltage + mosfet.vds.value
+      }
+    })
+    // evaluate voltageSource sliders
+    Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
+      if (voltageSource.voltageDrop.dragging) {
+        if (voltageSource.fixedAt == 'gnd') {
+          voltageSource.vplus.value.fixed = true
+          voltageSource.vplus.value.voltage = voltageSource.vminus.value.voltage + voltageSource.voltageDrop.value
+        }
+        else if (voltageSource.fixedAt == 'vdd') {
+          voltageSource.vminus.value.fixed = true
+          voltageSource.vminus.value.voltage = voltageSource.vplus.value.voltage - voltageSource.voltageDrop.value
+        }
+      }
+    })
 }
 
 const mouseUp = () => {
@@ -165,6 +182,17 @@ const mouseUp = () => {
     mosfet.vds.dragging = false
     mosfet.Vg.value.fixed = false
     mosfet.Vd.value.fixed = false
+  })
+  Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
+    voltageSource.voltageDrop.dragging = false
+    if (voltageSource.fixedAt == 'gnd') {
+      voltageSource.vminus.value.fixed = true
+      voltageSource.vplus.value.fixed = false
+    }
+    else if (voltageSource.fixedAt == 'vdd') {
+      voltageSource.vminus.value.fixed = false
+      voltageSource.vplus.value.fixed = true
+    }
   })
 
   document.removeEventListener('mousemove', drag)
@@ -175,13 +203,12 @@ const draw = () => {
   if (!ctx.value || !canvas.value) return
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
+  updateSlidersBasedOnNodeVoltages()
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
-    updateMosfetBasedOnNodeVoltages(mosfet)
     drawSchematic(ctx.value as CanvasRenderingContext2D, circuit)
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet)
   })
   Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
-    // drawSchematic(ctx.value as CanvasRenderingContext2D, circuit)
     drawVoltageSource(ctx.value as CanvasRenderingContext2D, voltageSource)
   })
 

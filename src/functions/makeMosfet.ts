@@ -56,7 +56,7 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
   }
 }
 
-export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string): VoltageSource => {
+export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd'): VoltageSource => {
   const originXcanvas = origin.x * schematicScale + schematicOrigin.x
   const originYcanvas = origin.y * schematicScale + schematicOrigin.y
 
@@ -65,6 +65,7 @@ export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<N
     originY: originYcanvas,
     vplus: vplus,
     vminus: vminus,
+    fixedAt: fixedAt,
     voltageDrop: makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(40), toRadians(-40), true, 0, 5, name, Visibility.Visible),
     schematicEffects: [],
     current: 0 // Amps

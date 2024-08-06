@@ -88,6 +88,7 @@ export type VoltageSource = {
   vminus: Ref<Node>,
   schematicEffects: SchematicEffect[],
   current: number, // in Amps
+  fixedAt: 'gnd' | 'vdd',
 }
 
 export type Wire = {
