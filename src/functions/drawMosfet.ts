@@ -1,6 +1,6 @@
 
-import { Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit, VoltageSource } from '../types'
-import { drawLine } from './drawFuncs'
+import { Point, Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit, VoltageSource } from '../types'
+import { drawLine, transformPoint } from './drawFuncs'
 import { makeTransformParameters } from './makeMosfet'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
@@ -173,6 +173,14 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     const transformParameters = makeTransformParameters(undefined, undefined, {x: schematicScale, y: schematicScale}, schematicOrigin)
     const lineThickness = 5
 
+    // draw vdd and gnd symbols
+    circuit.schematic.gndLocations.forEach((gndLocation) => {
+        drawGnd(ctx, transformPoint(gndLocation, transformParameters))
+    })
+    circuit.schematic.vddLocations.forEach((vddLocation) => {
+        drawVdd(ctx, transformPoint(vddLocation, transformParameters))
+    })
+
     // draw all the lines in black
     ctx.fillStyle = 'black'
     for (const nodeId in circuit.nodes) {
@@ -199,8 +207,27 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
                 const ctxGradientFunc = makeCtxGradientFunc(ctx, gradient)
                 ctxGradientFunc()
             })
-            console.log("Drawing gradient of size ", schematicEffect.gradientSize)
         })
     }
+}
 
+export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point) => {
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 5
+    ctx.beginPath()
+    ctx.moveTo(origin.x, origin.y)
+    ctx.lineTo(origin.x + 15, origin.y)
+    ctx.lineTo(origin.x, origin.y + 15)
+    ctx.lineTo(origin.x - 15, origin.y)
+    ctx.lineTo(origin.x, origin.y)
+    ctx.stroke()
+}
+
+export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point) => {
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 5
+    ctx.beginPath()
+    ctx.moveTo(origin.x - 15, origin.y)
+    ctx.lineTo(origin.x + 15, origin.y)
+    ctx.stroke()
 }

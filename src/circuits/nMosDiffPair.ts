@@ -14,8 +14,8 @@ const useNmosDiffPair = () => {
             //         },
             //     },
             // ],
-            vddLocations: [],
-            gndLocations: [{x: 0, y: 2}],
+            vddLocations: [{x: -4, y: -3}, {x: 4, y: -3}],
+            gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
         },
         devices: {
             mosfets: {},
@@ -23,8 +23,17 @@ const useNmosDiffPair = () => {
         },
         allSliders: [],
         nodes: {
-            [gndNodeId]: makeNode(gndVoltage, true),
-            [vddNodeId]: makeNode(vddVoltage, true),
+            [gndNodeId]: makeNode(gndVoltage, true,
+                [
+                    {start: {x: 0, y: 8}, end: {x: 0, y: 9}},
+                ]
+            ),
+            [vddNodeId]: makeNode(vddVoltage, true,
+                [
+                    {start: {x: -4, y: -2}, end: {x: -4, y: -3}},
+                    {start: {x: 4, y: -2}, end: {x: 4, y: -3}},
+                ]
+            ),
             "M1_gate": makeNode(2, false,
                 [
                     {start: {x: -8, y: 1}, end: {x: -8, y: 0}},

@@ -26,7 +26,7 @@ import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, makeTransformPa
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize } from '../constants'
-import { drawMosfet, drawSchematic, drawVoltageSource } from '../functions/drawMosfet'
+import { drawMosfet, drawSchematic, drawVoltageSource, drawGnd, drawVdd } from '../functions/drawMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
