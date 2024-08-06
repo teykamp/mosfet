@@ -9,7 +9,8 @@ export const ekvNmos = (Vg: Unit, Vs: Unit = unit(0, 'V'), Vd: Unit = unit(5, 'V
 
   const UT = unit(25.6, 'mV')
   const VT0 = unit(0.6480, 'V')
-  const Kappa = 0.7051
+  // const Kappa = 0.7051 // this is the value derived in Ian's Lab 4 report
+  const Kappa = 0.8051 // this matches closer with the LTSpice model
   const Is = unit(1.640e-6, 'A')
 
   // const IF = Is * (np.log(1 + np.exp((Kappa * (Vgb - VT0) - Vsb) / (2 * UT)))) ** 2

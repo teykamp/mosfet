@@ -83,6 +83,28 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         ctx.fill()
     })
 
+    ctx.strokeStyle = 'black'
+    ctx.fillStyle = 'black'
+    ctx.font = "14px sans-serif";
+    ctx.moveTo(mosfet.originX, mosfet.originY)
+    const currentToDisplay = toSiPrefix(mosfet.current, "A")
+    let currentMantissa = ""
+    for (const char of currentToDisplay) {
+        if ("0123456789.".indexOf(char) > -1)
+        currentMantissa += char
+      }
+    const currentSuffix = currentToDisplay.slice(currentMantissa.length)
+    if (mosfet.mirror) {
+        ctx.textAlign = 'left'
+        ctx.fillText(currentMantissa, mosfet.originX - 22, mosfet.originY - 3)
+        ctx.fillText(currentSuffix, mosfet.originX - 22, mosfet.originY + 12)
+    } else {
+        ctx.textAlign = 'right'
+        ctx.fillText(currentMantissa, mosfet.originX + 22, mosfet.originY - 3)
+        ctx.fillText(currentSuffix, mosfet.originX + 22, mosfet.originY + 12)
+
+    }
+
     drawAngleSlider(ctx, mosfet.vgs)
     drawAngleSlider(ctx, mosfet.vds)
 }

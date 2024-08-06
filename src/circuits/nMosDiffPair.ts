@@ -1,5 +1,5 @@
 import { makeListOfSliders, makeMosfet, makeNode, makeVoltageSource } from '../functions/makeMosfet'
-import { Circuit } from '../types'
+import { Circuit, Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 
 const useNmosDiffPair = () => {
@@ -73,7 +73,12 @@ const useNmosDiffPair = () => {
             circuit.nodes["Mb_gate"],
             circuit.nodes[gndNodeId],
             circuit.nodes["Vnode"],
-            circuit.nodes[gndNodeId]
+            circuit.nodes[gndNodeId],
+            undefined,
+            undefined,
+            false,
+            Visibility.Locked,
+            Visibility.Locked
         ),
         "M1": makeMosfet(
             -4,
@@ -84,7 +89,9 @@ const useNmosDiffPair = () => {
             circuit.nodes[gndNodeId],
             undefined,
             undefined,
-            true
+            true,
+            Visibility.Locked,
+            Visibility.Locked,
         ),
         "M2": makeMosfet(
             4,
@@ -92,7 +99,12 @@ const useNmosDiffPair = () => {
             circuit.nodes["M2_gate"],
             circuit.nodes["Vnode"],
             circuit.nodes[vddNodeId],
-            circuit.nodes[gndNodeId]
+            circuit.nodes[gndNodeId],
+            undefined,
+            undefined,
+            false,
+            Visibility.Locked,
+            Visibility.Locked,
         ),
     }
     circuit.devices.voltageSources = {
@@ -101,7 +113,8 @@ const useNmosDiffPair = () => {
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
             "V1",
-            'gnd'
+            'gnd',
+            true
         ),
         "V2": makeVoltageSource(
             {x: 8, y: 3},

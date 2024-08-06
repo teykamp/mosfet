@@ -56,11 +56,11 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
   }
 }
 
-export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd'): VoltageSource => {
+export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
   const originXcanvas = origin.x * schematicScale + schematicOrigin.x
   const originYcanvas = origin.y * schematicScale + schematicOrigin.y
 
-  return {
+  const voltageSource = {
     originX: originXcanvas,
     originY: originYcanvas,
     vplus: vplus,
@@ -70,9 +70,13 @@ export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<N
     schematicEffects: [],
     current: 0 // Amps
   }
+  if (mirror) {
+    voltageSource.voltageDrop = makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(140), toRadians(-140), false, 0, 5, name, Visibility.Visible)
+  }
+  return voltageSource
 }
 
-export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false): Mosfet => {
+export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
   const originXcanvas = originX * schematicScale + schematicOrigin.x
   const originYcanvas = originY * schematicScale + schematicOrigin.y
 
@@ -103,15 +107,15 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
       },
     ],
     dots: [
-      { x: originXcanvas - 10, y: originYcanvas - 60 },
-      { x: originXcanvas - 10, y: originYcanvas - 40 },
-      { x: originXcanvas - 10, y: originYcanvas - 20 },
-      { x: originXcanvas - 10, y: originYcanvas      },
-      { x: originXcanvas - 10, y: originYcanvas + 20 },
-      { x: originXcanvas - 10, y: originYcanvas + 40 },
+      { x: originXcanvas - 12, y: originYcanvas - 60 },
+      { x: originXcanvas - 12, y: originYcanvas - 40 },
+      { x: originXcanvas - 12, y: originYcanvas - 20 },
+      { x: originXcanvas - 12, y: originYcanvas      },
+      { x: originXcanvas - 12, y: originYcanvas + 20 },
+      { x: originXcanvas - 12, y: originYcanvas + 40 },
     ],
-    vgs: makeAngleSlider(originXcanvas + 15, originYcanvas + 10, 60, toRadians(75), toRadians(5), true, 0, maxVgs, 'Vgs', Visibility.Visible),
-    vds: makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(-140), false, 0, maxVds, 'Vds', Visibility.Visible),
+    vgs: makeAngleSlider(originXcanvas + 15, originYcanvas + 10, 60, toRadians(75), toRadians(5), true, 0, maxVgs, 'Vgs', vgsVisibility),
+    vds: makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(-140), false, 0, maxVds, 'Vds', vdsVisibility),
     Vg: Vg,
     Vs: Vs,
     Vd: Vd,
@@ -124,8 +128,8 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
   mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
 
   if (mirror) {
-    mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', Visibility.Visible)
-    mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', Visibility.Visible)
+    mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', vgsVisibility)
+    mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', vdsVisibility)
     mosfet.dots = [
       { x: originXcanvas + 10, y: originYcanvas - 60 },
       { x: originXcanvas + 10, y: originYcanvas - 40 },
