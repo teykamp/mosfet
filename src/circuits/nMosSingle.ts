@@ -1,4 +1,4 @@
-import { makeMosfet, makeNode } from '../functions/makeMosfet'
+import { makeListOfSliders, makeMosfet, makeNode } from '../functions/makeMosfet'
 import { Circuit } from '../types'
 import { gndNodeId, gndVoltage } from '../constants'
 
@@ -18,6 +18,7 @@ const useNmosSingle = () => {
             "M1_drain": makeNode(5, false),
             "M1_gate": makeNode(1, false),
         },
+        allSliders: []
     }
     circuit.devices.mosfets = {
         "M1": makeMosfet(
@@ -29,6 +30,7 @@ const useNmosSingle = () => {
             circuit.nodes[gndNodeId]
         )
     }
+    makeListOfSliders(circuit)
     return circuit
 }
 export default useNmosSingle

@@ -1,5 +1,5 @@
 
-import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters, Line, VoltageSource } from "../types"
+import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters, Line, VoltageSource, Circuit } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians } from "./extraMath"
 import { ekvNmos, generateCurrent } from "./ekvModel"
@@ -67,6 +67,7 @@ export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<N
     vminus: vminus,
     voltageDrop: makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(40), toRadians(-40), true, 0, 5, name, Visibility.Visible),
     schematicEffects: [],
+    current: 0 // Amps
   }
 }
 
@@ -144,4 +145,17 @@ export const getMosfetCurrent = (mosfet: Mosfet): number => {
 export const getMosfetSaturationLevel = (mosfet: Mosfet): number => {
   const saturationLevel = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).saturationLevel
   return saturationLevel
+}
+
+export const makeListOfSliders = (circuit: Circuit) => {
+  circuit.allSliders = []
+  for (const mosfetId in circuit.devices.mosfets) {
+    const mosfet = circuit.devices.mosfets[mosfetId]
+    circuit.allSliders.push(mosfet.vgs)
+    circuit.allSliders.push(mosfet.vds)
+  }
+    for (const voltageSourceId in circuit.devices.voltageSources) {
+      const voltageSource = circuit.devices.voltageSources[voltageSourceId]
+      circuit.allSliders.push(voltageSource.voltageDrop)
+    }
 }

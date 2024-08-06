@@ -27,6 +27,26 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
         }
     }
 
+    // add voltage source current to ensure the total current is equal to zero
+    for (let voltageSourceId in circuit.devices.voltageSources) {
+        const voltageSource = circuit.devices.voltageSources[voltageSourceId]
+        // assuming the negative side is tied to GND
+        if (voltageSource.vminus.value.fixed) {
+            voltageSource.current = voltageSource.vplus.value.netCurrent
+            voltageSource.vminus.value.netCurrent += voltageSource.current
+            voltageSource.vplus.value.netCurrent = 0
+        }
+        // assuming the positive side is tied to VDD
+        else if (voltageSource.vminus.value.fixed) {
+            voltageSource.current = -voltageSource.vminus.value.netCurrent
+            voltageSource.vplus.value.netCurrent += voltageSource.current
+            voltageSource.vminus.value.netCurrent = 0
+        }
+        else {
+            console.log("Cannot solve voltage source not attached to GND or VDD")
+        }
+    }
+
     // adjust the voltage at each node based on I = C * dV/dt
     for (let nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId]

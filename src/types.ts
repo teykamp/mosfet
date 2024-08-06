@@ -87,6 +87,7 @@ export type VoltageSource = {
   vplus: Ref<Node>,
   vminus: Ref<Node>,
   schematicEffects: SchematicEffect[],
+  current: number, // in Amps
 }
 
 export type Wire = {
@@ -121,6 +122,7 @@ export type Circuit = {
     mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
     voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
   },
+  allSliders: AngleSlider[], // a list of all the AngleSliders belonging to all of the devices, to make it easier to loop over them
   nodes: {[nodeId: string]: Ref<Node>}, // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
   // solveNodeVoltages: (circuit: Circuit) => void, // a function that returns a list of the voltages (in V) at each of the nodes of the circuit
   // checkKirchoffsLaws: () => void, // a function that runs a series of assertions ensuring that KCL and KVL hold within a small tolerance
