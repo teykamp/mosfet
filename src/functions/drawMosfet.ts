@@ -1,18 +1,18 @@
 
-import { Point, Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit, VoltageSource } from '../types'
-import { drawLine, transformPoint } from './drawFuncs'
+import { Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit, VoltageSource } from '../types'
+import { drawLine } from './drawFuncs'
 import { makeTransformParameters } from './makeMosfet'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
-import { schematicOrigin, schematicScale } from '../constants'
+import { schematicOrigin, schematicScale, canvasSize } from '../constants'
 
 const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: CanvasGradient): (() => void) => {
     const ctxGradient = () => {
         ctx.save()
         ctx.clip()
         ctx.fillStyle = gradient
-        ctx.fillRect(0, 0, 500, 500)
+        ctx.fillRect(0, 0, canvasSize.x, canvasSize.y)
         ctx.restore()
         ctx.beginPath()
     }
@@ -72,7 +72,8 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     drawMosfetBody(Math.ceil(lineThickness / 2) * 2, makeCtxGradientFunc(ctx, gradient))
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 2
-    mosfet.schematicEffects[0].gradientSize = (mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue) * 100
+    mosfet.schematicEffects[1].color = 'white'
+    mosfet.schematicEffects[0].gradientSize = (mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue) * schematicScale * 2
     mosfet.schematicEffects[0].color = gateColor
 
     mosfet.dots.forEach(dot => {
@@ -187,10 +188,9 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     for (const mosfetId in circuit.devices.mosfets) {
         const mosfet = circuit.devices.mosfets[mosfetId]
         mosfet.schematicEffects.forEach((schematicEffect) => {
-
             const gradient = ctx.createRadialGradient(schematicEffect.origin.x, schematicEffect.origin.y, 0, schematicEffect.origin.x, schematicEffect.origin.y, schematicEffect.gradientSize)
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
-            gradient.addColorStop(0.5, 'rgba(200, 200, 200, 1)')
+            gradient.addColorStop(0, schematicEffect.color)
+            gradient.addColorStop(0.5, schematicEffect.color)
             gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
 
             ctx.beginPath()
@@ -198,14 +198,8 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
                 drawLine(ctx, line.start, line.end, Math.ceil(lineThickness / 2) * 2, transformParameters)
                 const ctxGradientFunc = makeCtxGradientFunc(ctx, gradient)
                 ctxGradientFunc()
-
-                // // test
-                // ctx.fillStyle = 'red'
-                // ctx.beginPath()
-                // drawLine(ctx, line.start, line.end, 5, transformParameters)
-                // ctx.fill()
-
             })
+            console.log("Drawing gradient of size ", schematicEffect.gradientSize)
         })
     }
 

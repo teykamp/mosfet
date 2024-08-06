@@ -1,5 +1,4 @@
 import { Ref } from 'vue'
-import { Unit } from "mathjs"
 
 export type Point = {
   x: number

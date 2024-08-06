@@ -12,7 +12,7 @@
       <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div>
       <!-- <div>Vnode: {{ circuit.nodes["Vnode"].value.historicVoltages.toArray().map(x => x.toFixed(7)) }}</div> -->
     </div>
-  <canvas ref="canvas" width="500" height="500" @mousedown="checkDrag"></canvas>
+  <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
 </template>
 
 <script setup lang="ts">
@@ -25,6 +25,7 @@ import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
+import { canvasSize } from '../constants'
 import { drawMosfet, drawSchematic, drawVoltageSource } from '../functions/drawMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
@@ -205,13 +206,13 @@ const draw = () => {
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   updateSlidersBasedOnNodeVoltages()
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
-    drawSchematic(ctx.value as CanvasRenderingContext2D, circuit)
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet)
   })
   Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
     drawVoltageSource(ctx.value as CanvasRenderingContext2D, voltageSource)
   })
 
+  drawSchematic(ctx.value as CanvasRenderingContext2D, circuit)
 }
 
 const animate = (timestamp) => {

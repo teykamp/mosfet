@@ -25,11 +25,28 @@ const useNmosDiffPair = () => {
         nodes: {
             [gndNodeId]: makeNode(gndVoltage, true),
             [vddNodeId]: makeNode(vddVoltage, true),
-            "M1_gate": makeNode(2, false),
+            "M1_gate": makeNode(2, false,
+                [
+                    {start: {x: -8, y: 1}, end: {x: -8, y: 0}},
+                    {start: {x: -8, y: 0}, end: {x: -6, y: 0}},
+                ]
+
+            ),
             // "M1_drain": makeNode(5, false),
-            "M2_gate": makeNode(2, false),
+            "M2_gate": makeNode(2, false,
+                [
+                    {start: {x: 8, y: 1}, end: {x: 8, y: 0}},
+                    {start: {x: 8, y: 0}, end: {x: 6, y: 0}},
+                ]
+
+            ),
             // "M2_drain": makeNode(5, false),
-            "Mb_gate": makeNode(0.7, false),
+            "Mb_gate": makeNode(0.7, false,
+                [
+                    {start: {x: 4, y: 7}, end: {x: 4, y: 6}},
+                    {start: {x: 4, y: 6}, end: {x: 2, y: 6}},
+                ]
+            ),
             "Vnode": makeNode(1, false,
                 [
                     {start: {x: -4, y: 2}, end: {x: -4, y: 3}},
@@ -71,21 +88,21 @@ const useNmosDiffPair = () => {
     }
     circuit.devices.voltageSources = {
         "V1": makeVoltageSource(
-            {x: -5, y: 6},
+            {x: -8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
             "V1",
             'gnd'
         ),
         "V2": makeVoltageSource(
-            {x: 5, y: 6},
+            {x: 8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
             "V2",
             'gnd'
         ),
         "Vb": makeVoltageSource(
-            {x: 0, y: 0},
+            {x: 4, y: 9},
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],
             "Vb",
