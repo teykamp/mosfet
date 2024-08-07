@@ -122,10 +122,11 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
     Vb: Vb,
     current: 0, // to be updated immediately
     saturationLevel: 0, // to be updated immediately
-
+    forwardCurrent: 0, // to be updated immediately
   }
   mosfet.current = getMosfetCurrent(mosfet)
   mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
+  mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
   if (mirror) {
     mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', vgsVisibility)
@@ -150,6 +151,11 @@ export const getMosfetCurrent = (mosfet: Mosfet): number => {
 export const getMosfetSaturationLevel = (mosfet: Mosfet): number => {
   const saturationLevel = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).saturationLevel
   return saturationLevel
+}
+
+export const getMosfetForwardCurrent = (mosfet: Mosfet): number => {
+  const forwardCurrent: Unit = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).IF
+  return forwardCurrent.toNumber('A')
 }
 
 export const makeListOfSliders = (circuit: Circuit) => {

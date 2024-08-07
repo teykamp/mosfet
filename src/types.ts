@@ -76,7 +76,8 @@ export type Mosfet = {
   Vd: Ref<Node>,
   Vb: Ref<Node>,
   current: number, // in Amps
-  saturationLevel: number // as a fraction of total saturation (0 to 1)
+  saturationLevel: number, // as a fraction of total saturation (0 to 1)
+  forwardCurrent: number // in Amps
 }
 
 export type VoltageSource = {

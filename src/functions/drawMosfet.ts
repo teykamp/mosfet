@@ -68,13 +68,25 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
     ctx.beginPath()
     drawMosfetBody(GLOBAL__LINE_THICKNESS, makeCtxFillFunc(ctx, 'black'))
-    const gateColor = interpolateInferno((mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue))
+    // 50 mA -> colorScale of 1
+    // 5 mA -> colorScale of 1
+    // 500 uA -> colorScale of 0.8
+    // 50 uA -> colorScale of 0.6
+    // 5 uA -> colorScale of 0.4
+    // 500 nA -> colorScale of 0.2
+    // 50 nA -? colorScale of 0
+    // 5 nA -? colorScale of 0
+    // 500 pA -? colorScale of 0
+    // 50 pA -? colorScale of 0
+    // 5 pA -? colorScale of 0
+    const forwardCurrentScaled = Math.max(Math.min(Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1, 1), 0)
+    const gateColor = interpolateInferno(forwardCurrentScaled)
     drawMosfetGate(GLOBAL__LINE_THICKNESS, makeCtxFillFunc(ctx, gateColor))
     drawMosfetBody(Math.ceil(GLOBAL__LINE_THICKNESS / 2) * 2, makeCtxGradientFunc(ctx, gradient))
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 2
     mosfet.schematicEffects[1].color = 'white'
-    mosfet.schematicEffects[0].gradientSize = (mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue) * schematicScale * 2
+    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * schematicScale * 2
     mosfet.schematicEffects[0].color = gateColor
 
     mosfet.dots.forEach(dot => {

@@ -22,7 +22,7 @@ import Chart from '../components/Chart.vue'
 
 import { toRadians, modulo } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
-import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, makeTransformParameters } from '../functions/makeMosfet'
+import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize } from '../constants'
@@ -38,6 +38,7 @@ const updateSlidersBasedOnNodeVoltages = () => {
   Object.values(circuit.devices.mosfets).forEach((mosfet) => {
     mosfet.current = getMosfetCurrent(mosfet)
     mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
+    mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
     mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
     mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
