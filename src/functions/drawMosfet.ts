@@ -7,6 +7,8 @@ import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
 import { schematicOrigin, schematicScale, canvasSize } from '../constants'
 
+const GLOBAL__LINE_THICKNESS = 6 // px
+
 const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: CanvasGradient): (() => void) => {
     const ctxGradient = () => {
         ctx.save()
@@ -29,7 +31,6 @@ const makeCtxFillFunc = (ctx: CanvasRenderingContext2D, color: string = 'black')
 }
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
-    const lineThickness = 5 // px
 
     const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 1, y: 1}, {x: mosfet.originX, y: mosfet.originY})
     if (mosfet.mirror) {
@@ -49,13 +50,13 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
         drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 60}, thickness, transformParameters)
         ctxFunc()
-        drawLine(ctx, {x: 0, y: 20}, {x: 30, y: 20}, thickness, transformParameters)
+        drawLine(ctx, {x: 0, y: 20}, {x: 26, y: 20}, thickness, transformParameters)
         ctxFunc()
         drawLine(ctx, {x: 0, y: -20}, {x: 0, y: -60}, thickness, transformParameters)
         ctxFunc()
-        drawLine(ctx, {x: 0, y: -20}, {x: 30, y: -20}, thickness, transformParameters)
+        drawLine(ctx, {x: 0, y: -20}, {x: 26, y: -20}, thickness, transformParameters)
         ctxFunc()
-        drawLine(ctx, {x: 30, y: -40}, {x: 30, y: 40}, thickness, transformParameters)
+        drawLine(ctx, {x: 26, y: -40}, {x: 26, y: 40}, thickness, transformParameters)
         ctxFunc()
     }
     const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
@@ -66,10 +67,10 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     }
 
     ctx.beginPath()
-    drawMosfetBody(lineThickness, makeCtxFillFunc(ctx, 'black'))
+    drawMosfetBody(GLOBAL__LINE_THICKNESS, makeCtxFillFunc(ctx, 'black'))
     const gateColor = interpolateInferno((mosfet.vgs.value - mosfet.vgs.minValue) / (mosfet.vgs.maxValue - mosfet.vgs.minValue))
-    drawMosfetGate(lineThickness, makeCtxFillFunc(ctx, gateColor))
-    drawMosfetBody(Math.ceil(lineThickness / 2) * 2, makeCtxGradientFunc(ctx, gradient))
+    drawMosfetGate(GLOBAL__LINE_THICKNESS, makeCtxFillFunc(ctx, gateColor))
+    drawMosfetBody(Math.ceil(GLOBAL__LINE_THICKNESS / 2) * 2, makeCtxGradientFunc(ctx, gradient))
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 2
     mosfet.schematicEffects[1].color = 'white'
@@ -114,7 +115,7 @@ export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: 
     const symbolSize = 15
     const symbolHeight = 10
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 5
+    ctx.lineWidth = 6
     // circle
     ctx.beginPath()
     ctx.moveTo(voltageSource.originX + radius, voltageSource.originY)
@@ -193,7 +194,6 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
     const transformParameters = makeTransformParameters(undefined, undefined, {x: schematicScale, y: schematicScale}, schematicOrigin)
-    const lineThickness = 5
 
     // draw vdd and gnd symbols
     circuit.schematic.gndLocations.forEach((gndLocation) => {
@@ -209,7 +209,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
         const node = circuit.nodes[nodeId].value
         node.lines.forEach((line) => {
             ctx.beginPath()
-            drawLine(ctx, line.start, line.end, lineThickness, transformParameters)
+            drawLine(ctx, line.start, line.end, GLOBAL__LINE_THICKNESS, transformParameters)
             ctx.fill()
         })
     }
@@ -225,7 +225,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
 
             ctx.beginPath()
             schematicEffect.node.value.lines.forEach((line) => {
-                drawLine(ctx, line.start, line.end, Math.ceil(lineThickness / 2) * 2, transformParameters)
+                drawLine(ctx, line.start, line.end, Math.ceil(GLOBAL__LINE_THICKNESS / 2) * 2, transformParameters)
                 const ctxGradientFunc = makeCtxGradientFunc(ctx, gradient)
                 ctxGradientFunc()
             })
