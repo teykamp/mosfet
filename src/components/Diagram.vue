@@ -29,7 +29,8 @@ import { drawMosfet, drawSchematic, drawVoltageSource, drawGnd, drawVdd } from '
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
-let startTime = undefined
+let startTime = 0
+let previousTime = 0
 
 const circuit = circuits["nMosDiffPair"]
 
@@ -216,12 +217,16 @@ const draw = () => {
 }
 
 const animate = (timestamp) => {
-  if (startTime === undefined) {
+  if (timestamp === undefined) {
+    timestamp = 0
+  }
+  if (startTime == 0) {
     startTime = timestamp
   }
   const elapsedTime = timestamp - startTime
+  const timeDifference = timestamp - previousTime
+  previousTime = timestamp
   incrementCircuit(circuit)
-  // TODO: use elapsed time to compute dot movement
 
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
     // 10 mA -> speed of 3
@@ -231,10 +236,10 @@ const animate = (timestamp) => {
     // 1 uA -> speed of 1/9
     // 100nA -> speed of 1/16
     const unityCurrent = 1e-4 // Amps
-    const unitySpeed = 1 // px / s
+    const unitySpeed = 50 // px / s
     let dotSpeed = unitySpeed
     if (mosfet.current > unityCurrent) {
-      dotSpeed = (Math.log10(mosfet.current / unityCurrent) + 1) ** 1.5 * unitySpeed
+      dotSpeed = (Math.log10(mosfet.current / unityCurrent) + 1) ** 2 * unitySpeed
     } else {
       dotSpeed = 1 / (1 - Math.log10(mosfet.current / unityCurrent)) ** 2 * unitySpeed
     }
@@ -244,12 +249,10 @@ const animate = (timestamp) => {
     else if (dotSpeed < 0.001 * unitySpeed) {
       dotSpeed = 0.001 * unitySpeed
     }
-    console.log(dotSpeed)
-    mosfet.dots.forEach(dot => {
-      dot.y += dotSpeed//  * elapsedTime
-      if (dot.y > mosfet.originY + 60) {
-        dot.y = mosfet.originY - 60
-      }
+
+    mosfet.dots[0].y += dotSpeed * (timeDifference / 1000)
+    mosfet.dots.forEach((dot, index) => {
+      dot.y = modulo(mosfet.dots[0].y - mosfet.originY + 60 + index * 20, 120) + mosfet.originY - 60
     })
   })
 
