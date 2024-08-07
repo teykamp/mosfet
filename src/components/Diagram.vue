@@ -10,7 +10,6 @@
       <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
       <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div>
       <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div>
-      <!-- <div>Vnode: {{ circuit.nodes["Vnode"].value.historicVoltages.toArray().map(x => x.toFixed(7)) }}</div> -->
     </div>
   <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
 </template>
@@ -225,24 +224,29 @@ const animate = (timestamp) => {
   // TODO: use elapsed time to compute dot movement
 
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
-    // 100 mA -> speed of 3
-    // 10 mA -> speed of 2
-    // 1 mA -> speed of 1
-    // 100 uA -> speed of 1/2
-    // 10 uA -> speed of 1/3
-    // 1 uA -> speed of 1/4
-    let dotSpeed = Math.log10(mosfet.current / 0.001) + 1
-    if (dotSpeed < 1) {
-      dotSpeed = 1 / (2 - dotSpeed)
+    // 10 mA -> speed of 3
+    // 1 mA -> speed of 2
+    // 100 uA -> speed of 1 // unityCurrent
+    // 10 uA -> speed of 1/4
+    // 1 uA -> speed of 1/9
+    // 100nA -> speed of 1/16
+    const unityCurrent = 1e-4 // Amps
+    const unitySpeed = 1 // px / s
+    let dotSpeed = unitySpeed
+    if (mosfet.current > unityCurrent) {
+      dotSpeed = (Math.log10(mosfet.current / unityCurrent) + 1) ** 1.5 * unitySpeed
+    } else {
+      dotSpeed = 1 / (1 - Math.log10(mosfet.current / unityCurrent)) ** 2 * unitySpeed
     }
-    if (dotSpeed > 5) {
-      dotSpeed = 5
+    if (dotSpeed > 5 * unitySpeed) {
+      dotSpeed = 5 * unitySpeed
     }
-    else if (dotSpeed < 0.01) {
-      dotSpeed = 0.01
+    else if (dotSpeed < 0.001 * unitySpeed) {
+      dotSpeed = 0.001 * unitySpeed
     }
+    console.log(dotSpeed)
     mosfet.dots.forEach(dot => {
-      dot.y += dotSpeed
+      dot.y += dotSpeed//  * elapsedTime
       if (dot.y > mosfet.originY + 60) {
         dot.y = mosfet.originY - 60
       }
