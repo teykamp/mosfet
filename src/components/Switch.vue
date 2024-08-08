@@ -7,7 +7,7 @@
     <div style="margin-top: 20px;  margin-bottom: 20px; display: flex;">
       <div style="width: 10px; border: 1px solid black;"></div>
       <div
-        :style="`width: 30px; border: 1px solid black; transform: rotate(${props.modelValue ? '35deg' : '-35deg'}); transform-origin: 0% 50%`">
+        :style="`width: 30px; border: 1px solid black; transform: rotate(${props.modelValue ? '-35deg' : '35deg'}); transform-origin: 0% 50%; transition-duration: 200ms;`">
       </div>
     </div>
     <div style="display: flex; margin-top: -30px;">
