@@ -116,7 +116,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const currentToDisplay = toSiPrefix(mosfet.current, "A")
     let currentMantissa = ""
     for (const char of currentToDisplay) {
-        if ("0123456789.".indexOf(char) > -1)
+        if ("-0123456789.".indexOf(char) > -1)
         currentMantissa += char
       }
     const currentSuffix = currentToDisplay.slice(currentMantissa.length)
@@ -205,16 +205,57 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     ctx.fill()
 
     ctx.fillStyle = slider.visibility == Visibility.Visible ? '#000' : 'lightgrey'
-    ctx.font = '16px Arial'
-    if (slider.displayTextLocation == RelativeDirection.Right) {
-        ctx.fillText(slider.displayText, slider.location.x + 10, slider.location.y)
-        ctx.font = '14px Arial'
-        ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), slider.location.x + 10, slider.location.y + 15)
-    } else {
-        ctx.fillText(slider.displayText, slider.location.x - 40, slider.location.y)
-        ctx.font = '14px Arial'
-        ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), slider.location.x - 40, slider.location.y + 15)
+
+    let mirroredAngle = false
+    const sliderLocation = slider.location
+    if (Math.abs(slider.location.y) > Math.abs(slider.location.x)) {
+        sliderLocation.x = slider.location.y
+        sliderLocation.y = slider.location.x
+        mirroredAngle = true
     }
+
+    const textHeight = 32
+    const sliderAngle = Math.atan2(slider.location.y - slider.center.y, slider.location.x - slider.center.x)
+    const adjustedSliderRadius = slider.radius + 5
+    const adjustedSliderPosition: Point = {x: adjustedSliderRadius * Math.cos(sliderAngle), y: adjustedSliderRadius * Math.sin(sliderAngle)}
+    const lowerYposition = adjustedSliderPosition.y + Math.cos(sliderAngle) * textHeight
+    const upperYposition = adjustedSliderPosition.y - Math.cos(sliderAngle) * textHeight
+    const lowerAngle = Math.atan2(lowerYposition, adjustedSliderPosition.x)
+    const upperAngle = Math.atan2(upperYposition, adjustedSliderPosition.x)
+    const lowerXposition = Math.cos(lowerAngle) * adjustedSliderRadius
+    const upperXposition = Math.cos(upperAngle) * adjustedSliderRadius
+    let finalXposition = lowerXposition
+    if (Math.abs(upperXposition) > Math.abs(lowerXposition)) {
+        finalXposition = upperXposition
+    }
+    if (Math.sign(lowerAngle) != Math.sign(upperAngle)) {
+        if ((Math.abs(lowerAngle) < Math.PI) && (Math.abs(upperAngle) < Math.PI / 2)) {
+            finalXposition = adjustedSliderRadius
+        } else {
+            finalXposition = -adjustedSliderRadius
+        }
+    }
+    const finalYposition = finalXposition * Math.tan(sliderAngle)
+
+    const displayTextLocation: Point = {
+        x: slider.center.x + (mirroredAngle ? finalYposition : finalXposition),
+        y: slider.center.y + (mirroredAngle ? finalXposition : finalYposition)
+    }
+    ctx.fillStyle = 'black'
+    ctx.strokeStyle = 'black'
+    ctx.beginPath()
+    ctx.moveTo(displayTextLocation.x, displayTextLocation.y)
+    ctx.arc(displayTextLocation.x, displayTextLocation.y, 5, 0, 2 * Math.PI)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.moveTo(displayTextLocation.x, displayTextLocation.y - textHeight / 2)
+    ctx.lineTo(displayTextLocation.x, displayTextLocation.y + textHeight / 2)
+    ctx.stroke()
+    ctx.textAlign = (((-Math.PI / 2) < sliderAngle) && ((Math.PI / 2) > sliderAngle)) ? 'left' : 'right'
+    ctx.font = '16px Arial'
+    ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
+    ctx.font = '14px Arial'
+    ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 16)
 }
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {

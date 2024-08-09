@@ -5,7 +5,7 @@
     v-bind:cornerToCornerGraph="true" /> -->
     <div>
       <div>M1_gate: {{ toSiPrefix(circuit.nodes["M1_gate"].value.voltage, "V") }}</div>
-      <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div>
+      <!-- <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div> -->
       <!-- <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div> -->
       <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
       <!-- <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div> -->
@@ -33,6 +33,7 @@ let startTime = 0
 let previousTime = 0
 
 const circuit = circuits["pMosSingle"]
+// const circuit = circuits["nMosDiffPair"]
 
 const updateSlidersBasedOnNodeVoltages = () => {
   Object.values(circuit.devices.mosfets).forEach((mosfet) => {
