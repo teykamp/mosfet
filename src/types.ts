@@ -52,6 +52,7 @@ export type AngleSlider = {
   value: number, // a number between minValue and maxValue
   visibility: Visibility
   data: Point[],
+  displayNegative: boolean,
 }
 
 export type SchematicEffect = {

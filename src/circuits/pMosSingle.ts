@@ -1,20 +1,20 @@
 import { makeListOfSliders, makeMosfet, makeNode } from '../functions/makeMosfet'
 import { Circuit } from '../types'
-import { gndNodeId, gndVoltage } from '../constants'
+import { vddNodeId, vddVoltage } from '../constants'
 
 const useNmosSingle = () => {
     const circuit: Circuit = {
         schematic: {
             // wires: [],
-            vddLocations: [],
-            gndLocations: [{x: 0, y: 2}],
+            vddLocations: [{x: 0, y: -2}],
+            gndLocations: [],
         },
         devices: {
             mosfets: {},
             voltageSources: {}
         },
         nodes: {
-            [gndNodeId]: makeNode(gndVoltage, true),
+            [vddNodeId]: makeNode(vddVoltage, true),
             "M1_drain": makeNode(5, false),
             "M1_gate": makeNode(1, false),
         },
@@ -22,13 +22,13 @@ const useNmosSingle = () => {
     }
     circuit.devices.mosfets = {
         "M1": makeMosfet(
-            'nmos',
+            'pmos',
             0,
             0,
             circuit.nodes["M1_gate"],
-            circuit.nodes[gndNodeId],
+            circuit.nodes[vddNodeId],
             circuit.nodes["M1_drain"],
-            circuit.nodes[gndNodeId]
+            circuit.nodes[vddNodeId]
         )
     }
     makeListOfSliders(circuit)

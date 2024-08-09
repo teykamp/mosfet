@@ -2,7 +2,7 @@
 import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters, Line, VoltageSource, Circuit } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians } from "./extraMath"
-import { ekvNmos, generateCurrent } from "./ekvModel"
+import { ekvNmos, ekvPmos, generateCurrent } from "./ekvModel"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
 import { ref, type Ref } from "vue"
@@ -31,7 +31,7 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
   })
 }
 
-export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility): AngleSlider => {
+export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
   return {
     dragging: false,
     location: {
@@ -52,7 +52,8 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
     displayText: name,
     displayTextLocation: CCW ? RelativeDirection.Right : RelativeDirection.Left,
     visibility: visibility,
-    data: generateCurrent() // TODO: this should not be calculated here
+    data: generateCurrent(), // TODO: this should not be calculated here
+    displayNegative: displayNegative,
   }
 }
 
@@ -76,12 +77,12 @@ export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<N
   return voltageSource
 }
 
-export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
+export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
   const originXcanvas = originX * schematicScale + schematicOrigin.x
   const originYcanvas = originY * schematicScale + schematicOrigin.y
 
   const mosfet: Mosfet = {
-    mosfetType: 'nmos',
+    mosfetType: mosfetType,
     originX: originXcanvas,
     originY: originYcanvas,
     mirror: mirror,
@@ -128,6 +129,11 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
   mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
   mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
+  if (mosfet.mosfetType == 'pmos') {
+    mosfet.vgs = makeAngleSlider(originXcanvas + 15, originYcanvas - 10, 60, toRadians(-75), toRadians(-5), false, 0, -maxVgs, 'Vsg', vgsVisibility, true)
+    mosfet.vds = makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(220), toRadians(140), true, 0, -maxVds, 'Vsd', vdsVisibility, true)
+  }
+
   if (mirror) {
     mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', vgsVisibility)
     mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', vdsVisibility)
@@ -143,19 +149,28 @@ export const makeMosfet = (originX: number, originY: number, Vg: Ref<Node>, Vs: 
   return mosfet
 }
 
+const getMosfetEkvResult = (mosfet: Mosfet): {I: Unit, saturationLevel: number, IF: Unit} => {
+  if (mosfet.mosfetType == 'pmos') {
+    return ekvPmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V'))
+  }
+  else {
+    return ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V'))
+  }
+}
+
 export const getMosfetCurrent = (mosfet: Mosfet): number => {
-  const current: Unit = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).I
-  return current.toNumber('A')
+  const result = getMosfetEkvResult(mosfet)
+  return result.I.toNumber('A')
 }
 
 export const getMosfetSaturationLevel = (mosfet: Mosfet): number => {
-  const saturationLevel = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).saturationLevel
-  return saturationLevel
+  const result = getMosfetEkvResult(mosfet)
+  return result.saturationLevel
 }
 
 export const getMosfetForwardCurrent = (mosfet: Mosfet): number => {
-  const forwardCurrent: Unit = ekvNmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V')).IF
-  return forwardCurrent.toNumber('A')
+  const result = getMosfetEkvResult(mosfet)
+  return result.IF.toNumber('A')
 }
 
 export const makeListOfSliders = (circuit: Circuit) => {

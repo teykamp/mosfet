@@ -68,6 +68,7 @@ const useNmosDiffPair = () => {
     }
     circuit.devices.mosfets = {
         "Mb": makeMosfet(
+            'nmos',
             0,
             6,
             circuit.nodes["Mb_gate"],
@@ -81,6 +82,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked
         ),
         "M1": makeMosfet(
+            'nmos',
             -4,
             0,
             circuit.nodes["M1_gate"],
@@ -94,6 +96,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked,
         ),
         "M2": makeMosfet(
+            'nmos',
             4,
             0,
             circuit.nodes["M2_gate"],

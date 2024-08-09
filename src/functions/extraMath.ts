@@ -27,3 +27,15 @@ export const linspace = (start: number, end: number, num: number): number[] => {
 export const modulo = (a: number, b: number)  => {
   return ((a % b) + b) % b
 }
+
+export const between = (a: number, b: number, x: number): number => {
+  const maxValue = Math.max(a, b)
+  const minValue = Math.min(a, b)
+  if (x > maxValue) {
+    return maxValue
+  }
+  if (x < minValue) {
+    return minValue
+  }
+  return x
+}

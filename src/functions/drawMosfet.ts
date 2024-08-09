@@ -62,8 +62,20 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
         drawLine(ctx, {x: 40, y: 30}, {x: 40, y: -30}, thickness, transformParameters)
         ctxFunc()
-        drawLine(ctx, {x: 40, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
-        ctxFunc()
+        if (mosfet.mosfetType == 'nmos') {
+            drawLine(ctx, {x: 40, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
+            ctxFunc()
+        }
+        else if (mosfet.mosfetType == 'pmos') {
+            drawLine(ctx, {x: 50, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
+            ctxFunc()
+            ctx.beginPath()
+            const circleCenter = transformPoint({x: 45, y: 0}, transformParameters)
+            ctx.moveTo(circleCenter.x, circleCenter.y)
+            ctx.arc(circleCenter.x, circleCenter.y, 5 + GLOBAL__LINE_THICKNESS / 2, 0, 2 * Math.PI, false)
+            ctx.arc(circleCenter.x, circleCenter.y, 5 - GLOBAL__LINE_THICKNESS / 2, 0, 2 * Math.PI, true)
+            ctxFunc()
+        }
     }
 
     ctx.beginPath()
@@ -196,11 +208,11 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     if (slider.displayTextLocation == RelativeDirection.Right) {
         ctx.fillText(slider.displayText, slider.location.x + 10, slider.location.y)
         ctx.font = '14px Arial'
-        ctx.fillText(toSiPrefix(slider.value, 'V', 3), slider.location.x + 10, slider.location.y + 15)
+        ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), slider.location.x + 10, slider.location.y + 15)
     } else {
         ctx.fillText(slider.displayText, slider.location.x - 40, slider.location.y)
         ctx.font = '14px Arial'
-        ctx.fillText(toSiPrefix(slider.value, 'V', 3), slider.location.x - 40, slider.location.y + 15)
+        ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), slider.location.x - 40, slider.location.y + 15)
     }
 }
 

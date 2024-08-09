@@ -5,11 +5,11 @@
     v-bind:cornerToCornerGraph="true" /> -->
     <div>
       <div>M1_gate: {{ toSiPrefix(circuit.nodes["M1_gate"].value.voltage, "V") }}</div>
-      <!-- <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div> -->
-      <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div>
+      <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div>
+      <!-- <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div> -->
       <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
-      <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div>
-      <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div>
+      <!-- <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div> -->
+      <!-- <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div> -->
     </div>
   <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
 </template>
@@ -19,7 +19,7 @@ import { ref, onMounted, reactive } from 'vue'
 import { Visibility, RelativeDirection, Mosfet, AngleSlider } from '../types'
 import Chart from '../components/Chart.vue'
 
-import { toRadians, modulo } from '../functions/extraMath'
+import { toRadians, modulo, between } from '../functions/extraMath'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
@@ -32,7 +32,7 @@ const ctx = ref<null | CanvasRenderingContext2D>(null)
 let startTime = 0
 let previousTime = 0
 
-const circuit = circuits["nMosDiffPair"]
+const circuit = circuits["pMosSingle"]
 
 const updateSlidersBasedOnNodeVoltages = () => {
   Object.values(circuit.devices.mosfets).forEach((mosfet) => {
@@ -49,12 +49,8 @@ const updateSlidersBasedOnNodeVoltages = () => {
 
   // const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
   circuit.allSliders.forEach((slider) => {
-    if (slider.value > slider.maxValue) {
-      slider.value = slider.maxValue
-    }
-    else if (slider.value < slider.minValue) {
-      slider.value = slider.minValue
-    }
+    slider.value = between(slider.minValue, slider.maxValue, slider.value)
+
     const normalizedSliderValue = slider.value / (slider.maxValue - slider.minValue) + slider.minValue
     if (slider.CCW) {
       const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
