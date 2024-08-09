@@ -216,14 +216,7 @@ const draw = () => {
   drawSchematic(ctx.value as CanvasRenderingContext2D, circuit)
 }
 
-const animate = (timestamp) => {
-  if (timestamp === undefined) {
-    timestamp = 0
-  }
-  if (startTime == 0) {
-    startTime = timestamp
-  }
-  const elapsedTime = timestamp - startTime
+const animate = (timestamp: number) => {
   const timeDifference = timestamp - previousTime
   previousTime = timestamp
   incrementCircuit(circuit)
@@ -264,7 +257,7 @@ onMounted(() => {
   if (canvas.value) {
     ctx.value = canvas.value.getContext('2d')
     draw()
-    animate()
+    requestAnimationFrame(animate)
 
   }
 })
