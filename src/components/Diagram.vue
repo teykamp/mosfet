@@ -32,8 +32,8 @@ const ctx = ref<null | CanvasRenderingContext2D>(null)
 let startTime = 0
 let previousTime = 0
 
-const circuit = circuits["pMosSingle"]
-// const circuit = circuits["nMosDiffPair"]
+// const circuit = circuits["pMosSingle"]
+const circuit = circuits["nMosDiffPair"]
 
 const updateSlidersBasedOnNodeVoltages = () => {
   Object.values(circuit.devices.mosfets).forEach((mosfet) => {
