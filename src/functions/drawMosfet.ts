@@ -42,7 +42,8 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 0   % saturation -> 100 px
     mosfet.gradientSize = 125 - mosfet.saturationLevel * 125
 
-    const gradient = ctx.createRadialGradient(mosfet.originX, mosfet.originY - 60, 0, mosfet.originX, mosfet.originY - 60, mosfet.gradientSize)
+    const gradientOrigin: Point = {x: mosfet.originX, y: mosfet.originY - 60 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
+    const gradient = ctx.createRadialGradient(gradientOrigin.x, gradientOrigin.y, 0, gradientOrigin.x, gradientOrigin.y, mosfet.gradientSize)
     gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
     gradient.addColorStop(0.5, 'rgba(200, 200, 200, 1)')
     gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')

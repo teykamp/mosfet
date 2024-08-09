@@ -100,8 +100,8 @@ export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY
       {
         node: Vd,
         origin: {
-          x: originX       * schematicScale + schematicOrigin.x,
-          y: (originY - 2) * schematicScale + schematicOrigin.y,
+          x: originX                                         * schematicScale + schematicOrigin.x,
+          y: (originY - 2 * (mosfetType == 'nmos' ? 1 : -1)) * schematicScale + schematicOrigin.y,
         },
         color: 'red',
         gradientSize: 100,
