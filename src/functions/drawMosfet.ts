@@ -206,23 +206,12 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
     ctx.fillStyle = slider.visibility == Visibility.Visible ? '#000' : 'lightgrey'
 
-    let textHeight = 32
-    let upperHeight = 16
-    let lowerHeight = -16
-    let mirroredAngle = false
-    const sliderLocation = slider.location
-    if (Math.abs(slider.location.y) > Math.abs(slider.location.x)) {
-        sliderLocation.x = slider.location.y
-        sliderLocation.y = slider.location.x
-        mirroredAngle = true
-        textHeight = 40
-    }
-
+    const textHeight = 32
     const sliderAngle = Math.atan2(slider.location.y - slider.center.y, slider.location.x - slider.center.x)
-    const adjustedSliderRadius = slider.radius + 10
+    const adjustedSliderRadius = slider.radius + 15
     const adjustedSliderPosition: Point = {x: adjustedSliderRadius * Math.cos(sliderAngle), y: adjustedSliderRadius * Math.sin(sliderAngle)}
-    const lowerYposition = adjustedSliderPosition.y + Math.cos(sliderAngle) * lowerHeight
-    const upperYposition = adjustedSliderPosition.y + Math.cos(sliderAngle) * upperHeight
+    const lowerYposition = adjustedSliderPosition.y + Math.cos(sliderAngle) * textHeight / 2
+    const upperYposition = adjustedSliderPosition.y - Math.cos(sliderAngle) * textHeight / 2
     const lowerAngle = Math.atan2(lowerYposition, adjustedSliderPosition.x)
     const upperAngle = Math.atan2(upperYposition, adjustedSliderPosition.x)
     const lowerXposition = Math.cos(lowerAngle) * adjustedSliderRadius
@@ -241,8 +230,8 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     const finalYposition = finalXposition * Math.tan(sliderAngle)
 
     const displayTextLocation: Point = {
-        x: slider.center.x + (mirroredAngle ? finalYposition : finalXposition),
-        y: slider.center.y + (mirroredAngle ? finalXposition : finalYposition)
+        x: slider.center.x + finalXposition,
+        y: slider.center.y + finalYposition
     }
     ctx.fillStyle = 'black'
     ctx.strokeStyle = 'black'
@@ -253,10 +242,6 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     ctx.beginPath()
     ctx.moveTo(displayTextLocation.x, displayTextLocation.y - textHeight / 2)
     ctx.lineTo(displayTextLocation.x, displayTextLocation.y + textHeight / 2)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(displayTextLocation.x - 20, displayTextLocation.y)
-    ctx.lineTo(displayTextLocation.x + 20, displayTextLocation.y)
     ctx.stroke()
     ctx.textAlign = (((-Math.PI / 2) < sliderAngle) && ((Math.PI / 2) > sliderAngle)) ? 'left' : 'right'
     ctx.font = '16px Arial'
