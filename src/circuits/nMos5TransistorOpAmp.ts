@@ -135,7 +135,7 @@ const useNmos5TransistorOpAmp = () => {
             circuit.nodes[vddNodeId],
             undefined,
             undefined,
-            false,
+            true,
             Visibility.Locked,
             Visibility.Locked,
         ),

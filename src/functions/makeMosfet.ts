@@ -116,7 +116,7 @@ export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY
       { x: originXcanvas - 12, y: originYcanvas + 40 },
     ],
     vgs: makeAngleSlider(originXcanvas + 15, originYcanvas + 10, 60, toRadians(75), toRadians(5), true, 0, maxVgs, 'Vgs', vgsVisibility),
-    vds: makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(-140), false, 0, maxVds, 'Vds', vdsVisibility),
+    vds: makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(220), false, 0, maxVds, 'Vds', vdsVisibility),
     Vg: Vg,
     Vs: Vs,
     Vd: Vd,
@@ -135,9 +135,15 @@ export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY
   }
 
   if (mirror) {
-    mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', vgsVisibility)
-    mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', vdsVisibility)
-    mosfet.dots = [
+    if (mosfet.mosfetType == 'nmos') {
+      mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', vgsVisibility)
+      mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', vdsVisibility)
+    }
+    else if (mosfet.mosfetType == 'pmos') {
+      mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas - 10, 60, toRadians(-105), toRadians(-175), true, 0, -maxVgs, 'Vsg', vgsVisibility, true)
+      mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(-40), toRadians(40), false, 0, -maxVds, 'Vsd', vdsVisibility, true)
+    }
+      mosfet.dots = [
       { x: originXcanvas + 10, y: originYcanvas - 60 },
       { x: originXcanvas + 10, y: originYcanvas - 40 },
       { x: originXcanvas + 10, y: originYcanvas - 20 },
