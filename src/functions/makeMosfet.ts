@@ -18,7 +18,7 @@ export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolea
 
 export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: Line[] = [], voltageDisplayLabel: string = "", voltageDisplayLocations: Point[] = []): Ref<Node> => {
   const historicVoltages: Queue<number> = new Queue<number>()
-  historicVoltages.fill(0, 5)
+  historicVoltages.fill(0, 10)
   const capacitance = isPowerSupply ? powerSupplyCapacitance : defaultNodeCapacitance // in Farads
   return ref({
     voltage: initialVoltage, // in Volts

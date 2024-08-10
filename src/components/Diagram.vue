@@ -133,6 +133,11 @@ const checkDrag = (event: MouseEvent) => {
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
+  for (const nodeId in circuit.nodes) {
+    const node = circuit.nodes[nodeId].value
+    node.capacitance = node.originalCapacitance
+  }
+
   circuit.allSliders.forEach(slider => {
     if (slider.dragging) {
         const result = normalizeAngle(
