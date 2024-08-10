@@ -2,10 +2,10 @@ import { makeListOfSliders, makeMosfet, makeNode, makeVoltageSource } from '../f
 import { Circuit, Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 
-const useNmosDiffPair = () => {
+const useNmos5TransistorOpAmp = () => {
     const circuit: Circuit = {
         schematic: {
-            vddLocations: [{x: -4, y: -3}, {x: 4, y: -3}],
+            vddLocations: [{x: -4, y: -12}, {x: 4, y: -12}],
             gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
         },
         devices: {
@@ -21,8 +21,8 @@ const useNmosDiffPair = () => {
             ),
             [vddNodeId]: makeNode(vddVoltage, true,
                 [
-                    {start: {x: -4, y: -2}, end: {x: -4, y: -3}},
-                    {start: {x: 4, y: -2}, end: {x: 4, y: -3}},
+                    {start: {x: -4, y: -11}, end: {x: -4, y: -12}},
+                    {start: {x: 4, y: -11}, end: {x: 4, y: -12}},
                 ]
             ),
             "M1_gate": makeNode(2, false,
@@ -32,7 +32,14 @@ const useNmosDiffPair = () => {
                 ]
 
             ),
-            // "M1_drain": makeNode(5, false),
+            "M1_drain": makeNode(4, false,
+                [
+                    {start: {x: -4, y: -2}, end: {x: -4, y: -7}},
+                    {start: {x: -4, y: -6}, end: {x: -1, y: -6}},
+                    {start: {x: -1, y: -6}, end: {x: -1, y: -9}},
+                    {start: {x: -2, y: -9}, end: {x: 2, y: -9}},
+                ]
+            ),
             "M2_gate": makeNode(2, false,
                 [
                     {start: {x: 8, y: 1}, end: {x: 8, y: 0}},
@@ -40,7 +47,11 @@ const useNmosDiffPair = () => {
                 ]
 
             ),
-            // "M2_drain": makeNode(5, false),
+            "Vout": makeNode(4, false,
+                [
+                    {start: {x: 4, y: -2}, end: {x: 4, y: -7}},
+                ]
+            ),
             "Mb_gate": makeNode(0.7, false,
                 [
                     {start: {x: 4, y: 7}, end: {x: 4, y: 6}},
@@ -78,7 +89,7 @@ const useNmosDiffPair = () => {
             0,
             circuit.nodes["M1_gate"],
             circuit.nodes["Vnode"],
-            circuit.nodes[vddNodeId],
+            circuit.nodes["M1_drain"],
             circuit.nodes[gndNodeId],
             undefined,
             undefined,
@@ -92,8 +103,36 @@ const useNmosDiffPair = () => {
             0,
             circuit.nodes["M2_gate"],
             circuit.nodes["Vnode"],
-            circuit.nodes[vddNodeId],
+            circuit.nodes["Vout"],
             circuit.nodes[gndNodeId],
+            undefined,
+            undefined,
+            false,
+            Visibility.Locked,
+            Visibility.Locked,
+        ),
+        "M3": makeMosfet(
+            'pmos',
+            -4,
+            -9,
+            circuit.nodes["M1_drain"],
+            circuit.nodes[vddNodeId],
+            circuit.nodes["M1_drain"],
+            circuit.nodes[vddNodeId],
+            undefined,
+            undefined,
+            false,
+            Visibility.Locked,
+            Visibility.Locked,
+        ),
+        "M4": makeMosfet(
+            'pmos',
+            4,
+            -9,
+            circuit.nodes["M1_drain"],
+            circuit.nodes[vddNodeId],
+            circuit.nodes["Vout"],
+            circuit.nodes[vddNodeId],
             undefined,
             undefined,
             false,
@@ -128,4 +167,4 @@ const useNmosDiffPair = () => {
     makeListOfSliders(circuit)
     return circuit
 }
-export default useNmosDiffPair
+export default useNmos5TransistorOpAmp
