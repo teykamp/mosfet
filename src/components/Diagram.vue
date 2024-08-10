@@ -34,7 +34,8 @@ let previousTime = 0
 
 // const circuit = circuits["pMosSingle"]
 // const circuit = circuits["nMosDiffPair"]
-const circuit = circuits["nMos5TransistorOpAmp"]
+// const circuit = circuits["nMos5TransistorOpAmp"]
+const circuit = circuits["nMos9TransistorOpAmp"]
 
 const updateSlidersBasedOnNodeVoltages = () => {
   Object.values(circuit.devices.mosfets).forEach((mosfet) => {
