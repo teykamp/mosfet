@@ -53,7 +53,9 @@ const useNmosDiffPair = () => {
                     {start: {x:  4, y: 2}, end: {x:  4, y: 3}},
                     {start: {x: -4, y: 3}, end: {x:  4, y: 3}},
                     {start: {x:  0, y: 3}, end: {x:  0, y: 4}},
-                ]
+                ],
+                "V",
+                [{x: -1, y: 2.5}]
             ),
         },
     }

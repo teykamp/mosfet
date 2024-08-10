@@ -115,6 +115,8 @@ export type Node = {
   fixed: boolean, // GND and VDD nodes are fixed, as are nodes that are being dragged
   historicVoltages: Queue<number>,
   lines: Line[],
+  voltageDisplayLabel: string,
+  voltageDisplayLocations: Point[],
 }
 
 export type Circuit = {

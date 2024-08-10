@@ -16,7 +16,7 @@ export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolea
   }
 }
 
-export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: Line[] = []): Ref<Node> => {
+export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: Line[] = [], voltageDisplayLabel: string = "", voltageDisplayLocations: Point[] = []): Ref<Node> => {
   const historicVoltages: Queue<number> = new Queue<number>()
   historicVoltages.fill(0, 5)
   const capacitance = isPowerSupply ? powerSupplyCapacitance : defaultNodeCapacitance // in Farads
@@ -28,6 +28,8 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
     fixed: isPowerSupply ? true : false, // GND and VDD nodes are fixed, as are nodes that are being dragged
     historicVoltages: historicVoltages,
     lines: lines,
+    voltageDisplayLabel: voltageDisplayLabel,
+    voltageDisplayLocations: voltageDisplayLocations
   })
 }
 

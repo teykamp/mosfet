@@ -50,7 +50,10 @@ const useNmos5TransistorOpAmp = () => {
             "Vout": makeNode(4, false,
                 [
                     {start: {x: 4, y: -2}, end: {x: 4, y: -7}},
-                ]
+                    {start: {x: 4, y: -5}, end: {x: 6, y: -5}},
+                ],
+                "Vout",
+                [{x: 6.5, y: -5}]
             ),
             "Mb_gate": makeNode(0.7, false,
                 [
@@ -64,7 +67,9 @@ const useNmos5TransistorOpAmp = () => {
                     {start: {x:  4, y: 2}, end: {x:  4, y: 3}},
                     {start: {x: -4, y: 3}, end: {x:  4, y: 3}},
                     {start: {x:  0, y: 3}, end: {x:  0, y: 4}},
-                ]
+                ],
+                "V",
+                [{x: -1, y: 2.5}]
             ),
         },
     }

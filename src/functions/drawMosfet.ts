@@ -279,6 +279,17 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
             })
         })
     }
+
+    // draw node voltage labels
+    for (const nodeId in circuit.nodes) {
+        const node = circuit.nodes[nodeId].value
+        node.voltageDisplayLocations.forEach((labelLocation: Point) => {
+            const transformedLocation = transformPoint(labelLocation, transformParameters)
+            ctx.fillStyle = 'black'
+            ctx.font = '16px sans-serif'
+            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), transformedLocation.x, transformedLocation.y + 4)
+        })
+    }
 }
 
 export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point) => {
