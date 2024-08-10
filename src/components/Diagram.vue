@@ -218,7 +218,6 @@ const animate = (timestamp: number) => {
   const timeDifference = timestamp - previousTime
   previousTime = timestamp
   incrementCircuit(circuit)
-  console.log(circuit.devices.mosfets["M4"])
 
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
     // 10 mA -> speed of 3
@@ -230,7 +229,10 @@ const animate = (timestamp: number) => {
     const unityCurrent = 1e-4 // Amps
     const unitySpeed = 50 // px / s
     let dotSpeed = unitySpeed
-    if (mosfet.current > unityCurrent) {
+    if (mosfet.current <= 0) {
+      dotSpeed = 0
+    }
+    else if (mosfet.current > unityCurrent) {
       dotSpeed = (Math.log10(mosfet.current / unityCurrent) + 1) ** 2 * unitySpeed
     } else {
       dotSpeed = 1 / (1 - Math.log10(mosfet.current / unityCurrent)) ** 2 * unitySpeed

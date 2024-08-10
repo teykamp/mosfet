@@ -46,7 +46,9 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const gradient = ctx.createRadialGradient(gradientOrigin.x, gradientOrigin.y, 0, gradientOrigin.x, gradientOrigin.y, mosfet.gradientSize)
     gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
     gradient.addColorStop(0.5, 'rgba(200, 200, 200, 1)')
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
+    gradient.addColorStop(0.99, 'rgba(0, 0, 0, 1)')
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+
 
     const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
         drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 60}, thickness, transformParameters)
@@ -269,7 +271,8 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
             const gradient = ctx.createRadialGradient(schematicEffect.origin.x, schematicEffect.origin.y, 0, schematicEffect.origin.x, schematicEffect.origin.y, schematicEffect.gradientSize)
             gradient.addColorStop(0, schematicEffect.color)
             gradient.addColorStop(0.5, schematicEffect.color)
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
+            gradient.addColorStop(0.99, 'rgba(0, 0, 0, 1)')
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
 
             ctx.beginPath()
             schematicEffect.node.value.lines.forEach((line) => {
