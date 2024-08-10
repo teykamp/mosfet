@@ -1,8 +1,8 @@
 import { Point } from './types'
 
-export const canvasSize = {x: 1600, y: 1200}
+export const canvasSize = {x: 1350, y: 950}
 
-export const schematicOrigin: Point = {x: 400, y: 700} // coordinates of the center of the schematic on the canvas
+export const schematicOrigin: Point = {x: 400, y: 520} // coordinates of the center of the schematic on the canvas
 export const schematicScale: number = 30 // a mosfet is 4 grid units tall and 2 grid units wide
 
 // node definitions
