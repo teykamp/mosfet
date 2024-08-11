@@ -150,6 +150,7 @@ const checkDrag = (event: MouseEvent) => {
           (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
         ) {
           slider.dragging = true
+          slider.radius = slider.originalRadius + 10
 
           // set the temporary min and max slider values
           const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
@@ -209,6 +210,7 @@ const mouseUp = () => {
   circuit.allSliders.forEach((slider) => {
     slider.temporaryMinValue = slider.minValue
     slider.temporaryMaxValue = slider.maxValue
+    slider.radius = slider.originalRadius
   })
 
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
