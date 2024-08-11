@@ -275,7 +275,6 @@ const animate = (timestamp: number) => {
   })
 
   draw()
-  console.log(JSON.stringify(Object.keys(circuit.value.devices.mosfets).length, null, 2))
   requestAnimationFrame(animate)
 }
 
