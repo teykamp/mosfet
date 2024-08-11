@@ -12,3 +12,5 @@ export const gndVoltage: number = 0 // Volts
 export const vddVoltage: number = 5 // Volts
 export const defaultNodeCapacitance = 0.5e-6 // Farads
 export const powerSupplyCapacitance = 100 // Farads
+
+export const preciseSliderTickRange = 1.5 // units

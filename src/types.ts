@@ -38,9 +38,10 @@ export type Chart = {
 }
 
 export type AngleSlider = {
-  dragging: boolean
+  dragging: boolean,
   location: Point,
   radius: number,
+  originalRadius: number,
   center: Point,
   startAngle: number,
   endAngle: number,
@@ -53,6 +54,10 @@ export type AngleSlider = {
   visibility: Visibility
   data: Point[],
   displayNegative: boolean,
+  temporaryMinValue: number,
+  temporaryMaxValue: number,
+  previousValue: number,
+  valueRateOfChange: number,
 }
 
 export type SchematicEffect = {

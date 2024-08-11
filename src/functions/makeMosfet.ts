@@ -45,6 +45,7 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
       y: centerY
     },
     radius: radius,
+    originalRadius: radius,
     startAngle: startAngle,
     endAngle: endAngle,
     CCW: CCW,
@@ -56,7 +57,15 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
     visibility: visibility,
     data: generateCurrent(), // TODO: this should not be calculated here
     displayNegative: displayNegative,
+    temporaryMinValue: minValue,
+    temporaryMaxValue: maxValue,
+    previousValue: minValue,
+    valueRateOfChange: 0,
   }
+}
+
+export const getSliderPercentValue = (slider: AngleSlider): number => {
+  return (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
 }
 
 export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {

@@ -24,7 +24,7 @@ import { toSiPrefix } from '../functions/toSiPrefix'
 import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent, makeTransformParameters } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { canvasSize } from '../constants'
+import { canvasSize, preciseSliderTickRange, vddVoltage } from '../constants'
 import { drawMosfet, drawSchematic, drawVoltageSource, drawGnd, drawVdd } from '../functions/drawMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
@@ -33,9 +33,9 @@ let startTime = 0
 let previousTime = 0
 
 // const circuit = circuits["pMosSingle"]
-// const circuit = circuits["nMosDiffPair"]
+const circuit = circuits["nMosDiffPair"]
 // const circuit = circuits["nMos5TransistorOpAmp"]
-const circuit = circuits["nMos9TransistorOpAmp"]
+// const circuit = circuits["nMos9TransistorOpAmp"]
 
 const updateSlidersBasedOnNodeVoltages = () => {
   Object.values(circuit.devices.mosfets).forEach((mosfet) => {
@@ -52,9 +52,9 @@ const updateSlidersBasedOnNodeVoltages = () => {
 
   // const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
   circuit.allSliders.forEach((slider) => {
-    slider.value = between(slider.minValue, slider.maxValue, slider.value)
+    slider.value = between(slider.temporaryMinValue, slider.temporaryMaxValue, slider.value)
 
-    const normalizedSliderValue = slider.value / (slider.maxValue - slider.minValue) + slider.minValue
+    const normalizedSliderValue = (slider.value - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
     if (slider.CCW) {
       const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
       slider.location = {
@@ -123,6 +123,12 @@ const checkDrag = (event: MouseEvent) => {
           (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
         ) {
           slider.dragging = true
+
+          // set the temporary min and max slider values
+          const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
+          slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
+          slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
+
           drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
         }
       }
@@ -148,12 +154,25 @@ const drag = (event: MouseEvent) => {
           slider.CCW
         )
         const mouseAngle = result.returnAngle
-        slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
+        // slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
+        slider.value = result.value * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
 
         slider.location = {
           x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
           y: Math.sin(mouseAngle) * slider.radius + slider.center.y
         }
+
+        if ((result.value < 0.05) && (slider.value <= slider.previousValue)) {
+          slider.valueRateOfChange = -0.01
+        }
+        else if ((result.value > 0.95) && (slider.value >= slider.previousValue)) {
+          slider.valueRateOfChange = 0.01
+        }
+        else {
+          slider.valueRateOfChange = 0
+        }
+        slider.previousValue = slider.value
+        console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
       }
     })
     // evaluate mosfet sliders
@@ -183,6 +202,11 @@ const drag = (event: MouseEvent) => {
 }
 
 const mouseUp = () => {
+  circuit.allSliders.forEach((slider) => {
+    slider.temporaryMinValue = slider.minValue
+    slider.temporaryMaxValue = slider.maxValue
+  })
+
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
     mosfet.vgs.dragging = false
     mosfet.vds.dragging = false
@@ -223,6 +247,30 @@ const draw = () => {
 const animate = (timestamp: number) => {
   const timeDifference = timestamp - previousTime
   previousTime = timestamp
+
+  circuit.allSliders.forEach((slider) => {
+    if (slider.dragging) {
+      if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue >= slider.maxValue)) {
+        slider.value = slider.maxValue
+        slider.temporaryMaxValue = slider.maxValue
+        slider.temporaryMinValue = slider.maxValue - preciseSliderTickRange
+        slider.valueRateOfChange = 0
+      }
+      else if ((slider.value <= slider.minValue) || (slider.temporaryMinValue <= slider.minValue)) {
+        slider.value = slider.minValue
+        slider.temporaryMinValue = slider.minValue
+        slider.temporaryMaxValue = slider.minValue + preciseSliderTickRange
+        slider.valueRateOfChange = 0
+      }
+      else {
+        slider.temporaryMinValue += slider.valueRateOfChange
+        slider.temporaryMaxValue += slider.valueRateOfChange
+        slider.value += slider.valueRateOfChange
+      }
+    }
+
+  })
+
   incrementCircuit(circuit)
 
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
