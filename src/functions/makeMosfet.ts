@@ -83,7 +83,7 @@ export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<N
     current: 0 // Amps
   }
   if (mirror) {
-    voltageSource.voltageDrop = makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(140), toRadians(-140), false, 0, 5, name, Visibility.Visible)
+    voltageSource.voltageDrop = makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(140), toRadians(220), false, 0, 5, name, Visibility.Visible)
   }
   return voltageSource
 }
