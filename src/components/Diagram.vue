@@ -8,7 +8,7 @@
       <!-- <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div> -->
       <!-- <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div> -->
       <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
-      <!-- <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div> -->
+      <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div>
       <!-- <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div> -->
     </div>
   <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
@@ -69,6 +69,33 @@ const updateSlidersBasedOnNodeVoltages = () => {
       }
     }
   })
+}
+
+const updateNodeVoltagesBasedOnSliders = () => {
+  // evaluate mosfet sliders
+  Object.values(circuit.devices.mosfets).forEach(mosfet => {
+      if (mosfet.vgs.dragging) {
+        mosfet.Vg.value.fixed = true
+        mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
+      }
+      if (mosfet.vds.dragging) {
+        mosfet.Vd.value.fixed = true
+        mosfet.Vd.value.voltage = mosfet.Vs.value.voltage + mosfet.vds.value
+      }
+    })
+    // evaluate voltageSource sliders
+    Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
+      if (voltageSource.voltageDrop.dragging) {
+        if (voltageSource.fixedAt == 'gnd') {
+          voltageSource.vplus.value.fixed = true
+          voltageSource.vplus.value.voltage = voltageSource.vminus.value.voltage + voltageSource.voltageDrop.value
+        }
+        else if (voltageSource.fixedAt == 'vdd') {
+          voltageSource.vminus.value.fixed = true
+          voltageSource.vminus.value.voltage = voltageSource.vplus.value.voltage - voltageSource.voltageDrop.value
+        }
+      }
+    })
 }
 
 const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
@@ -172,33 +199,10 @@ const drag = (event: MouseEvent) => {
           slider.valueRateOfChange = 0
         }
         slider.previousValue = slider.value
-        console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
+        // console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
       }
     })
-    // evaluate mosfet sliders
-    Object.values(circuit.devices.mosfets).forEach(mosfet => {
-      if (mosfet.vgs.dragging) {
-        mosfet.Vg.value.fixed = true
-        mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
-      }
-      if (mosfet.vds.dragging) {
-        mosfet.Vd.value.fixed = true
-        mosfet.Vd.value.voltage = mosfet.Vs.value.voltage + mosfet.vds.value
-      }
-    })
-    // evaluate voltageSource sliders
-    Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
-      if (voltageSource.voltageDrop.dragging) {
-        if (voltageSource.fixedAt == 'gnd') {
-          voltageSource.vplus.value.fixed = true
-          voltageSource.vplus.value.voltage = voltageSource.vminus.value.voltage + voltageSource.voltageDrop.value
-        }
-        else if (voltageSource.fixedAt == 'vdd') {
-          voltageSource.vminus.value.fixed = true
-          voltageSource.vminus.value.voltage = voltageSource.vplus.value.voltage - voltageSource.voltageDrop.value
-        }
-      }
-    })
+    updateNodeVoltagesBasedOnSliders()
 }
 
 const mouseUp = () => {
@@ -250,13 +254,13 @@ const animate = (timestamp: number) => {
 
   circuit.allSliders.forEach((slider) => {
     if (slider.dragging) {
-      if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue >= slider.maxValue)) {
+      if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue > slider.maxValue)) {
         slider.value = slider.maxValue
         slider.temporaryMaxValue = slider.maxValue
         slider.temporaryMinValue = slider.maxValue - preciseSliderTickRange
         slider.valueRateOfChange = 0
       }
-      else if ((slider.value <= slider.minValue) || (slider.temporaryMinValue <= slider.minValue)) {
+      else if ((slider.value <= slider.minValue) || (slider.temporaryMinValue < slider.minValue)) {
         slider.value = slider.minValue
         slider.temporaryMinValue = slider.minValue
         slider.temporaryMaxValue = slider.minValue + preciseSliderTickRange
@@ -265,10 +269,13 @@ const animate = (timestamp: number) => {
       else {
         slider.temporaryMinValue += slider.valueRateOfChange
         slider.temporaryMaxValue += slider.valueRateOfChange
+        // console.log('before', slider.value)
         slider.value += slider.valueRateOfChange
+        // console.log('after', slider.value)
+        console.log(slider.valueRateOfChange)
       }
     }
-
+    updateNodeVoltagesBasedOnSliders()
   })
 
   incrementCircuit(circuit)
