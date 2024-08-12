@@ -36,6 +36,7 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
 export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
   return {
     dragging: false,
+    preciseDragging: false,
     location: {
       x: Math.cos(startAngle) * radius + centerX,
       y: Math.sin(startAngle) * radius + centerY,

@@ -39,6 +39,7 @@ export type Chart = {
 
 export type AngleSlider = {
   dragging: boolean,
+  preciseDragging: boolean,
   location: Point,
   radius: number,
   originalRadius: number,

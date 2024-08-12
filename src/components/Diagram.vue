@@ -10,6 +10,7 @@
       <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
       <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div>
       <!-- <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div> -->
+      <div>Mb_gate: {{ circuit.devices.voltageSources["V1"].voltageDrop.temporaryMaxValue }}</div>
     </div>
   <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
 </template>
@@ -150,12 +151,22 @@ const checkDrag = (event: MouseEvent) => {
           (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
         ) {
           slider.dragging = true
-          slider.radius = slider.originalRadius + 10
-
+          if (event.button == 1) {
+            slider.preciseDragging = true
+          }
+          if (slider.preciseDragging) {
+            slider.radius = slider.originalRadius + 10
+          }
           // set the temporary min and max slider values
-          const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
-          slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
-          slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
+          if (slider.preciseDragging) {
+            const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
+            slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
+            slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
+          }
+          else {
+            slider.temporaryMinValue = slider.minValue
+            slider.temporaryMaxValue = slider.maxValue
+          }
 
           drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
         }
@@ -211,6 +222,7 @@ const mouseUp = () => {
     slider.temporaryMinValue = slider.minValue
     slider.temporaryMaxValue = slider.maxValue
     slider.radius = slider.originalRadius
+    slider.preciseDragging = false
   })
 
   Object.values(circuit.devices.mosfets).forEach(mosfet => {
@@ -255,7 +267,7 @@ const animate = (timestamp: number) => {
   previousTime = timestamp
 
   circuit.allSliders.forEach((slider) => {
-    if (slider.dragging) {
+    if (slider.dragging && slider.preciseDragging) {
       if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue > slider.maxValue)) {
         slider.value = slider.maxValue
         slider.temporaryMaxValue = slider.maxValue
@@ -274,7 +286,7 @@ const animate = (timestamp: number) => {
         // console.log('before', slider.value)
         slider.value += slider.valueRateOfChange
         // console.log('after', slider.value)
-        console.log(slider.valueRateOfChange)
+        // console.log(slider.valueRateOfChange)
       }
     }
     updateNodeVoltagesBasedOnSliders()
