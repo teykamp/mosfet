@@ -157,7 +157,7 @@ export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY
   return mosfet
 }
 
-const getMosfetEkvResult = (mosfet: Mosfet): {I: Unit, saturationLevel: number, IF: Unit} => {
+const getMosfetEkvResult = (mosfet: Mosfet): { I: Unit, saturationLevel: number, IF: Unit } => {
   if (mosfet.mosfetType == 'pmos') {
     return ekvPmos(unit(mosfet.Vg.value.voltage, 'V'), unit(mosfet.Vs.value.voltage, 'V'), unit(mosfet.Vd.value.voltage, 'V'), unit(mosfet.Vb.value.voltage, 'V'))
   }

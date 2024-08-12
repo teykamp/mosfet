@@ -3,20 +3,29 @@
     v-bind:cornerToCornerGraph="true" />
   <Chart :points="circuit.devices.mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
     v-bind:cornerToCornerGraph="true" /> -->
-    <div>
-      <!-- <div>M1_gate: {{ toSiPrefix(circuit.nodes["M1_gate"].value.voltage, "V") }}</div> -->
-      <!-- <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div> -->
-      <!-- <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div> -->
-      <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
-      <!-- <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div> -->
-      <!-- <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div> -->
+  <div>
+    <!-- <div>M1_gate: {{ toSiPrefix(circuit.nodes["M1_gate"].value.voltage, "V") }}</div> -->
+    <!-- <div>M1_drain: {{ toSiPrefix(circuit.nodes["M1_drain"].value.voltage, "V") }}</div> -->
+    <!-- <div>M2_gate: {{ toSiPrefix(circuit.nodes["M2_gate"].value.voltage, "V") }}</div> -->
+    <!-- <div>M2_drain: {{ toSiPrefix(circuit.nodes["M2_drain"].value.voltage, "V") }}</div> -->
+    <!-- <div>Mb_gate: {{ toSiPrefix(circuit.nodes["Mb_gate"].value.voltage, "V") }}</div> -->
+    <!-- <div>Vnode: {{ toSiPrefix(circuit.nodes["Vnode"].value.voltage, "V") }}</div> -->
+  </div>
+  <div style="display: flex; justify-content: space-between; padding: 50px;">
+    <div style="display: flex; flex-direction: column;">
+      <button 
+        v-for="circuit in circuitsToChooseFrom"
+        @click="setCircuit(circuit)"
+        style="margin-bottom: 10px"
+      >{{ circuit }}</button>
     </div>
-  <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
+    <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag" style=" margin-right: 5%;"></canvas>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
-import { Visibility, RelativeDirection, Mosfet, AngleSlider } from '../types'
+import { ref, onMounted, shallowRef } from 'vue'
+import { Visibility, RelativeDirection, Mosfet, AngleSlider, Circuit } from '../types'
 import Chart from '../components/Chart.vue'
 
 import { toRadians, modulo, between } from '../functions/extraMath'
@@ -35,10 +44,19 @@ let previousTime = 0
 // const circuit = circuits["pMosSingle"]
 // const circuit = circuits["nMosDiffPair"]
 // const circuit = circuits["nMos5TransistorOpAmp"]
-const circuit = circuits["nMos9TransistorOpAmp"]
+
+type DefinedCircuits = keyof typeof circuits
+const currentCircuit = ref<DefinedCircuits>('nMosSingle')
+const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
+
+const circuit = shallowRef(circuits[currentCircuit.value])
+
+const setCircuit = (newCircuit: DefinedCircuits) => {
+  circuit.value = circuits[newCircuit]
+}
 
 const updateSlidersBasedOnNodeVoltages = () => {
-  Object.values(circuit.devices.mosfets).forEach((mosfet) => {
+  Object.values(circuit.value.devices.mosfets).forEach((mosfet) => {
     mosfet.current = getMosfetCurrent(mosfet)
     mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
     mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
@@ -46,12 +64,12 @@ const updateSlidersBasedOnNodeVoltages = () => {
     mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
     mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
   })
-  Object.values(circuit.devices.voltageSources).forEach((voltageSource) => {
+  Object.values(circuit.value.devices.voltageSources).forEach((voltageSource) => {
     voltageSource.voltageDrop.value = voltageSource.vplus.value.voltage - voltageSource.vminus.value.voltage
   })
 
   // const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
-  circuit.allSliders.forEach((slider) => {
+  circuit.value.allSliders.forEach((slider) => {
     slider.value = between(slider.minValue, slider.maxValue, slider.value)
 
     const normalizedSliderValue = slider.value / (slider.maxValue - slider.minValue) + slider.minValue
@@ -113,7 +131,7 @@ const getMousePos = (event: MouseEvent) => {
 
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-  circuit.allSliders.forEach(slider => {
+  circuit.value.allSliders.forEach(slider => {
       if (slider.visibility == Visibility.Visible) {
           const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
           const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
@@ -134,12 +152,12 @@ const checkDrag = (event: MouseEvent) => {
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  for (const nodeId in circuit.nodes) {
-    const node = circuit.nodes[nodeId].value
+  for (const nodeId in circuit.value.nodes) {
+    const node = circuit.value.nodes[nodeId].value
     node.capacitance = node.originalCapacitance
   }
 
-  circuit.allSliders.forEach(slider => {
+  circuit.value.allSliders.forEach(slider => {
     if (slider.dragging) {
         const result = normalizeAngle(
           Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x),
@@ -157,7 +175,7 @@ const drag = (event: MouseEvent) => {
       }
     })
     // evaluate mosfet sliders
-    Object.values(circuit.devices.mosfets).forEach(mosfet => {
+    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.vgs.dragging) {
         mosfet.Vg.value.fixed = true
         mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
@@ -168,7 +186,7 @@ const drag = (event: MouseEvent) => {
       }
     })
     // evaluate voltageSource sliders
-    Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
+    Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
       if (voltageSource.voltageDrop.dragging) {
         if (voltageSource.fixedAt == 'gnd') {
           voltageSource.vplus.value.fixed = true
@@ -183,13 +201,13 @@ const drag = (event: MouseEvent) => {
 }
 
 const mouseUp = () => {
-  Object.values(circuit.devices.mosfets).forEach(mosfet => {
+  Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     mosfet.vgs.dragging = false
     mosfet.vds.dragging = false
     mosfet.Vg.value.fixed = false
     mosfet.Vd.value.fixed = false
   })
-  Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
+  Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
     voltageSource.voltageDrop.dragging = false
     if (voltageSource.fixedAt == 'gnd') {
       voltageSource.vminus.value.fixed = true
@@ -210,22 +228,22 @@ const draw = () => {
 
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   updateSlidersBasedOnNodeVoltages()
-  Object.values(circuit.devices.mosfets).forEach(mosfet => {
+  Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet)
   })
-  Object.values(circuit.devices.voltageSources).forEach(voltageSource => {
+  Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
     drawVoltageSource(ctx.value as CanvasRenderingContext2D, voltageSource)
   })
 
-  drawSchematic(ctx.value as CanvasRenderingContext2D, circuit)
+  drawSchematic(ctx.value as CanvasRenderingContext2D, circuit.value)
 }
 
 const animate = (timestamp: number) => {
   const timeDifference = timestamp - previousTime
   previousTime = timestamp
-  incrementCircuit(circuit)
+  incrementCircuit(circuit.value)
 
-  Object.values(circuit.devices.mosfets).forEach(mosfet => {
+  Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     // 10 mA -> speed of 3
     // 1 mA -> speed of 2
     // 100 uA -> speed of 1 // unityCurrent
@@ -263,6 +281,8 @@ const animate = (timestamp: number) => {
 onMounted(() => {
   if (canvas.value) {
     ctx.value = canvas.value.getContext('2d')
+    // if (ctx.value) ctx.value.scale(0.8, 0.8)
+
     draw()
     requestAnimationFrame(animate)
 

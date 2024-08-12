@@ -5,9 +5,9 @@ import nMos5TransistorOpAmp from "./nMos5TransistorOpAmp"
 import nMos9TransistorOpAmp from "./nMos9TransistorOpAmp"
 import pMosSingle from "./pMosSingle"
 
-export const circuits: {[name: string]: Circuit} = {
+export const circuits = {
     'nMosSingle': nMosSingle(),
-    'nMosCurrentMirror': nMosSingle(),
+    // 'nMosCurrentMirror': nMosSingle(),
     'nMosDiffPair': nMosDiffPair(),
     'pMosSingle': pMosSingle(),
     'nMos5TransistorOpAmp': nMos5TransistorOpAmp(),
