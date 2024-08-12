@@ -36,6 +36,7 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
 export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
   return {
     dragging: false,
+    preciseDragging: false,
     location: {
       x: Math.cos(startAngle) * radius + centerX,
       y: Math.sin(startAngle) * radius + centerY,
@@ -45,6 +46,7 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
       y: centerY
     },
     radius: radius,
+    originalRadius: radius,
     startAngle: startAngle,
     endAngle: endAngle,
     CCW: CCW,
@@ -56,7 +58,15 @@ export const makeAngleSlider = (centerX: number, centerY: number, radius: number
     visibility: visibility,
     data: generateCurrent(), // TODO: this should not be calculated here
     displayNegative: displayNegative,
+    temporaryMinValue: minValue,
+    temporaryMaxValue: maxValue,
+    previousValue: minValue,
+    valueRateOfChange: 0,
   }
+}
+
+export const getSliderPercentValue = (slider: AngleSlider): number => {
+  return (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
 }
 
 export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
@@ -74,7 +84,7 @@ export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<N
     current: 0 // Amps
   }
   if (mirror) {
-    voltageSource.voltageDrop = makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(140), toRadians(-140), false, 0, 5, name, Visibility.Visible)
+    voltageSource.voltageDrop = makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(140), toRadians(220), false, 0, 5, name, Visibility.Visible)
   }
   return voltageSource
 }
