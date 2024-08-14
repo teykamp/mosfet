@@ -1,9 +1,12 @@
 import { makeListOfSliders, makeMosfet, makeNode, makeVoltageSource } from '../functions/makeMosfet'
 import { Circuit, Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
+import { schematicOrigin, schematicScale } from '../constants'
+import { Matrix } from 'ts-matrix'
 
 const useNmos9TransistorOpAmp = () => {
     const circuit: Circuit = {
+        transformationMatrix: new Matrix(3, 3, [[schematicScale, 0, schematicOrigin.x], [0, schematicScale, schematicOrigin.y], [0, 0, 1]]),
         schematic: {
             vddLocations: [{x: -4, y: -15}, {x: 4, y: -10}, {x: 16, y: -10}, {x: 24, y: -15}],
             gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}, {x: 24, y: 9}, {x: 16, y: 9}],
@@ -95,6 +98,7 @@ const useNmos9TransistorOpAmp = () => {
     }
     circuit.devices.mosfets = {
         "Mb": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             0,
             6,
@@ -109,6 +113,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked
         ),
         "M1": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             -4,
             0,
@@ -123,6 +128,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M2": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             4,
             0,
@@ -137,6 +143,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M3": makeMosfet(
+            circuit.transformationMatrix,
             'pmos',
             -4,
             -12,
@@ -151,6 +158,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M4": makeMosfet(
+            circuit.transformationMatrix,
             'pmos',
             24,
             -12,
@@ -165,6 +173,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M5": makeMosfet(
+            circuit.transformationMatrix,
             'pmos',
             4,
             -7,
@@ -179,6 +188,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M6": makeMosfet(
+            circuit.transformationMatrix,
             'pmos',
             16,
             -7,
@@ -193,6 +203,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M7": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             16,
             6,
@@ -207,6 +218,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M8": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             24,
             6,
@@ -223,6 +235,7 @@ const useNmos9TransistorOpAmp = () => {
     }
     circuit.devices.voltageSources = {
         "V1": makeVoltageSource(
+            circuit.transformationMatrix,
             {x: -8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
@@ -231,6 +244,7 @@ const useNmos9TransistorOpAmp = () => {
             true
         ),
         "V2": makeVoltageSource(
+            circuit.transformationMatrix,
             {x: 8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
@@ -238,6 +252,7 @@ const useNmos9TransistorOpAmp = () => {
             'gnd'
         ),
         "Vb": makeVoltageSource(
+            circuit.transformationMatrix,
             {x: 4, y: 9},
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],

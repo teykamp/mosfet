@@ -1,9 +1,12 @@
 import { makeListOfSliders, makeMosfet, makeNode, makeVoltageSource } from '../functions/makeMosfet'
 import { Circuit, Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
+import { schematicOrigin, schematicScale } from '../constants'
+import { Matrix } from 'ts-matrix'
 
 const useNmosDiffPair = () => {
     const circuit: Circuit = {
+        transformationMatrix: new Matrix(3, 3, [[schematicScale, 0, schematicOrigin.x], [0, schematicScale, schematicOrigin.y], [0, 0, 1]]),
         schematic: {
             vddLocations: [{x: -4, y: -3}, {x: 4, y: -3}],
             gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
@@ -61,6 +64,7 @@ const useNmosDiffPair = () => {
     }
     circuit.devices.mosfets = {
         "Mb": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             0,
             6,
@@ -75,6 +79,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked
         ),
         "M1": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             -4,
             0,
@@ -89,6 +94,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked,
         ),
         "M2": makeMosfet(
+            circuit.transformationMatrix,
             'nmos',
             4,
             0,
@@ -105,6 +111,7 @@ const useNmosDiffPair = () => {
     }
     circuit.devices.voltageSources = {
         "V1": makeVoltageSource(
+            circuit.transformationMatrix,
             {x: -8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
@@ -113,6 +120,7 @@ const useNmosDiffPair = () => {
             true
         ),
         "V2": makeVoltageSource(
+            circuit.transformationMatrix,
             {x: 8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
@@ -120,6 +128,7 @@ const useNmosDiffPair = () => {
             'gnd'
         ),
         "Vb": makeVoltageSource(
+            circuit.transformationMatrix,
             {x: 4, y: 9},
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],

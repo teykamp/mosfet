@@ -6,6 +6,7 @@ import { ekvNmos, ekvPmos, generateCurrent } from "./ekvModel"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
 import { ref, type Ref } from "vue"
+import { Matrix } from 'ts-matrix'
 
 export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolean, y: boolean} = {x: false, y: false}, scale: {x: number, y: number} = {x: 1, y: 1}, translation: {x: number, y: number} = {x: 0, y: 0}): TransformParameters => {
   return {
@@ -33,8 +34,9 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
   })
 }
 
-export const makeAngleSlider = (centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
+export const makeAngleSlider = (parentTransformationMatrix: Matrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
   return {
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30, 0, centerX], [0, 1/30, centerY], [0, 0, 1]])),
     dragging: false,
     preciseDragging: false,
     location: {
@@ -69,31 +71,35 @@ export const getSliderPercentValue = (slider: AngleSlider): number => {
   return (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
 }
 
-export const makeVoltageSource = (origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
+export const makeVoltageSource = (parentTransformationMatrix: Matrix, origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
   const originXcanvas = origin.x * schematicScale + schematicOrigin.x
   const originYcanvas = origin.y * schematicScale + schematicOrigin.y
 
   const voltageSource = {
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1, 0, origin.x], [0, 1, origin.y], [0, 0, 1]])),
     originX: originXcanvas,
     originY: originYcanvas,
     vplus: vplus,
     vminus: vminus,
     fixedAt: fixedAt,
-    voltageDrop: makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(40), toRadians(-40), true, 0, 5, name, Visibility.Visible),
+    voltageDrop: makeAngleSlider(new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 0, '', Visibility.Hidden), // to be updated immediately
     schematicEffects: [],
     current: 0 // Amps
   }
   if (mirror) {
-    voltageSource.voltageDrop = makeAngleSlider(originXcanvas, originYcanvas, 50, toRadians(140), toRadians(220), false, 0, 5, name, Visibility.Visible)
+    voltageSource.voltageDrop = makeAngleSlider(voltageSource.transformationMatrix, originXcanvas, originYcanvas, 50, toRadians(140), toRadians(220), false, 0, 5, name, Visibility.Visible)
+  } else {
+    voltageSource.voltageDrop = makeAngleSlider(voltageSource.transformationMatrix, originXcanvas, originYcanvas, 50, toRadians(40), toRadians(-40), true, 0, 5, name, Visibility.Visible)
   }
   return voltageSource
 }
 
-export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
+export const makeMosfet = (parentTransformationMatrix: Matrix, mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
   const originXcanvas = originX * schematicScale + schematicOrigin.x
   const originYcanvas = originY * schematicScale + schematicOrigin.y
 
   const mosfet: Mosfet = {
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1, 0, originX], [0, 1, originY], [0, 0, 1]])),
     mosfetType: mosfetType,
     originX: originXcanvas,
     originY: originYcanvas,
@@ -127,8 +133,8 @@ export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY
       { x: originXcanvas - 12, y: originYcanvas + 20 },
       { x: originXcanvas - 12, y: originYcanvas + 40 },
     ],
-    vgs: makeAngleSlider(originXcanvas + 15, originYcanvas + 10, 60, toRadians(75), toRadians(5), true, 0, maxVgs, 'Vgs', vgsVisibility),
-    vds: makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(220), false, 0, maxVds, 'Vds', vdsVisibility),
+    vgs: makeAngleSlider(new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 1, '', Visibility.Hidden), // to be updated immediately
+    vds: makeAngleSlider(new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 1, '', Visibility.Hidden), // to be updated immediately
     Vg: Vg,
     Vs: Vs,
     Vd: Vd,
@@ -141,21 +147,25 @@ export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY
   mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
   mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
-  if (mosfet.mosfetType == 'pmos') {
-    mosfet.vgs = makeAngleSlider(originXcanvas + 15, originYcanvas - 10, 60, toRadians(-5), toRadians(-75), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
-    mosfet.vds = makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(220), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
+  if (mosfet.mosfetType == 'nmos') {
+    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, originXcanvas + 15, originYcanvas + 10, 60, toRadians(75), toRadians(5), true, 0, maxVgs, 'Vgs', vgsVisibility)
+    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(220), false, 0, maxVds, 'Vds', vdsVisibility)
+  }
+  else {
+    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, originXcanvas + 15, originYcanvas - 10, 60, toRadians(-5), toRadians(-75), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
+    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(220), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
   }
 
   if (mirror) {
     if (mosfet.mosfetType == 'nmos') {
-      mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', vgsVisibility)
-      mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', vdsVisibility)
+      mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, originXcanvas - 15, originYcanvas + 10, 60, toRadians(105), toRadians(175), false, 0, maxVgs, 'Vgs', vgsVisibility)
+      mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, originXcanvas - 30, originYcanvas, 75, toRadians(40), toRadians(-40), true, 0, maxVds, 'Vds', vdsVisibility)
     }
     else if (mosfet.mosfetType == 'pmos') {
-      mosfet.vgs = makeAngleSlider(originXcanvas - 15, originYcanvas - 10, 60, toRadians(-105), toRadians(-175), true, 0, -maxVgs, 'Vsg', vgsVisibility, true)
-      mosfet.vds = makeAngleSlider(originXcanvas - 30, originYcanvas, 75, toRadians(-40), toRadians(40), false, 0, -maxVds, 'Vsd', vdsVisibility, true)
+      mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, originXcanvas - 15, originYcanvas - 10, 60, toRadians(-105), toRadians(-175), true, 0, -maxVgs, 'Vsg', vgsVisibility, true)
+      mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, originXcanvas - 30, originYcanvas, 75, toRadians(-40), toRadians(40), false, 0, -maxVds, 'Vsd', vdsVisibility, true)
     }
-      mosfet.dots = [
+    mosfet.dots = [
       { x: originXcanvas + 10, y: originYcanvas - 60 },
       { x: originXcanvas + 10, y: originYcanvas - 40 },
       { x: originXcanvas + 10, y: originYcanvas - 20 },

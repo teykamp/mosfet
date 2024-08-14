@@ -29,6 +29,7 @@ import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize, preciseSliderTickRange } from '../constants'
 import { drawMosfet, drawSchematic, drawVoltageSource } from '../functions/drawMosfet'
+import { Matrix } from 'ts-matrix'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -260,6 +261,7 @@ const mouseUp = () => {
 const draw = () => {
   if (!ctx.value || !canvas.value) return
 
+  ctx.value.resetTransform()
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   updateSlidersBasedOnNodeVoltages()
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {

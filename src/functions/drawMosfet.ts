@@ -1,15 +1,17 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLine, transformPoint, makeCtxGradientFunc, drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient } from './drawFuncs'
+import { drawLine, transformPoint, makeCtxGradientFunc, drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix } from './drawFuncs'
 import { makeTransformParameters } from './makeMosfet'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
 import { schematicOrigin, schematicScale } from '../constants'
 
-const GLOBAL_LINE_THICKNESS = 6 // px
+// const GLOBAL_LINE_THICKNESS = 6 // px
+const GLOBAL_LINE_THICKNESS = 0.1 // px
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
+    applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
 
     const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 60, y: 60}, {x: mosfet.originX, y: mosfet.originY})
     if (mosfet.mirror) {
@@ -104,6 +106,8 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 }
 
 export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: VoltageSource) => {
+    applyTransformationMatrix(ctx, voltageSource.transformationMatrix, true)
+
     const radius = 30
     const symbolSize = 15
     const symbolHeight = 10
@@ -145,6 +149,7 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     if (slider.visibility == Visibility.Hidden) {
         return
     }
+    applyTransformationMatrix(ctx, slider.transformationMatrix, true)
 
     // draw slider path
     ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
@@ -238,6 +243,8 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 }
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
+    applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
+
     const transformParameters = makeTransformParameters(undefined, undefined, {x: schematicScale, y: schematicScale}, schematicOrigin)
 
     // draw vdd and gnd symbols
@@ -288,21 +295,21 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
 
 export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point) => {
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 5
+    ctx.lineWidth = GLOBAL_LINE_THICKNESS
     ctx.beginPath()
     ctx.moveTo(origin.x, origin.y)
-    ctx.lineTo(origin.x + 15, origin.y)
-    ctx.lineTo(origin.x, origin.y + 15)
-    ctx.lineTo(origin.x - 15, origin.y)
+    ctx.lineTo(origin.x + 0.25, origin.y)
+    ctx.lineTo(origin.x, origin.y + 0.25)
+    ctx.lineTo(origin.x - 0.25, origin.y)
     ctx.lineTo(origin.x, origin.y)
     ctx.stroke()
 }
 
 export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point) => {
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 5
+    ctx.lineWidth = GLOBAL_LINE_THICKNESS
     ctx.beginPath()
-    ctx.moveTo(origin.x - 15, origin.y)
-    ctx.lineTo(origin.x + 15, origin.y)
+    ctx.moveTo(origin.x - 0.25, origin.y)
+    ctx.lineTo(origin.x + 0.25, origin.y)
     ctx.stroke()
 }

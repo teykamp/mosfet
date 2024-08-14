@@ -1,4 +1,5 @@
 import { Ref } from 'vue'
+import { Matrix } from 'ts-matrix'
 
 export type Point = {
   x: number
@@ -38,6 +39,7 @@ export type Chart = {
 }
 
 export type AngleSlider = {
+  transformationMatrix: Matrix,
   dragging: boolean,
   preciseDragging: boolean,
   location: Point,
@@ -69,6 +71,7 @@ export type SchematicEffect = {
 }
 
 export type Mosfet = {
+  transformationMatrix: Matrix,
   mosfetType: 'nmos' | 'pmos',
   originX: number,
   originY: number,
@@ -88,6 +91,7 @@ export type Mosfet = {
 }
 
 export type VoltageSource = {
+  transformationMatrix: Matrix,
   originX: number,
   originY: number,
   voltageDrop: AngleSlider,
@@ -131,6 +135,7 @@ export type Node = {
 }
 
 export type Circuit = {
+  transformationMatrix: Matrix,
   schematic: Schematic, // how to draw the circuit
   // drawSchematic: () => void, // a function to draw the non-device parts of the circuit
   devices: {

@@ -1,27 +1,37 @@
 import { Point, TransformParameters, Line, Circle } from '../types'
 import { makeTransformParameters } from './makeMosfet'
 import { canvasSize } from '../constants'
+import { Matrix } from 'ts-matrix'
+
+export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = false) => {
+    if (resetFirst) {
+      ctx.setTransform(transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
+    } else {
+      ctx.transform(   transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
+    }
+  }
+
 
 export const transformPoint = (point: Point, parameters: TransformParameters): Point => {
     let x = point.x
     let y = point.y
 
-    // rotation
-    x = x * Math.cos(parameters.rotation) - y * Math.sin(parameters.rotation)
-    y = x * Math.sin(parameters.rotation) + y * Math.cos(parameters.rotation)
-    // mirror
-    if (parameters.mirror.x) {
-        x *= -1
-    }
-    if (parameters.mirror.y) {
-        y *= -1
-    }
-    // scaling
-    x *= parameters.scale.x
-    y *= parameters.scale.y
-    // translation
-    x += parameters.translation.x
-    y += parameters.translation.y
+    // // rotation
+    // x = x * Math.cos(parameters.rotation) - y * Math.sin(parameters.rotation)
+    // y = x * Math.sin(parameters.rotation) + y * Math.cos(parameters.rotation)
+    // // mirror
+    // if (parameters.mirror.x) {
+    //     x *= -1
+    // }
+    // if (parameters.mirror.y) {
+    //     y *= -1
+    // }
+    // // scaling
+    // x *= parameters.scale.x
+    // y *= parameters.scale.y
+    // // translation
+    // x += parameters.translation.x
+    // y += parameters.translation.y
 
     return {x, y}
 }

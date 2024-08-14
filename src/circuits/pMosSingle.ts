@@ -1,9 +1,12 @@
 import { makeListOfSliders, makeMosfet, makeNode } from '../functions/makeMosfet'
 import { Circuit } from '../types'
 import { vddNodeId, vddVoltage } from '../constants'
+import { schematicOrigin, schematicScale } from '../constants'
+import { Matrix } from 'ts-matrix'
 
 const usePmosSingle = () => {
     const circuit: Circuit = {
+        transformationMatrix: new Matrix(3, 3, [[schematicScale, 0, schematicOrigin.x], [0, schematicScale, schematicOrigin.y], [0, 0, 1]]),
         schematic: {
             // wires: [],
             vddLocations: [{x: 0, y: -2}],
@@ -22,6 +25,7 @@ const usePmosSingle = () => {
     }
     circuit.devices.mosfets = {
         "M1": makeMosfet(
+            circuit.transformationMatrix,
             'pmos',
             0,
             0,
