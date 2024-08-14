@@ -5,7 +5,7 @@
     v-bind:cornerToCornerGraph="true" /> -->
   <div style="display: flex; justify-content: space-between; padding: 50px;">
     <div style="display: flex; flex-direction: column;">
-      <button 
+      <button
         v-for="circuit in circuitsToChooseFrom"
         @click="setCircuit(circuit)"
         :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`"
@@ -172,8 +172,8 @@ const checkDrag = (event: MouseEvent) => {
           // set the temporary min and max slider values
           if (slider.preciseDragging) {
             const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
-            slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
-            slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
+            slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue * (slider.displayNegative ? -1 : 1)
+            slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue) * (slider.displayNegative ? -1 : 1)
           }
           else {
             slider.temporaryMinValue = slider.minValue
@@ -207,21 +207,35 @@ const drag = (event: MouseEvent) => {
         const mouseAngle = result.returnAngle
         // slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
         slider.value = result.value * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
+        console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
 
         slider.location = {
           x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
           y: Math.sin(mouseAngle) * slider.radius + slider.center.y
         }
 
-        if ((result.value < 0.05) && (slider.value <= slider.previousValue)) {
-          slider.valueRateOfChange = -0.01
+        if (slider.displayNegative) {
+          if ((result.value < 0.05) && (slider.value >= slider.previousValue)) {
+            slider.valueRateOfChange = -0.01
 
-        }
-        else if ((result.value > 0.95) && (slider.value >= slider.previousValue)) {
-          slider.valueRateOfChange = 0.01
-        }
-        else {
-          slider.valueRateOfChange = 0
+          }
+          else if ((result.value > 0.95) && (slider.value <= slider.previousValue)) {
+            slider.valueRateOfChange = 0.01
+          }
+          else {
+            slider.valueRateOfChange = 0
+          }
+        } else {
+          if ((result.value < 0.05) && (slider.value <= slider.previousValue)) {
+            slider.valueRateOfChange = -0.01
+
+          }
+          else if ((result.value > 0.95) && (slider.value >= slider.previousValue)) {
+            slider.valueRateOfChange = 0.01
+          }
+          else {
+            slider.valueRateOfChange = 0
+          }
         }
         slider.previousValue = slider.value
         // console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
@@ -281,25 +295,42 @@ const animate = (timestamp: number) => {
 
   circuit.value.allSliders.forEach((slider) => {
     if (slider.dragging && slider.preciseDragging) {
-      if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue > slider.maxValue)) {
-        slider.value = slider.maxValue
-        slider.temporaryMaxValue = slider.maxValue
-        slider.temporaryMinValue = slider.maxValue - preciseSliderTickRange
-        slider.valueRateOfChange = 0
-      }
-      else if ((slider.value <= slider.minValue) || (slider.temporaryMinValue < slider.minValue)) {
-        slider.value = slider.minValue
-        slider.temporaryMinValue = slider.minValue
-        slider.temporaryMaxValue = slider.minValue + preciseSliderTickRange
-        slider.valueRateOfChange = 0
-      }
-      else {
-        slider.temporaryMinValue += slider.valueRateOfChange
-        slider.temporaryMaxValue += slider.valueRateOfChange
-        // console.log('before', slider.value)
-        slider.value += slider.valueRateOfChange
-        // console.log('after', slider.value)
-        // console.log(slider.valueRateOfChange)
+      if (slider.displayNegative) {
+        if ((slider.value <= slider.maxValue) || (slider.temporaryMaxValue < slider.maxValue)) {
+          slider.value = slider.maxValue
+          slider.temporaryMaxValue = slider.maxValue
+          slider.temporaryMinValue = slider.maxValue + preciseSliderTickRange
+          slider.valueRateOfChange = 0
+        }
+        else if ((slider.value >= slider.minValue) || (slider.temporaryMinValue > slider.minValue)) {
+          slider.value = slider.minValue
+          slider.temporaryMinValue = slider.minValue
+          slider.temporaryMaxValue = slider.minValue - preciseSliderTickRange
+          slider.valueRateOfChange = 0
+        }
+        else {
+          slider.temporaryMinValue -= slider.valueRateOfChange
+          slider.temporaryMaxValue -= slider.valueRateOfChange
+          slider.value -= slider.valueRateOfChange
+        }
+      } else {
+        if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue > slider.maxValue)) {
+          slider.value = slider.maxValue
+          slider.temporaryMaxValue = slider.maxValue
+          slider.temporaryMinValue = slider.maxValue - preciseSliderTickRange
+          slider.valueRateOfChange = 0
+        }
+        else if ((slider.value <= slider.minValue) || (slider.temporaryMinValue < slider.minValue)) {
+          slider.value = slider.minValue
+          slider.temporaryMinValue = slider.minValue
+          slider.temporaryMaxValue = slider.minValue + preciseSliderTickRange
+          slider.valueRateOfChange = 0
+        }
+        else {
+          slider.temporaryMinValue += slider.valueRateOfChange
+          slider.temporaryMaxValue += slider.valueRateOfChange
+          slider.value += slider.valueRateOfChange
+        }
       }
     }
     updateNodeVoltagesBasedOnSliders()

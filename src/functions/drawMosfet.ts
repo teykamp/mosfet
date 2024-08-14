@@ -210,17 +210,32 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
             ctx.stroke()
         }
         // find all locations between temporaryMinValue and temporaryMaxValue that should have a tick and draw one
-        let x = Math.ceil(slider.temporaryMinValue) // major ticks every 1 unit
-        while (x < slider.temporaryMaxValue) {
-            const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
-            x += 1
-        }
-        x = Math.ceil(slider.temporaryMinValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
-        while (x < slider.temporaryMaxValue) {
-            const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
-            x += 1
+        if (slider.displayNegative) {
+            let x = Math.ceil(slider.temporaryMaxValue) // major ticks every 1 unit
+            while (x < slider.temporaryMinValue) {
+                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
+                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
+                x += 1
+            }
+            x = Math.ceil(slider.temporaryMaxValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
+            while (x < slider.temporaryMinValue) {
+                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
+                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
+                x += 1
+            }
+        } else {
+            let x = Math.ceil(slider.temporaryMinValue) // major ticks every 1 unit
+            while (x < slider.temporaryMaxValue) {
+                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
+                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
+                x += 1
+            }
+            x = Math.ceil(slider.temporaryMinValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
+            while (x < slider.temporaryMaxValue) {
+                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
+                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
+                x += 1
+            }
         }
     }
 
