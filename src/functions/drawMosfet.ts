@@ -186,18 +186,22 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     ctx.beginPath()
     ctx.arc(slider.center.x, slider.center.y, slider.radius, slider.startAngle, slider.endAngle, slider.CCW)
 
+    // switch head and tail if the min and max are negative valued
+    const headAngle = slider.displayNegative ? slider.startAngle : slider.endAngle
+    const tailAngle = slider.displayNegative ? slider.endAngle : slider.startAngle
+
     // draw tail flourish on slider path
     const tailSize = 7
-    ctx.moveTo(slider.center.x + (slider.radius + tailSize) * Math.cos(slider.startAngle), slider.center.y + (slider.radius + tailSize) * Math.sin(slider.startAngle))
-    ctx.lineTo(slider.center.x + (slider.radius - tailSize) * Math.cos(slider.startAngle), slider.center.y + (slider.radius - tailSize) * Math.sin(slider.startAngle))
+    ctx.moveTo(slider.center.x + (slider.radius + tailSize) * Math.cos(tailAngle), slider.center.y + (slider.radius + tailSize) * Math.sin(tailAngle))
+    ctx.lineTo(slider.center.x + (slider.radius - tailSize) * Math.cos(tailAngle), slider.center.y + (slider.radius - tailSize) * Math.sin(tailAngle))
 
     // draw head flourish on slider path
     const headSize = 7
-    const headDirection = slider.CCW ? 1 : -1
-    const headAngle = headDirection * toRadians(5)
-    ctx.moveTo(slider.center.x + (slider.radius + headSize) * Math.cos(slider.endAngle + headAngle), slider.center.y + (slider.radius + headSize) * Math.sin(slider.endAngle + headAngle))
-    ctx.lineTo(slider.center.x + (slider.radius           ) * Math.cos(slider.endAngle            ), slider.center.y + (slider.radius           ) * Math.sin(slider.endAngle            ))
-    ctx.lineTo(slider.center.x + (slider.radius - headSize) * Math.cos(slider.endAngle + headAngle), slider.center.y + (slider.radius - headSize) * Math.sin(slider.endAngle + headAngle))
+    const headDirection = (slider.CCW != slider.displayNegative) ? 1 : -1
+    const arrowAngle = headDirection * toRadians(5)
+    ctx.moveTo(slider.center.x + (slider.radius + headSize) * Math.cos(headAngle + arrowAngle), slider.center.y + (slider.radius + headSize) * Math.sin(headAngle + arrowAngle))
+    ctx.lineTo(slider.center.x + (slider.radius           ) * Math.cos(headAngle            ), slider.center.y + (slider.radius           ) * Math.sin(headAngle            ))
+    ctx.lineTo(slider.center.x + (slider.radius - headSize) * Math.cos(headAngle + arrowAngle), slider.center.y + (slider.radius - headSize) * Math.sin(headAngle + arrowAngle))
     ctx.stroke()
 
     if (slider.dragging && slider.preciseDragging) {
@@ -210,32 +214,17 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
             ctx.stroke()
         }
         // find all locations between temporaryMinValue and temporaryMaxValue that should have a tick and draw one
-        if (slider.displayNegative) {
-            let x = Math.ceil(slider.temporaryMaxValue) // major ticks every 1 unit
-            while (x < slider.temporaryMinValue) {
-                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
-                x += 1
-            }
-            x = Math.ceil(slider.temporaryMaxValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
-            while (x < slider.temporaryMinValue) {
-                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
-                x += 1
-            }
-        } else {
-            let x = Math.ceil(slider.temporaryMinValue) // major ticks every 1 unit
-            while (x < slider.temporaryMaxValue) {
-                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
-                x += 1
-            }
-            x = Math.ceil(slider.temporaryMinValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
-            while (x < slider.temporaryMaxValue) {
-                const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-                drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
-                x += 1
-            }
+        let x = Math.ceil(slider.temporaryMinValue) // major ticks every 1 unit
+        while (x < slider.temporaryMaxValue) {
+            const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
+            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
+            x += 1
+        }
+        x = Math.ceil(slider.temporaryMinValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
+        while (x < slider.temporaryMaxValue) {
+            const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
+            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
+            x += 1
         }
     }
 

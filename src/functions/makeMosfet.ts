@@ -142,8 +142,8 @@ export const makeMosfet = (mosfetType: 'nmos' | 'pmos', originX: number, originY
   mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
   if (mosfet.mosfetType == 'pmos') {
-    mosfet.vgs = makeAngleSlider(originXcanvas + 15, originYcanvas - 10, 60, toRadians(-75), toRadians(-5), false, 0, -maxVgs, 'Vsg', vgsVisibility, true)
-    mosfet.vds = makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(220), toRadians(140), true, 0, -maxVds, 'Vsd', vdsVisibility, true)
+    mosfet.vgs = makeAngleSlider(originXcanvas + 15, originYcanvas - 10, 60, toRadians(-5), toRadians(-75), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
+    mosfet.vds = makeAngleSlider(originXcanvas + 30, originYcanvas, 75, toRadians(140), toRadians(220), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
   }
 
   if (mirror) {

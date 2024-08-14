@@ -2,7 +2,7 @@ import { makeListOfSliders, makeMosfet, makeNode } from '../functions/makeMosfet
 import { Circuit } from '../types'
 import { vddNodeId, vddVoltage } from '../constants'
 
-const useNmosSingle = () => {
+const usePmosSingle = () => {
     const circuit: Circuit = {
         schematic: {
             // wires: [],
@@ -34,4 +34,4 @@ const useNmosSingle = () => {
     makeListOfSliders(circuit)
     return circuit
 }
-export default useNmosSingle
+export default usePmosSingle
