@@ -1,6 +1,6 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLine, transformPoint, makeCtxGradientFunc, drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid } from './drawFuncs'
+import { drawLine, transformPoint, makeCtxGradientFunc, drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient } from './drawFuncs'
 import { makeTransformParameters } from './makeMosfet'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
@@ -22,11 +22,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     mosfet.gradientSize = 125 - mosfet.saturationLevel * 125
 
     const gradientOrigin: Point = {x: mosfet.originX, y: mosfet.originY - 60 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
-    const gradient = ctx.createRadialGradient(gradientOrigin.x, gradientOrigin.y, 0, gradientOrigin.x, gradientOrigin.y, mosfet.gradientSize)
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
-    gradient.addColorStop(0.5, 'rgba(200, 200, 200, 1)')
-    gradient.addColorStop(0.99, 'rgba(0, 0, 0, 1)')
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
     const bodyLines: Line[] = [
         {start: {x: 0, y: 0.33}, end: {x: 0, y: 0.95}},
@@ -44,29 +40,9 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         {start: {x: 0.66, y: 0.50}, end: {x: 0.66, y: -0.50}},
         {start: {x: 0.90, y: 0}, end: {x: 1.00, y: 0}},
     ]
+
     const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] : [{center: {x: 0.76, y: 0}, outerDiameter: 0.30}]
 
-    const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-        drawLine(ctx, {x: 40, y: 30}, {x: 40, y: -30}, thickness, transformParameters)
-        ctxFunc()
-        if (mosfet.mosfetType == 'nmos') {
-            drawLine(ctx, {x: 40, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
-            ctxFunc()
-        }
-        else if (mosfet.mosfetType == 'pmos') {
-            drawLine(ctx, {x: 50, y: 0}, {x: 60, y: 0}, thickness, transformParameters)
-            ctxFunc()
-            ctx.beginPath()
-            const circleCenter = transformPoint({x: 45, y: 0}, transformParameters)
-            ctx.moveTo(circleCenter.x, circleCenter.y)
-            ctx.arc(circleCenter.x, circleCenter.y, 5 + GLOBAL_LINE_THICKNESS / 2, 0, 2 * Math.PI, false)
-            ctx.arc(circleCenter.x, circleCenter.y, 5 - GLOBAL_LINE_THICKNESS / 2, 0, 2 * Math.PI, true)
-            ctxFunc()
-        }
-    }
-
-    ctx.beginPath()
-    drawLinesFillSolid(ctx, bodyLines, GLOBAL_LINE_THICKNESS, 'black', transformParameters)
     // 50 mA -> colorScale of 1
     // 5 mA -> colorScale of 1
     // 500 uA -> colorScale of 0.8
@@ -80,12 +56,15 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 5 pA -? colorScale of 0
     const forwardCurrentScaled = Math.max(Math.min(Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1, 1), 0)
     const gateColor = interpolateInferno(forwardCurrentScaled)
+
+    ctx.beginPath()
+    drawLinesFillSolid(ctx, bodyLines, GLOBAL_LINE_THICKNESS, 'black', transformParameters)
     drawLinesFillSolid(ctx, gateLines, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
     drawCirclesFillSolid(ctx, gateCircles, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
     drawLinesFillWithGradient(ctx, bodyLines, GLOBAL_LINE_THICKNESS, gradient, transformParameters)
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 2
-    mosfet.schematicEffects[1].color = 'white'
+    mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
     mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * schematicScale * 2
     mosfet.schematicEffects[0].color = gateColor
 
@@ -100,6 +79,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     ctx.fillStyle = 'black'
     ctx.font = "14px sans-serif";
     ctx.moveTo(mosfet.originX, mosfet.originY)
+
     const currentToDisplay = toSiPrefix(mosfet.current, "A")
     let currentMantissa = ""
     for (const char of currentToDisplay) {
@@ -107,6 +87,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         currentMantissa += char
       }
     const currentSuffix = currentToDisplay.slice(currentMantissa.length)
+
     if (mosfet.mirror) {
         ctx.textAlign = 'left'
         ctx.fillText(currentMantissa, mosfet.originX - 22, mosfet.originY - 3)
@@ -282,11 +263,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     for (const mosfetId in circuit.devices.mosfets) {
         const mosfet = circuit.devices.mosfets[mosfetId]
         mosfet.schematicEffects.forEach((schematicEffect) => {
-            const gradient = ctx.createRadialGradient(schematicEffect.origin.x, schematicEffect.origin.y, 0, schematicEffect.origin.x, schematicEffect.origin.y, schematicEffect.gradientSize)
-            gradient.addColorStop(0, schematicEffect.color)
-            gradient.addColorStop(0.5, schematicEffect.color)
-            gradient.addColorStop(0.99, 'rgba(0, 0, 0, 1)')
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+            const gradient = makeStandardGradient(ctx, schematicEffect.origin, schematicEffect.gradientSize, schematicEffect.color)
 
             ctx.beginPath()
             schematicEffect.node.value.lines.forEach((line) => {

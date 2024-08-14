@@ -63,6 +63,16 @@ export const drawCircle = (ctx: CanvasRenderingContext2D, circle: Circle, thickn
     }
 }
 
+export const makeStandardGradient = (ctx: CanvasRenderingContext2D, origin: Point, radius: number, color: string = 'rgba(200, 200, 200, 1)'): CanvasGradient => {
+    const gradient = ctx.createRadialGradient(origin.x, origin.y, 0, origin.x, origin.y, radius)
+    gradient.addColorStop(0, color)
+    gradient.addColorStop(0.5, color)
+    gradient.addColorStop(0.99, 'rgba(0, 0, 0, 1)')
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+
+    return gradient
+}
+
 export const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: CanvasGradient): (() => void) => {
     const ctxGradient = () => {
         ctx.save()
