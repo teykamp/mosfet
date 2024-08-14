@@ -7,7 +7,7 @@ import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
 import { schematicOrigin, schematicScale, canvasSize } from '../constants'
 
-const GLOBAL__LINE_THICKNESS = 6 // px
+const GLOBAL_LINE_THICKNESS = 6 // px
 
 const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: CanvasGradient): (() => void) => {
     const ctxGradient = () => {
@@ -51,11 +51,11 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
 
     const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-        drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 60}, thickness, transformParameters)
+        drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 59}, thickness, transformParameters)
         ctxFunc()
         drawLine(ctx, {x: 0, y: 20}, {x: 26, y: 20}, thickness, transformParameters)
         ctxFunc()
-        drawLine(ctx, {x: 0, y: -20}, {x: 0, y: -60}, thickness, transformParameters)
+        drawLine(ctx, {x: 0, y: -20}, {x: 0, y: -59}, thickness, transformParameters)
         ctxFunc()
         drawLine(ctx, {x: 0, y: -20}, {x: 26, y: -20}, thickness, transformParameters)
         ctxFunc()
@@ -75,14 +75,14 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
             ctx.beginPath()
             const circleCenter = transformPoint({x: 45, y: 0}, transformParameters)
             ctx.moveTo(circleCenter.x, circleCenter.y)
-            ctx.arc(circleCenter.x, circleCenter.y, 5 + GLOBAL__LINE_THICKNESS / 2, 0, 2 * Math.PI, false)
-            ctx.arc(circleCenter.x, circleCenter.y, 5 - GLOBAL__LINE_THICKNESS / 2, 0, 2 * Math.PI, true)
+            ctx.arc(circleCenter.x, circleCenter.y, 5 + GLOBAL_LINE_THICKNESS / 2, 0, 2 * Math.PI, false)
+            ctx.arc(circleCenter.x, circleCenter.y, 5 - GLOBAL_LINE_THICKNESS / 2, 0, 2 * Math.PI, true)
             ctxFunc()
         }
     }
 
     ctx.beginPath()
-    drawMosfetBody(GLOBAL__LINE_THICKNESS, makeCtxFillFunc(ctx, 'black'))
+    drawMosfetBody(GLOBAL_LINE_THICKNESS, makeCtxFillFunc(ctx, 'black'))
     // 50 mA -> colorScale of 1
     // 5 mA -> colorScale of 1
     // 500 uA -> colorScale of 0.8
@@ -96,8 +96,8 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 5 pA -? colorScale of 0
     const forwardCurrentScaled = Math.max(Math.min(Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1, 1), 0)
     const gateColor = interpolateInferno(forwardCurrentScaled)
-    drawMosfetGate(GLOBAL__LINE_THICKNESS, makeCtxFillFunc(ctx, gateColor))
-    drawMosfetBody(Math.ceil(GLOBAL__LINE_THICKNESS / 2) * 2, makeCtxGradientFunc(ctx, gradient))
+    drawMosfetGate(GLOBAL_LINE_THICKNESS, makeCtxFillFunc(ctx, gateColor))
+    drawMosfetBody(Math.ceil(GLOBAL_LINE_THICKNESS / 2) * 2, makeCtxGradientFunc(ctx, gradient))
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 2
     mosfet.schematicEffects[1].color = 'white'
@@ -284,7 +284,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
         const node = circuit.nodes[nodeId].value
         node.lines.forEach((line) => {
             ctx.beginPath()
-            drawLine(ctx, line.start, line.end, GLOBAL__LINE_THICKNESS, transformParameters)
+            drawLine(ctx, line.start, line.end, GLOBAL_LINE_THICKNESS, transformParameters)
             ctx.fill()
         })
     }
@@ -301,7 +301,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
 
             ctx.beginPath()
             schematicEffect.node.value.lines.forEach((line) => {
-                drawLine(ctx, line.start, line.end, Math.ceil(GLOBAL__LINE_THICKNESS / 2) * 2, transformParameters)
+                drawLine(ctx, line.start, line.end, Math.ceil(GLOBAL_LINE_THICKNESS / 2) * 2, transformParameters)
                 const ctxGradientFunc = makeCtxGradientFunc(ctx, gradient)
                 ctxGradientFunc()
             })
