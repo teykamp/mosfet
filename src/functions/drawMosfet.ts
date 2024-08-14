@@ -13,17 +13,18 @@ const GLOBAL_LINE_THICKNESS = 0.1 // px
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
 
-    const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 60, y: 60}, {x: mosfet.originX, y: mosfet.originY})
-    if (mosfet.mirror) {
-      transformParameters.mirror.x = true
-    }
+    // const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 60, y: 60}, {x: mosfet.originX, y: mosfet.originY})
+    // if (mosfet.mirror) {
+    //   transformParameters.mirror.x = true
+    // }
+    const transformParameters = makeTransformParameters()
 
     // 100 % saturation -> 0 px
     // 50  % saturation -> 50 px
     // 0   % saturation -> 100 px
     mosfet.gradientSize = 125 - mosfet.saturationLevel * 125
 
-    const gradientOrigin: Point = {x: mosfet.originX, y: mosfet.originY - 60 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
+    const gradientOrigin: Point = {x: 0, y: -1 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
     const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
     const bodyLines: Line[] = [
@@ -71,7 +72,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     mosfet.schematicEffects[0].color = gateColor
 
     mosfet.dots.forEach(dot => {
-        ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`
+        ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y) / 100)})`
         ctx.beginPath()
         ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
         ctx.fill()
@@ -79,8 +80,8 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
     ctx.strokeStyle = 'black'
     ctx.fillStyle = 'black'
-    ctx.font = "14px sans-serif";
-    ctx.moveTo(mosfet.originX, mosfet.originY)
+    ctx.font = "0.2px sans-serif";
+    ctx.moveTo(0, 0)
 
     const currentToDisplay = toSiPrefix(mosfet.current, "A")
     let currentMantissa = ""
@@ -92,12 +93,12 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
     if (mosfet.mirror) {
         ctx.textAlign = 'left'
-        ctx.fillText(currentMantissa, mosfet.originX - 22, mosfet.originY - 3)
-        ctx.fillText(currentSuffix, mosfet.originX - 22, mosfet.originY + 12)
+        ctx.fillText(currentMantissa, -22, -3)
+        ctx.fillText(currentSuffix, -22, 12)
     } else {
         ctx.textAlign = 'right'
-        ctx.fillText(currentMantissa, mosfet.originX + 22, mosfet.originY - 3)
-        ctx.fillText(currentSuffix, mosfet.originX + 22, mosfet.originY + 12)
+        ctx.fillText(currentMantissa, 22, -3)
+        ctx.fillText(currentSuffix, 22, 12)
 
     }
 
@@ -108,39 +109,39 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: VoltageSource) => {
     applyTransformationMatrix(ctx, voltageSource.transformationMatrix, true)
 
-    const radius = 30
-    const symbolSize = 15
-    const symbolHeight = 10
+    const radius = 1
+    const symbolSize = 0.5
+    const symbolHeight = 0.35
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 6
+    ctx.lineWidth = 0.1
     // circle
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX + radius, voltageSource.originY)
-    ctx.arc(voltageSource.originX, voltageSource.originY, radius, 0, 2 * Math.PI)
+    ctx.moveTo(radius, 0)
+    ctx.arc(0, 0, radius, 0, 2 * Math.PI)
     ctx.stroke()
     // top and bottom lines
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX, voltageSource.originY + radius)
-    ctx.lineTo(voltageSource.originX, voltageSource.originY + 60)
+    ctx.moveTo(0, radius)
+    ctx.lineTo(0, 2)
     ctx.stroke()
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX, voltageSource.originY - radius)
-    ctx.lineTo(voltageSource.originX, voltageSource.originY - 60)
+    ctx.moveTo(0, -radius)
+    ctx.lineTo(0, -2)
     ctx.stroke()
     // plus
-    ctx.lineWidth = 3
+    ctx.lineWidth = 0.1
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX - symbolSize / 2, voltageSource.originY - symbolHeight)
-    ctx.lineTo(voltageSource.originX + symbolSize / 2, voltageSource.originY - symbolHeight)
+    ctx.moveTo(symbolSize / 2, -symbolHeight)
+    ctx.lineTo(-symbolSize / 2, -symbolHeight)
     ctx.stroke()
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX, voltageSource.originY - symbolHeight - symbolSize / 2)
-    ctx.lineTo(voltageSource.originX, voltageSource.originY - symbolHeight + symbolSize / 2)
+    ctx.moveTo(0, -symbolHeight - symbolSize / 2)
+    ctx.lineTo(0, -symbolHeight + symbolSize / 2)
     ctx.stroke()
     // minus
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX - symbolSize / 2, voltageSource.originY + symbolHeight)
-    ctx.lineTo(voltageSource.originX + symbolSize / 2, voltageSource.originY + symbolHeight)
+    ctx.moveTo(symbolSize / 2, symbolHeight)
+    ctx.lineTo(-symbolSize / 2, symbolHeight)
     ctx.stroke()
     drawAngleSlider(ctx, voltageSource.voltageDrop)
 }
@@ -163,16 +164,16 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
     // draw tail flourish on slider path
     const tailSize = 7
-    ctx.moveTo(slider.center.x + (slider.radius + tailSize) * Math.cos(tailAngle), slider.center.y + (slider.radius + tailSize) * Math.sin(tailAngle))
-    ctx.lineTo(slider.center.x + (slider.radius - tailSize) * Math.cos(tailAngle), slider.center.y + (slider.radius - tailSize) * Math.sin(tailAngle))
+    ctx.moveTo((slider.radius + tailSize) * Math.cos(tailAngle), (slider.radius + tailSize) * Math.sin(tailAngle))
+    ctx.lineTo((slider.radius - tailSize) * Math.cos(tailAngle), (slider.radius - tailSize) * Math.sin(tailAngle))
 
     // draw head flourish on slider path
     const headSize = 7
     const headDirection = (slider.CCW != slider.displayNegative) ? 1 : -1
     const arrowAngle = headDirection * toRadians(5)
-    ctx.moveTo(slider.center.x + (slider.radius + headSize) * Math.cos(headAngle + arrowAngle), slider.center.y + (slider.radius + headSize) * Math.sin(headAngle + arrowAngle))
-    ctx.lineTo(slider.center.x + (slider.radius           ) * Math.cos(headAngle            ), slider.center.y + (slider.radius           ) * Math.sin(headAngle            ))
-    ctx.lineTo(slider.center.x + (slider.radius - headSize) * Math.cos(headAngle + arrowAngle), slider.center.y + (slider.radius - headSize) * Math.sin(headAngle + arrowAngle))
+    ctx.moveTo((slider.radius + headSize) * Math.cos(headAngle + arrowAngle), (slider.radius + headSize) * Math.sin(headAngle + arrowAngle))
+    ctx.lineTo((slider.radius           ) * Math.cos(headAngle            ), (slider.radius           ) * Math.sin(headAngle            ))
+    ctx.lineTo((slider.radius - headSize) * Math.cos(headAngle + arrowAngle), (slider.radius - headSize) * Math.sin(headAngle + arrowAngle))
     ctx.stroke()
 
     if (slider.dragging && slider.preciseDragging) {
@@ -180,8 +181,8 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         const drawTickAtAngle = (angle: number, majorTick: boolean = true) => {
             const outerRadius = slider.radius + (majorTick ? 15 : 8)
             ctx.beginPath()
-            ctx.moveTo(slider.center.x + slider.radius * Math.cos(angle), slider.center.y + slider.radius * Math.sin(angle))
-            ctx.lineTo(slider.center.x + outerRadius * Math.cos(angle),   slider.center.y + outerRadius   * Math.sin(angle))
+            ctx.moveTo(slider.radius * Math.cos(angle), slider.radius * Math.sin(angle))
+            ctx.lineTo(outerRadius * Math.cos(angle),   outerRadius   * Math.sin(angle))
             ctx.stroke()
         }
         // find all locations between temporaryMinValue and temporaryMaxValue that should have a tick and draw one
@@ -236,9 +237,9 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         y: slider.center.y + finalYposition
     }
     ctx.textAlign = (((-Math.PI / 2) < sliderAngle) && ((Math.PI / 2) > sliderAngle)) ? 'left' : 'right'
-    ctx.font = '16px Arial'
+    ctx.font = '2px Arial'
     ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
-    ctx.font = '14px Arial'
+    ctx.font = '1.8px Arial'
     ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 16)
 }
 
@@ -287,7 +288,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
         node.voltageDisplayLocations.forEach((labelLocation: Point) => {
             const transformedLocation = transformPoint(labelLocation, transformParameters)
             ctx.fillStyle = 'black'
-            ctx.font = '16px sans-serif'
+            ctx.font = '0.6px sans-serif'
             ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), transformedLocation.x, transformedLocation.y + 4)
         })
     }

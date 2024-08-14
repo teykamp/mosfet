@@ -45,10 +45,10 @@ export type AngleSlider = {
   location: Point,
   radius: number,
   originalRadius: number,
-  center: Point,
-  startAngle: number,
+  center: Point, // obsolete
+  startAngle: number, // obsolete
   endAngle: number,
-  CCW: boolean,
+  CCW: boolean, // obsolete
   displayText: string,
   displayTextLocation: RelativeDirection,
   minValue: number,
@@ -73,10 +73,10 @@ export type SchematicEffect = {
 export type Mosfet = {
   transformationMatrix: Matrix,
   mosfetType: 'nmos' | 'pmos',
-  originX: number,
-  originY: number,
-  mirror: boolean,
-  dots: Point[],
+  // originX: number, // obsolete
+  // originY: number, // obsolete
+  mirror: boolean, // obsolete
+  dots: Point[], // obsolete
   gradientSize: number,
   schematicEffects: SchematicEffect[],
   vgs: AngleSlider,
@@ -92,8 +92,8 @@ export type Mosfet = {
 
 export type VoltageSource = {
   transformationMatrix: Matrix,
-  originX: number,
-  originY: number,
+  // originX: number, // obsolete
+  // originY: number, // obsolete
   voltageDrop: AngleSlider,
   vplus: Ref<Node>,
   vminus: Ref<Node>,

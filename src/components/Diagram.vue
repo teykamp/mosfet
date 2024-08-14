@@ -151,15 +151,21 @@ const getMousePos = (event: MouseEvent) => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
+    const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
+    console.log(slider.transformationMatrix)
+    const transformedMouseX = transformedMousePos.at(0, 0)
+      const transformedMouseY = transformedMousePos.at(1, 0)
       if (slider.visibility == Visibility.Visible) {
-          const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
-          const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
+          console.log(transformedMouseX, transformedMouseY)
+          const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
+          const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
           const sliderValue = normalizeAngle(mouseTheta, slider.startAngle, slider.endAngle, slider.CCW).value
         if (
-          (((mouseX - slider.location.x) ** 2 + (mouseY - slider.location.y) ** 2) <= 10 ** 2) || // mouse hovering over slider knob
+          (mouseRadiusSquared <= 10 ** 2) || // mouse hovering over slider knob
           (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
         ) {
           slider.dragging = true
+          console.log("Selected")
           if (event.button == 1) {
             slider.preciseDragging = true
           }
@@ -330,7 +336,7 @@ const animate = (timestamp: number) => {
 
     mosfet.dots[0].y += dotSpeed * (timeDifference / 1000)
     mosfet.dots.forEach((dot, index) => {
-      dot.y = modulo(mosfet.dots[0].y - mosfet.originY + 60 + index * 20, 120) + mosfet.originY - 60
+      dot.y = modulo(mosfet.dots[0].y - 1 + index * 1/6, 2) - 1
     })
   })
 
