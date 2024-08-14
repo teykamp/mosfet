@@ -1,38 +1,17 @@
 
-import { Point, Mosfet, Visibility, RelativeDirection, AngleSlider, Circuit, VoltageSource } from '../types'
-import { drawLine, transformPoint } from './drawFuncs'
+import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
+import { drawLine, transformPoint, makeCtxGradientFunc, drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid } from './drawFuncs'
 import { makeTransformParameters } from './makeMosfet'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
-import { schematicOrigin, schematicScale, canvasSize } from '../constants'
+import { schematicOrigin, schematicScale } from '../constants'
 
 const GLOBAL_LINE_THICKNESS = 6 // px
 
-const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: CanvasGradient): (() => void) => {
-    const ctxGradient = () => {
-        ctx.save()
-        ctx.clip()
-        ctx.fillStyle = gradient
-        ctx.fillRect(0, 0, canvasSize.x, canvasSize.y)
-        ctx.restore()
-        ctx.beginPath()
-    }
-    return ctxGradient
-}
-
-const makeCtxFillFunc = (ctx: CanvasRenderingContext2D, color: string = 'black'): (() => void) => {
-    const ctxFill = () => {
-        ctx.fillStyle = color
-        ctx.fill()
-        ctx.beginPath()
-    }
-    return ctxFill
-}
-
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
-    const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 1, y: 1}, {x: mosfet.originX, y: mosfet.originY})
+    const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 60, y: 60}, {x: mosfet.originX, y: mosfet.originY})
     if (mosfet.mirror) {
       transformParameters.mirror.x = true
     }
@@ -49,19 +28,24 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     gradient.addColorStop(0.99, 'rgba(0, 0, 0, 1)')
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
 
+    const bodyLines: Line[] = [
+        {start: {x: 0, y: 0.33}, end: {x: 0, y: 0.95}},
+        {start: {x: 0, y: 0.33}, end: {x: 0.43, y: 0.33}},
+        {start: {x: 0, y: -0.33}, end: {x: 0, y: -0.95}},
+        {start: {x: 0, y: -0.33}, end: {x: 0.43, y: -0.33}},
+        {start: {x: 0.43, y: -0.66}, end: {x: 0.43, y: 0.66}},
+    ]
 
-    const drawMosfetBody = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
-        drawLine(ctx, {x: 0, y: 20}, {x: 0, y: 59}, thickness, transformParameters)
-        ctxFunc()
-        drawLine(ctx, {x: 0, y: 20}, {x: 26, y: 20}, thickness, transformParameters)
-        ctxFunc()
-        drawLine(ctx, {x: 0, y: -20}, {x: 0, y: -59}, thickness, transformParameters)
-        ctxFunc()
-        drawLine(ctx, {x: 0, y: -20}, {x: 26, y: -20}, thickness, transformParameters)
-        ctxFunc()
-        drawLine(ctx, {x: 26, y: -40}, {x: 26, y: 40}, thickness, transformParameters)
-        ctxFunc()
-    }
+    const gateLines: Line[] = mosfet.mosfetType == 'nmos' ? [
+        {start: {x: 0.66, y: 0.50}, end: {x: 0.66, y: -0.50}},
+        {start: {x: 0.66, y: 0}, end: {x: 1.00, y: 0}},
+    ] :
+    [
+        {start: {x: 0.66, y: 0.50}, end: {x: 0.66, y: -0.50}},
+        {start: {x: 0.90, y: 0}, end: {x: 1.00, y: 0}},
+    ]
+    const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] : [{center: {x: 0.76, y: 0}, outerDiameter: 0.30}]
+
     const drawMosfetGate = (thickness: number = 5, ctxFunc: () => void = () => {}) => {
         drawLine(ctx, {x: 40, y: 30}, {x: 40, y: -30}, thickness, transformParameters)
         ctxFunc()
@@ -82,7 +66,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     }
 
     ctx.beginPath()
-    drawMosfetBody(GLOBAL_LINE_THICKNESS, makeCtxFillFunc(ctx, 'black'))
+    drawLinesFillSolid(ctx, bodyLines, GLOBAL_LINE_THICKNESS, 'black', transformParameters)
     // 50 mA -> colorScale of 1
     // 5 mA -> colorScale of 1
     // 500 uA -> colorScale of 0.8
@@ -96,8 +80,9 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 5 pA -? colorScale of 0
     const forwardCurrentScaled = Math.max(Math.min(Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1, 1), 0)
     const gateColor = interpolateInferno(forwardCurrentScaled)
-    drawMosfetGate(GLOBAL_LINE_THICKNESS, makeCtxFillFunc(ctx, gateColor))
-    drawMosfetBody(Math.ceil(GLOBAL_LINE_THICKNESS / 2) * 2, makeCtxGradientFunc(ctx, gradient))
+    drawLinesFillSolid(ctx, gateLines, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
+    drawCirclesFillSolid(ctx, gateCircles, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
+    drawLinesFillWithGradient(ctx, bodyLines, GLOBAL_LINE_THICKNESS, gradient, transformParameters)
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 2
     mosfet.schematicEffects[1].color = 'white'

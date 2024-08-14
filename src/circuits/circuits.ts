@@ -1,4 +1,3 @@
-import { Circuit } from "../types"
 import nMosSingle from "./nMosSingle"
 import nMosDiffPair from "./nMosDiffPair"
 import nMos5TransistorOpAmp from "./nMos5TransistorOpAmp"

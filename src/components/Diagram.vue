@@ -22,20 +22,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, shallowRef } from 'vue'
-import { Visibility, RelativeDirection, Mosfet, AngleSlider, Circuit } from '../types'
-import Chart from '../components/Chart.vue'
-
-import { toRadians, modulo, between } from '../functions/extraMath'
-import { toSiPrefix } from '../functions/toSiPrefix'
-import { makeMosfet, getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent, makeTransformParameters } from '../functions/makeMosfet'
+import { Visibility } from '../types'
+import { modulo, between } from '../functions/extraMath'
+import { getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { canvasSize, preciseSliderTickRange, vddVoltage } from '../constants'
-import { drawMosfet, drawSchematic, drawVoltageSource, drawGnd, drawVdd } from '../functions/drawMosfet'
+import { canvasSize, preciseSliderTickRange } from '../constants'
+import { drawMosfet, drawSchematic, drawVoltageSource } from '../functions/drawMosfet'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
-let startTime = 0
 let previousTime = 0
 
 type DefinedCircuits = keyof typeof circuits

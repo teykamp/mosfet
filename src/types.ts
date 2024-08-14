@@ -108,6 +108,11 @@ export type Line = {
   end: Point,
 }
 
+export type Circle = {
+  center: Point,
+  outerDiameter: number,
+}
+
 export type Schematic = {
   vddLocations: Point[], // a list of locations to draw vdd symbols
   gndLocations: Point[], // a list of locations to draw gnd symbols
