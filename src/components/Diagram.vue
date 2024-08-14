@@ -16,7 +16,7 @@
       <button 
         v-for="circuit in circuitsToChooseFrom"
         @click="setCircuit(circuit)"
-        style="margin-bottom: 10px"
+        :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`"
       >{{ circuit }}</button>
     </div>
     <div>
