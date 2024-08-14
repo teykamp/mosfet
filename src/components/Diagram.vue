@@ -19,7 +19,12 @@
         style="margin-bottom: 10px"
       >{{ circuit }}</button>
     </div>
-    <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag" style=" margin-right: 5%;"></canvas>
+    <div>
+      <h1 style="margin-top: -50px;">
+        {{currentCircuit}}
+      </h1>
+      <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag" style=" margin-right: 5%;"></canvas>
+    </div>
   </div>
 </template>
 
@@ -52,6 +57,7 @@ const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 const circuit = shallowRef(circuits[currentCircuit.value])
 
 const setCircuit = (newCircuit: DefinedCircuits) => {
+  currentCircuit.value = newCircuit
   circuit.value = circuits[newCircuit]
 }
 
