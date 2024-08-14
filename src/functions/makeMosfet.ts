@@ -36,7 +36,7 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
 
 export const makeAngleSlider = (parentTransformationMatrix: Matrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
   return {
-    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30, 0, centerX], [0, 1/30, centerY], [0, 0, 1]])),
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30, 0, centerX / 30], [0, 1/30, centerY / 30], [0, 0, 1]])),
     dragging: false,
     preciseDragging: false,
     location: {

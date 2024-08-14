@@ -27,20 +27,20 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
     const bodyLines: Line[] = [
-        {start: {x: 0, y: 0.33}, end: {x: 0, y: 0.95}},
-        {start: {x: 0, y: 0.33}, end: {x: 0.43, y: 0.33}},
-        {start: {x: 0, y: -0.33}, end: {x: 0, y: -0.95}},
-        {start: {x: 0, y: -0.33}, end: {x: 0.43, y: -0.33}},
-        {start: {x: 0.43, y: -0.66}, end: {x: 0.43, y: 0.66}},
+        {start: {x: 0, y: 0.66}, end: {x: 0, y: 1.90}},
+        {start: {x: 0, y: 0.66}, end: {x: 0.86, y: 0.66}},
+        {start: {x: 0, y: -0.66}, end: {x: 0, y: -1.90}},
+        {start: {x: 0, y: -0.66}, end: {x: 0.86, y: -0.66}},
+        {start: {x: 0.86, y: -1.33}, end: {x: 0.86, y: 1.33}},
     ]
 
     const gateLines: Line[] = mosfet.mosfetType == 'nmos' ? [
-        {start: {x: 0.66, y: 0.50}, end: {x: 0.66, y: -0.50}},
-        {start: {x: 0.66, y: 0}, end: {x: 1.00, y: 0}},
+        {start: {x: 1.33, y: 1}, end: {x: 1.33, y: -1}},
+        {start: {x: 1.33, y: 0}, end: {x: 2.00, y: 0}},
     ] :
     [
-        {start: {x: 0.66, y: 0.50}, end: {x: 0.66, y: -0.50}},
-        {start: {x: 0.90, y: 0}, end: {x: 1.00, y: 0}},
+        {start: {x: 1.33, y: 1}, end: {x: 1.33, y: -1}},
+        {start: {x: 1.90, y: 0}, end: {x: 2.00, y: 0}},
     ]
 
     const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] : [{center: {x: 0.76, y: 0}, outerDiameter: 0.30}]
