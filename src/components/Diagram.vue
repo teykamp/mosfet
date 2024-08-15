@@ -143,48 +143,47 @@ const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
-    console.log(slider.transformationMatrix)
     const transformedMouseX = transformedMousePos.at(0, 0)
-      const transformedMouseY = transformedMousePos.at(1, 0)
-      if (slider.visibility == Visibility.Visible) {
-          console.log(transformedMouseX, transformedMouseY)
-          const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
-          const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
-          const sliderValue = normalizeAngle(mouseTheta, 0, slider.endAngle, false).value
-        if (
-          (mouseRadiusSquared <= 10 ** 2) || // mouse hovering over slider knob
-          (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
-        ) {
-          slider.dragging = true
-          console.log("Selected")
-          if (event.button == 1) {
-            slider.preciseDragging = true
-          }
-          if (slider.preciseDragging) {
-            slider.radius = slider.originalRadius + 10
-          }
-          // set the temporary min and max slider values
-          if (slider.preciseDragging) {
-            const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
-            slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
-            slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
-          }
-          else {
-            slider.temporaryMinValue = slider.minValue
-            slider.temporaryMaxValue = slider.maxValue
-          }
+    const transformedMouseY = transformedMousePos.at(1, 0)
 
-          drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
+    if (slider.visibility == Visibility.Visible) {
+        console.log(transformedMouseX, transformedMouseY)
+        const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
+        const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
+        const sliderValue = mouseTheta / slider.endAngle
+      if (
+        (mouseRadiusSquared <= 10 ** 2) || // mouse hovering over slider knob
+        (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
+      ) {
+        slider.dragging = true
+        console.log("Selected")
+        if (event.button == 1) {
+          slider.preciseDragging = true
         }
+        if (slider.preciseDragging) {
+          slider.radius = slider.originalRadius + 10
+        }
+        // set the temporary min and max slider values
+        if (slider.preciseDragging) {
+          const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
+          slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
+          slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
+        }
+        else {
+          slider.temporaryMinValue = slider.minValue
+          slider.temporaryMaxValue = slider.maxValue
+        }
+
+        drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
       }
-    })
+    }
+  })
   document.addEventListener('mousemove', drag)
   document.addEventListener('mouseup', mouseUp)
 }
 
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-
   for (const nodeId in circuit.value.nodes) {
     const node = circuit.value.nodes[nodeId].value
     node.capacitance = node.originalCapacitance
@@ -192,27 +191,26 @@ const drag = (event: MouseEvent) => {
 
   circuit.value.allSliders.forEach(slider => {
     if (slider.dragging) {
-        const result = normalizeAngle(
-          Math.atan2(mouseY, mouseX),
-          0,
-          slider.endAngle,
-          false
-        )
-        const mouseAngle = result.returnAngle
-        // slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
-        slider.value = result.value * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
-        console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
+      const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
+      const transformedMouseX = transformedMousePos.at(0, 0)
+      const transformedMouseY = transformedMousePos.at(1, 0)
+      const mouseAngle = Math.atan2(transformedMouseY, transformedMouseX)
 
+      const percentValue = between(0, 1, mouseAngle / slider.endAngle)
+        // slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
+        slider.value = percentValue * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
+
+        console.log(mouseAngle)
         slider.location = {
           x: Math.cos(mouseAngle) * slider.radius,
           y: Math.sin(mouseAngle) * slider.radius
         }
 
-        if ((result.value < 0.05) && (slider.value <= slider.previousValue)) {
+        if ((percentValue < 0.05) && (slider.value <= slider.previousValue)) {
           slider.valueRateOfChange = -0.01
 
         }
-        else if ((result.value > 0.95) && (slider.value >= slider.previousValue)) {
+        else if ((percentValue > 0.95) && (slider.value >= slider.previousValue)) {
           slider.valueRateOfChange = 0.01
         }
         else {
