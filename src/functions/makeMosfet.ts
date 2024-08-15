@@ -1,5 +1,5 @@
 
-import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, TransformParameters, Line, VoltageSource, Circuit } from "../types"
+import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, Line, VoltageSource, Circuit } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians } from "./extraMath"
 import { ekvNmos, ekvPmos, generateCurrent } from "./ekvModel"
@@ -7,16 +7,6 @@ import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
 import { ref, type Ref } from "vue"
 import { Matrix } from 'ts-matrix'
-import { text } from "d3"
-
-export const makeTransformParameters = (rotation: number = 0, mirror: {x: boolean, y: boolean} = {x: false, y: false}, scale: {x: number, y: number} = {x: 1, y: 1}, translation: {x: number, y: number} = {x: 0, y: 0}): TransformParameters => {
-  return {
-    rotation: rotation,
-    mirror: mirror,
-    scale: scale,
-    translation: translation,
-  }
-}
 
 export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: Line[] = [], voltageDisplayLabel: string = "", voltageDisplayLocations: Point[] = []): Ref<Node> => {
   const historicVoltages: Queue<number> = new Queue<number>()

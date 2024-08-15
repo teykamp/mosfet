@@ -1,25 +1,16 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLine, transformPoint, makeCtxGradientFunc, drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix } from './drawFuncs'
-import { makeTransformParameters } from './makeMosfet'
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix } from './drawFuncs'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
-import { schematicOrigin, schematicScale } from '../constants'
 import { Matrix } from 'ts-matrix'
-import { apply } from 'mathjs'
 
 // const GLOBAL_LINE_THICKNESS = 6 // px
 const GLOBAL_LINE_THICKNESS = 0.1 // px
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
-
-    // const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 60, y: 60}, {x: mosfet.originX, y: mosfet.originY})
-    // if (mosfet.mirror) {
-    //   transformParameters.mirror.x = true
-    // }
-    const transformParameters = makeTransformParameters()
 
     // 100 % saturation -> 0 px
     // 50  % saturation -> 50 px
@@ -63,10 +54,10 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const gateColor = interpolateInferno(forwardCurrentScaled)
 
     ctx.beginPath()
-    drawLinesFillSolid(ctx, bodyLines, GLOBAL_LINE_THICKNESS, 'black', transformParameters)
-    drawLinesFillSolid(ctx, gateLines, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
-    drawCirclesFillSolid(ctx, gateCircles, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
-    drawLinesFillWithGradient(ctx, bodyLines, GLOBAL_LINE_THICKNESS, gradient, transformParameters)
+    drawLinesFillSolid(ctx, bodyLines, GLOBAL_LINE_THICKNESS, 'black')
+    drawLinesFillSolid(ctx, gateLines, GLOBAL_LINE_THICKNESS, gateColor)
+    drawCirclesFillSolid(ctx, gateCircles, GLOBAL_LINE_THICKNESS, gateColor)
+    drawLinesFillWithGradient(ctx, bodyLines, GLOBAL_LINE_THICKNESS, gradient)
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize * 2
     mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
@@ -234,14 +225,12 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
     applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
 
-    const transformParameters = makeTransformParameters(undefined, undefined, {x: schematicScale, y: schematicScale}, schematicOrigin)
-
     // draw vdd and gnd symbols
     circuit.schematic.gndLocations.forEach((gndLocation) => {
-        drawGnd(ctx, transformPoint(gndLocation, transformParameters))
+        drawGnd(ctx, gndLocation)
     })
     circuit.schematic.vddLocations.forEach((vddLocation) => {
-        drawVdd(ctx, transformPoint(vddLocation, transformParameters))
+        drawVdd(ctx, vddLocation)
     })
 
     // draw all the lines in black
@@ -267,9 +256,8 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     for (const nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId].value
         node.voltageDisplayLocations.forEach((labelLocation: Point) => {
-            const transformedLocation = transformPoint(labelLocation, transformParameters)
-
             applyTransformationMatrix(ctx, circuit.textTransformationMatrix, true)
+
             const displayTextLocationVector = circuit.textTransformationMatrix.inverse().multiply(circuit.transformationMatrix.multiply(new Matrix(3, 1, [[labelLocation.x], [labelLocation.y], [1]])))
             const displayTextLocation: Point = {
                 x: displayTextLocationVector.at(0, 0),

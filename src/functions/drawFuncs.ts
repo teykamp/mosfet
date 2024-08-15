@@ -1,5 +1,4 @@
-import { Point, TransformParameters, Line, Circle } from '../types'
-import { makeTransformParameters } from './makeMosfet'
+import { Point, Line, Circle } from '../types'
 import { canvasSize, lineDrawRepetitions } from '../constants'
 import { Matrix } from 'ts-matrix'
 
@@ -11,35 +10,7 @@ export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transfo
     }
   }
 
-
-export const transformPoint = (point: Point, parameters: TransformParameters): Point => {
-    let x = point.x
-    let y = point.y
-
-    // // rotation
-    // x = x * Math.cos(parameters.rotation) - y * Math.sin(parameters.rotation)
-    // y = x * Math.sin(parameters.rotation) + y * Math.cos(parameters.rotation)
-    // // mirror
-    // if (parameters.mirror.x) {
-    //     x *= -1
-    // }
-    // if (parameters.mirror.y) {
-    //     y *= -1
-    // }
-    // // scaling
-    // x *= parameters.scale.x
-    // y *= parameters.scale.y
-    // // translation
-    // x += parameters.translation.x
-    // y += parameters.translation.y
-
-    return {x, y}
-}
-
-export const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5, transformParameters: TransformParameters = makeTransformParameters()) => {
-    end = transformPoint(end, transformParameters)
-    start = transformPoint(start, transformParameters)
-
+export const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5) => {
     const deltaX = end.x - start.x
     const deltaY = end.y - start.y
     const length = Math.sqrt(deltaX ** 2 + deltaY ** 2)
@@ -61,15 +32,14 @@ export const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point
     ctx.lineTo(corner3.x, corner3.y)
 }
 
-export const drawCircle = (ctx: CanvasRenderingContext2D, circle: Circle, thickness: number, transformParameters: TransformParameters) => {
-    const center = transformPoint(circle.center, transformParameters)
-    const outerDiameter = circle.outerDiameter * transformParameters.scale.x
+export const drawCircle = (ctx: CanvasRenderingContext2D, circle: Circle, thickness: number) => {
+    const outerDiameter = circle.outerDiameter
     const innerDiameter = outerDiameter - 2 * thickness
 
-    ctx.moveTo(center.x, center.y)
-    ctx.arc(center.x, center.y, outerDiameter / 2, 0, 2 * Math.PI, false)
+    ctx.moveTo(circle.center.x, circle.center.y)
+    ctx.arc(circle.center.x, circle.center.y, outerDiameter / 2, 0, 2 * Math.PI, false)
     if (innerDiameter > 0) {
-        ctx.arc(center.x, center.y, innerDiameter / 2, 0, 2 * Math.PI, true)
+        ctx.arc(circle.center.x, circle.center.y, innerDiameter / 2, 0, 2 * Math.PI, true)
     }
 }
 
@@ -106,42 +76,42 @@ export const makeCtxFillFunc = (ctx: CanvasRenderingContext2D, color: string = '
     return ctxFill
 }
 
-export const drawLinesFillWithGradient = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, gradient: CanvasGradient, transformParameters: TransformParameters = makeTransformParameters()) => {
+export const drawLinesFillWithGradient = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, gradient: CanvasGradient) => {
     const ctxFunc = makeCtxGradientFunc(ctx, gradient)
     for (let i = 0; i < lineDrawRepetitions; i++) {
-        drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc, transformParameters)
+        drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc)
     }
 }
 
-export const drawLinesFillSolid = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, color: string = 'black', transformParameters: TransformParameters = makeTransformParameters()) => {
+export const drawLinesFillSolid = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, color: string = 'black') => {
     const ctxFunc = makeCtxFillFunc(ctx, color)
     for (let i = 0; i < lineDrawRepetitions; i++) {
-        drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc, transformParameters)
+        drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc)
     }
 }
 
-export const drawLinesFillWithFunction = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, ctxFunc: () => void, transformParameters: TransformParameters = makeTransformParameters()) => {
+export const drawLinesFillWithFunction = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, ctxFunc: () => void) => {
     ctx.beginPath()
     lines.forEach((line) => {
-        drawLine(ctx, line.start, line.end, thickness, transformParameters)
+        drawLine(ctx, line.start, line.end, thickness)
         ctxFunc()
     })
 }
 
-export const drawCirclesFillWithGradient = (ctx: CanvasRenderingContext2D, circles: Circle[], thickness: number = 5, gradient: CanvasGradient, transformParameters: TransformParameters = makeTransformParameters()) => {
+export const drawCirclesFillWithGradient = (ctx: CanvasRenderingContext2D, circles: Circle[], thickness: number = 5, gradient: CanvasGradient) => {
     const ctxFunc = makeCtxGradientFunc(ctx, gradient)
-    drawCirclesFillWithFunction(ctx, circles, thickness, ctxFunc, transformParameters)
+    drawCirclesFillWithFunction(ctx, circles, thickness, ctxFunc)
 }
 
-export const drawCirclesFillSolid = (ctx: CanvasRenderingContext2D, circles: Circle[], thickness: number = 5, color: string = 'black', transformParameters: TransformParameters = makeTransformParameters()) => {
+export const drawCirclesFillSolid = (ctx: CanvasRenderingContext2D, circles: Circle[], thickness: number = 5, color: string = 'black') => {
     const ctxFunc = makeCtxFillFunc(ctx, color)
-    drawCirclesFillWithFunction(ctx, circles, thickness, ctxFunc, transformParameters)
+    drawCirclesFillWithFunction(ctx, circles, thickness, ctxFunc)
 }
 
-export const drawCirclesFillWithFunction = (ctx: CanvasRenderingContext2D, circles: Circle[], thickness: number = 5, ctxFunc: () => void, transformParameters: TransformParameters = makeTransformParameters()) => {
+export const drawCirclesFillWithFunction = (ctx: CanvasRenderingContext2D, circles: Circle[], thickness: number = 5, ctxFunc: () => void) => {
     ctx.beginPath()
     circles.forEach((circle: Circle) => {
-        drawCircle(ctx, circle, thickness, transformParameters)
+        drawCircle(ctx, circle, thickness)
     })
     ctxFunc()
 }

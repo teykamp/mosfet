@@ -99,37 +99,6 @@ const updateNodeVoltagesBasedOnSliders = () => {
     })
 }
 
-const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
-  const angleSpan = modulo(CCW ? startAngle - endAngle : endAngle - startAngle, 2 * Math.PI)
-
-  // subtract out the starting angle so what was once the starting angle is now considered zero.
-  // mod by 2pi so that angles just to the left of the starting angle are considered to be +2pi;
-  // angles just to the right of the starting angle are considered close to zero;
-  // and angles about opposite from the starting angle are about +pi.
-  const normalizedAngle = modulo(CCW ? startAngle - angle : angle - startAngle, 2 * Math.PI)
-
-  // default case: the angle is in between the starting and ending angles.
-  let returnAngle = angle
-  // calculate the value of the slider as the fraction of the way between the start and end angles
-  let value = normalizedAngle / Math.abs(angleSpan)
-
-  // if the angle is outside the bounds of [0, angleSpan], then
-  // check whether the angle is closer to the starting angle or closer to the ending angle
-  if (normalizedAngle > Math.PI + angleSpan / 2) {
-    returnAngle = startAngle
-    value = 0
-  }
-  else if (normalizedAngle > angleSpan) {
-    returnAngle = endAngle
-    value = 1
-  }
-
-  return {
-    returnAngle,
-    value
-  }
-}
-
 const getMousePos = (event: MouseEvent) => {
   if (!canvas.value) return { mouseX: 0, mouseY: 0 }
   const rect = canvas.value.getBoundingClientRect()
