@@ -7,6 +7,7 @@ import { Matrix } from 'ts-matrix'
 const useNmosDiffPair = () => {
     const circuit: Circuit = {
         transformationMatrix: new Matrix(3, 3, [[schematicScale, 0, schematicOrigin.x], [0, schematicScale, schematicOrigin.y], [0, 0, 1]]),
+        textTransformationMatrix: new Matrix(3, 3), // to be updated immediately
         schematic: {
             vddLocations: [{x: -4, y: -3}, {x: 4, y: -3}],
             gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
@@ -62,8 +63,10 @@ const useNmosDiffPair = () => {
             ),
         },
     }
+    circuit.textTransformationMatrix = circuit.transformationMatrix.multiply(new Matrix(3, 3, [[1/schematicScale, 0, 0], [0, 1/schematicScale, 0], [0, 0, 1]]))
     circuit.devices.mosfets = {
         "Mb": makeMosfet(
+            circuit.textTransformationMatrix,
             circuit.transformationMatrix,
             'nmos',
             0,
@@ -79,6 +82,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked
         ),
         "M1": makeMosfet(
+            circuit.textTransformationMatrix,
             circuit.transformationMatrix,
             'nmos',
             -4,
@@ -94,6 +98,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked,
         ),
         "M2": makeMosfet(
+            circuit.textTransformationMatrix,
             circuit.transformationMatrix,
             'nmos',
             4,
@@ -111,6 +116,7 @@ const useNmosDiffPair = () => {
     }
     circuit.devices.voltageSources = {
         "V1": makeVoltageSource(
+            circuit.textTransformationMatrix,
             circuit.transformationMatrix,
             {x: -8, y: 3},
             circuit.nodes[gndNodeId],
@@ -120,6 +126,7 @@ const useNmosDiffPair = () => {
             true
         ),
         "V2": makeVoltageSource(
+            circuit.textTransformationMatrix,
             circuit.transformationMatrix,
             {x: 8, y: 3},
             circuit.nodes[gndNodeId],
@@ -128,6 +135,7 @@ const useNmosDiffPair = () => {
             'gnd'
         ),
         "Vb": makeVoltageSource(
+            circuit.textTransformationMatrix,
             circuit.transformationMatrix,
             {x: 4, y: 9},
             circuit.nodes[gndNodeId],

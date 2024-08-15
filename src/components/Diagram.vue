@@ -149,10 +149,11 @@ const checkDrag = (event: MouseEvent) => {
     if (slider.visibility == Visibility.Visible) {
         console.log(transformedMouseX, transformedMouseY)
         const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
+        const mouseDistanceFromDraggableSliderSquared = (transformedMouseX - slider.location.x) ** 2 + (transformedMouseY - slider.location.y) ** 2
         const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
         const sliderValue = mouseTheta / slider.endAngle
       if (
-        (mouseRadiusSquared <= 10 ** 2) || // mouse hovering over slider knob
+        (mouseDistanceFromDraggableSliderSquared <= 10 ** 2) || // mouse hovering over slider knob
         (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
       ) {
         slider.dragging = true

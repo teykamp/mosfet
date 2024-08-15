@@ -7,6 +7,7 @@ import { Matrix } from 'ts-matrix'
 const usePmosSingle = () => {
     const circuit: Circuit = {
         transformationMatrix: new Matrix(3, 3, [[schematicScale, 0, schematicOrigin.x], [0, schematicScale, schematicOrigin.y], [0, 0, 1]]),
+        textTransformationMatrix: new Matrix(3, 3), // to be updated immediately
         schematic: {
             // wires: [],
             vddLocations: [{x: 0, y: -2}],
@@ -23,8 +24,10 @@ const usePmosSingle = () => {
         },
         allSliders: []
     }
+    circuit.textTransformationMatrix = circuit.transformationMatrix.multiply(new Matrix(3, 3, [[1/schematicScale, 0, 0], [0, 1/schematicScale, 0], [0, 0, 1]]))
     circuit.devices.mosfets = {
         "M1": makeMosfet(
+            circuit.textTransformationMatrix,
             circuit.transformationMatrix,
             'pmos',
             0,

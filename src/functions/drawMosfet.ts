@@ -215,9 +215,9 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         y: slider.location.y * (slider.radius + 15) / slider.radius,
     }
 
-    ctx.resetTransform()
-    const displayTextLocationVector = slider.transformationMatrix.multiply(new Matrix(3, 1, [[textLocation.x], [textLocation.y], [1]]))
-    const globalSliderLocationVector = slider.transformationMatrix.multiply(new Matrix(3, 1, [[slider.location.x], [slider.location.y], [1]]))
+    applyTransformationMatrix(ctx, slider.textTransformationMatrix, true)
+    const displayTextLocationVector = slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix.multiply(new Matrix(3, 1, [[textLocation.x], [textLocation.y], [1]])))
+    const globalSliderLocationVector = slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix.multiply(new Matrix(3, 1, [[slider.location.x], [slider.location.y], [1]])))
     const globalSliderDirectionX = displayTextLocationVector.at(0, 0) - globalSliderLocationVector.at(0, 0)
 
     const displayTextLocation: Point = {
@@ -225,10 +225,10 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         y: displayTextLocationVector.at(1, 0),
     }
     ctx.textAlign = globalSliderDirectionX > 0 ? 'left' : 'right'
-    ctx.font = '16px Arial'
+    ctx.font = '18px Arial'
     ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
-    ctx.font = '14px Arial'
-    ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 16)
+    ctx.font = '16px Arial'
+    ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 18)
 }
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
@@ -259,7 +259,6 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     for (const mosfetId in circuit.devices.mosfets) {
         const mosfet = circuit.devices.mosfets[mosfetId]
         mosfet.schematicEffects.forEach((schematicEffect) => {
-            console.log(circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])))
             const gradient = makeStandardGradient(
                 ctx,
                 {
@@ -284,9 +283,16 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
         const node = circuit.nodes[nodeId].value
         node.voltageDisplayLocations.forEach((labelLocation: Point) => {
             const transformedLocation = transformPoint(labelLocation, transformParameters)
+
+            applyTransformationMatrix(ctx, circuit.textTransformationMatrix, true)
+            const displayTextLocationVector = circuit.textTransformationMatrix.inverse().multiply(circuit.transformationMatrix.multiply(new Matrix(3, 1, [[labelLocation.x], [labelLocation.y], [1]])))
+            const displayTextLocation: Point = {
+                x: displayTextLocationVector.at(0, 0),
+                y: displayTextLocationVector.at(1, 0),
+            }
             ctx.fillStyle = 'black'
-            ctx.font = '0.6px sans-serif'
-            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), transformedLocation.x, transformedLocation.y)
+            ctx.font = '18px sans-serif'
+            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), displayTextLocation.x, displayTextLocation.y)
         })
     }
 }
