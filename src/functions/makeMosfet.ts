@@ -128,7 +128,7 @@ export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformatio
       {
         node: Vg,
         origin: {
-          x: 1,
+          x: 2,
           y: 0,
         },
         color: 'red',
@@ -138,7 +138,7 @@ export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformatio
         node: Vd,
         origin: {
           x: 0,
-          y: 2 * (mosfetType == 'nmos' ? 1 : -1),
+          y: 2 * (mosfetType == 'nmos' ? -1 : 1),
         },
         color: 'red',
         gradientSize: 100,

@@ -68,9 +68,9 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     drawCirclesFillSolid(ctx, gateCircles, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
     drawLinesFillWithGradient(ctx, bodyLines, GLOBAL_LINE_THICKNESS, gradient, transformParameters)
 
-    mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize * 5
+    mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize * 2
     mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
-    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 8
+    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 2
     mosfet.schematicEffects[0].color = gateColor
 
     mosfet.dots.forEach(dot => {
@@ -245,36 +245,21 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     })
 
     // draw all the lines in black
-    ctx.fillStyle = 'black'
     for (const nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId].value
-        node.lines.forEach((line) => {
-            ctx.beginPath()
-            drawLine(ctx, line.start, line.end, GLOBAL_LINE_THICKNESS, transformParameters)
-            ctx.fill()
-        })
+        drawLinesFillSolid(ctx, node.lines, GLOBAL_LINE_THICKNESS, 'black')
     }
 
     // add gradient regions from each of the mosfets
     for (const mosfetId in circuit.devices.mosfets) {
         const mosfet = circuit.devices.mosfets[mosfetId]
         mosfet.schematicEffects.forEach((schematicEffect) => {
-            const gradient = makeStandardGradient(
-                ctx,
-                {
-                    x: 0,
-                    y: 4,
-                    // x: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(0, 0),
-                    // y: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(1, 0),
-                }, //schematicEffect.origin,
-                schematicEffect.gradientSize, schematicEffect.color)
-
-            ctx.beginPath()
-            schematicEffect.node.value.lines.forEach((line) => {
-                drawLine(ctx, line.start, line.end, GLOBAL_LINE_THICKNESS, transformParameters)
-                const ctxGradientFunc = makeCtxGradientFunc(ctx, gradient)
-                ctxGradientFunc()
-            })
+            const gradientOrigin: Point = {
+                x: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(0, 0),
+                y: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(1, 0),
+            }
+            const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
+            drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, GLOBAL_LINE_THICKNESS, gradient)
         })
     }
 

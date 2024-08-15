@@ -1,6 +1,6 @@
 import { Point, TransformParameters, Line, Circle } from '../types'
 import { makeTransformParameters } from './makeMosfet'
-import { canvasSize } from '../constants'
+import { canvasSize, lineDrawRepetitions } from '../constants'
 import { Matrix } from 'ts-matrix'
 
 export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
@@ -108,12 +108,16 @@ export const makeCtxFillFunc = (ctx: CanvasRenderingContext2D, color: string = '
 
 export const drawLinesFillWithGradient = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, gradient: CanvasGradient, transformParameters: TransformParameters = makeTransformParameters()) => {
     const ctxFunc = makeCtxGradientFunc(ctx, gradient)
-    drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc, transformParameters)
+    for (let i = 0; i < lineDrawRepetitions; i++) {
+        drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc, transformParameters)
+    }
 }
 
 export const drawLinesFillSolid = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, color: string = 'black', transformParameters: TransformParameters = makeTransformParameters()) => {
     const ctxFunc = makeCtxFillFunc(ctx, color)
-    drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc, transformParameters)
+    for (let i = 0; i < lineDrawRepetitions; i++) {
+        drawLinesFillWithFunction(ctx, lines, thickness, ctxFunc, transformParameters)
+    }
 }
 
 export const drawLinesFillWithFunction = (ctx: CanvasRenderingContext2D, lines: Line[], thickness: number = 5, ctxFunc: () => void, transformParameters: TransformParameters = makeTransformParameters()) => {
