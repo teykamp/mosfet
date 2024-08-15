@@ -63,21 +63,12 @@ const updateSlidersBasedOnNodeVoltages = () => {
   circuit.value.allSliders.forEach((slider) => {
     slider.value = between(slider.temporaryMinValue, slider.temporaryMaxValue, slider.value)
 
-
     const normalizedSliderValue = (slider.value - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-    if (slider.CCW) {
-      const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
+      const sliderAngle = normalizedSliderValue * (slider.endAngle)
       slider.location = {
-        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
-        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
+        x: slider.radius * Math.cos(sliderAngle),
+        y: slider.radius * Math.sin(sliderAngle),
       }
-    } else {
-      const sliderAngle = normalizedSliderValue * modulo((2 * Math.PI - (slider.startAngle - slider.endAngle)), 2 * Math.PI) + slider.startAngle
-      slider.location = {
-        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
-        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
-      }
-    }
   })
 }
 
@@ -159,7 +150,7 @@ const checkDrag = (event: MouseEvent) => {
           console.log(transformedMouseX, transformedMouseY)
           const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
           const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
-          const sliderValue = normalizeAngle(mouseTheta, slider.startAngle, slider.endAngle, slider.CCW).value
+          const sliderValue = normalizeAngle(mouseTheta, 0, slider.endAngle, false).value
         if (
           (mouseRadiusSquared <= 10 ** 2) || // mouse hovering over slider knob
           (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
@@ -202,10 +193,10 @@ const drag = (event: MouseEvent) => {
   circuit.value.allSliders.forEach(slider => {
     if (slider.dragging) {
         const result = normalizeAngle(
-          Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x),
-          slider.startAngle,
+          Math.atan2(mouseY, mouseX),
+          0,
           slider.endAngle,
-          slider.CCW
+          false
         )
         const mouseAngle = result.returnAngle
         // slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
@@ -213,8 +204,8 @@ const drag = (event: MouseEvent) => {
         console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
 
         slider.location = {
-          x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
-          y: Math.sin(mouseAngle) * slider.radius + slider.center.y
+          x: Math.cos(mouseAngle) * slider.radius,
+          y: Math.sin(mouseAngle) * slider.radius
         }
 
         if ((result.value < 0.05) && (slider.value <= slider.previousValue)) {

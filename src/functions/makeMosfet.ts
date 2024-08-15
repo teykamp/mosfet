@@ -36,22 +36,46 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
 
 export const makeAngleSlider = (parentTransformationMatrix: Matrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
   return {
-    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30, 0, centerX / 30], [0, 1/30, centerY / 30], [0, 0, 1]])),
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ])).multiply(new Matrix(3, 3, [
+      [1, 0, centerX],
+      [0, 1, centerY],
+      [0, 0, 1]
+    ])).multiply(new Matrix(3, 3, [
+      [1/30, 0, 0],
+      [0, 1/30, 0],
+      [0,    0, 1]
+    ])).multiply(new Matrix(3, 3, [
+      [Math.cos(startAngle), -Math.sin(startAngle), 0],
+      [Math.sin(startAngle),  Math.cos(startAngle), 0],
+      [0                   , 0                    , 1]
+    ])).multiply(new Matrix(3, 3, [
+      [1, 0, 0],
+      [0, (CCW ? -1 : 1), 0],
+      [0, 0, 1]
+    ])).multiply(new Matrix(3, 3, [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ])),
     dragging: false,
     preciseDragging: false,
     location: {
-      x: Math.cos(startAngle) * radius + centerX,
-      y: Math.sin(startAngle) * radius + centerY,
+      x: 0,
+      y: 0,
     },
-    center: {
-      x: centerX,
-      y: centerY
-    },
+    // center: {
+    //   x: centerX,
+    //   y: centerY
+    // },
     radius: radius,
     originalRadius: radius,
-    startAngle: startAngle,
+    // startAngle: startAngle,
     endAngle: endAngle,
-    CCW: CCW,
+    // CCW: CCW,
     minValue: minValue, // TODO: rename this to voltageDifference or something
     maxValue: maxValue, // TODO: rename this to voltageDifference or something
     value: minValue, // TODO: rename this to voltageDifference or something
@@ -142,8 +166,8 @@ export const makeMosfet = (parentTransformationMatrix: Matrix, mosfetType: 'nmos
   mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
   if (mosfet.mosfetType == 'nmos') {
-    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, 0.25, 0.16, 60, toRadians(75), toRadians(5), true, 0, maxVgs, 'Vgs', vgsVisibility)
-    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, 0.5, 0, 75, toRadians(140), toRadians(220), false, 0, maxVds, 'Vds', vdsVisibility)
+    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, 0.25, 0.16, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
+    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, 0.5, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
   }
   else {
     mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, 0.25, -0.16, 60, toRadians(-5), toRadians(-75), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)

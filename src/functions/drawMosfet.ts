@@ -156,11 +156,11 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
     ctx.lineWidth = 5
     ctx.beginPath()
-    ctx.arc(slider.center.x, slider.center.y, slider.radius, slider.startAngle, slider.endAngle, slider.CCW)
+    ctx.arc(0, 0, slider.radius, 0, slider.endAngle, false)
 
     // switch head and tail if the min and max are negative valued
-    const headAngle = slider.displayNegative ? slider.startAngle : slider.endAngle
-    const tailAngle = slider.displayNegative ? slider.endAngle : slider.startAngle
+    const headAngle = slider.displayNegative ? 0 : slider.endAngle
+    const tailAngle = slider.displayNegative ? slider.endAngle : 0
 
     // draw tail flourish on slider path
     const tailSize = 7
@@ -169,7 +169,7 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
     // draw head flourish on slider path
     const headSize = 7
-    const headDirection = (slider.CCW != slider.displayNegative) ? 1 : -1
+    const headDirection = (slider.displayNegative) ? 1 : -1
     const arrowAngle = headDirection * toRadians(5)
     ctx.moveTo((slider.radius + headSize) * Math.cos(headAngle + arrowAngle), (slider.radius + headSize) * Math.sin(headAngle + arrowAngle))
     ctx.lineTo((slider.radius           ) * Math.cos(headAngle            ), (slider.radius           ) * Math.sin(headAngle            ))
@@ -189,13 +189,13 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         let x = Math.ceil(slider.temporaryMinValue) // major ticks every 1 unit
         while (x < slider.temporaryMaxValue) {
             const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
+            drawTickAtAngle((slider.endAngle) * percentValue, true)
             x += 1
         }
         x = Math.ceil(slider.temporaryMinValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
         while (x < slider.temporaryMaxValue) {
             const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
+            drawTickAtAngle((slider.endAngle) * percentValue, false)
             x += 1
         }
     }
@@ -210,7 +210,7 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
     // draw text label
     const textHeight = 32
-    const sliderAngle = Math.atan2(slider.location.y - slider.center.y, slider.location.x - slider.center.x)
+    const sliderAngle = Math.atan2(slider.location.y, slider.location.x)
     const adjustedSliderRadius = slider.radius + 15
     const adjustedSliderPosition: Point = {x: adjustedSliderRadius * Math.cos(sliderAngle), y: adjustedSliderRadius * Math.sin(sliderAngle)}
     const lowerYposition = adjustedSliderPosition.y + Math.cos(sliderAngle) * textHeight / 2
@@ -233,8 +233,8 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     const finalYposition = finalXposition * Math.tan(sliderAngle)
 
     const displayTextLocation: Point = {
-        x: slider.center.x + finalXposition,
-        y: slider.center.y + finalYposition
+        x: finalXposition,
+        y: finalYposition
     }
     ctx.textAlign = (((-Math.PI / 2) < sliderAngle) && ((Math.PI / 2) > sliderAngle)) ? 'left' : 'right'
     ctx.font = '2px Arial'

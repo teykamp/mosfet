@@ -45,10 +45,10 @@ export type AngleSlider = {
   location: Point,
   radius: number,
   originalRadius: number,
-  center: Point, // obsolete
-  startAngle: number, // obsolete
+  // center: Point, // obsolete
+  // startAngle: number, // obsolete
   endAngle: number,
-  CCW: boolean, // obsolete
+  // CCW: boolean, // obsolete
   displayText: string,
   displayTextLocation: RelativeDirection,
   minValue: number,

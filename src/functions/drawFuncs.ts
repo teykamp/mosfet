@@ -3,7 +3,7 @@ import { makeTransformParameters } from './makeMosfet'
 import { canvasSize } from '../constants'
 import { Matrix } from 'ts-matrix'
 
-export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = false) => {
+export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
     if (resetFirst) {
       ctx.setTransform(transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
     } else {
