@@ -277,7 +277,7 @@ const animate = (timestamp: number) => {
     // 1 uA -> speed of 1/9
     // 100nA -> speed of 1/16
     const unityCurrent = 1e-4 // Amps
-    const unitySpeed = 50 // px / s
+    const unitySpeed = 1 // (100 percent) / s
     let dotSpeed = unitySpeed
     if (mosfet.current <= 0) {
       dotSpeed = 0
@@ -294,10 +294,7 @@ const animate = (timestamp: number) => {
       dotSpeed = 0.001 * unitySpeed
     }
 
-    mosfet.dots[0].y += dotSpeed * (timeDifference / 1000)
-    mosfet.dots.forEach((dot, index) => {
-      dot.y = modulo(mosfet.dots[0].y - 1 + index * 1/6, 2) - 1
-    })
+    mosfet.dotPercentage = modulo(mosfet.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
   })
 
   draw()

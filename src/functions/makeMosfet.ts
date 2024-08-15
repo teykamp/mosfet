@@ -1,7 +1,7 @@
 
 import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, Line, VoltageSource, Circuit } from "../types"
 import { schematicOrigin, schematicScale } from "../constants"
-import { toRadians } from "./extraMath"
+import { toRadians, between } from "./extraMath"
 import { ekvNmos, ekvPmos, generateCurrent } from "./ekvModel"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
@@ -134,14 +134,7 @@ export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformatio
         gradientSize: 100,
       },
     ],
-    dots: [
-      { x: originXcanvas - 12, y: originYcanvas - 60 },
-      { x: originXcanvas - 12, y: originYcanvas - 40 },
-      { x: originXcanvas - 12, y: originYcanvas - 20 },
-      { x: originXcanvas - 12, y: originYcanvas      },
-      { x: originXcanvas - 12, y: originYcanvas + 20 },
-      { x: originXcanvas - 12, y: originYcanvas + 40 },
-    ],
+    dotPercentage: 0,
     vgs: makeAngleSlider(new Matrix(3, 3), new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 1, '', Visibility.Hidden), // to be updated immediately
     vds: makeAngleSlider(new Matrix(3, 3), new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 1, '', Visibility.Hidden), // to be updated immediately
     Vg: Vg,
@@ -203,4 +196,16 @@ export const makeListOfSliders = (circuit: Circuit) => {
       const voltageSource = circuit.devices.voltageSources[voltageSourceId]
       circuit.allSliders.push(voltageSource.voltageDrop)
     }
+}
+
+export const getLineLength = (line: Line): number => {
+  return Math.sqrt((line.end.x - line.start.x) ** 2 + (line.end.y - line.start.y) ** 2)
+}
+
+export const getPointAlongLine = (line: Line, percentage: number): Point => {
+  percentage = between(0, 1, percentage)
+  return {
+    x: line.start.x + (line.end.x - line.start.x) * percentage,
+    y: line.start.y + (line.end.y - line.start.y) * percentage,
+  }
 }

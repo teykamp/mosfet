@@ -71,7 +71,7 @@ export type Mosfet = {
   // originX: number, // obsolete
   // originY: number, // obsolete
   mirror: boolean, // obsolete
-  dots: Point[], // obsolete
+  dotPercentage: number,
   gradientSize: number,
   schematicEffects: SchematicEffect[],
   vgs: AngleSlider,

@@ -3,8 +3,9 @@ import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, C
 import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix } from './drawFuncs'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
-import { toRadians } from './extraMath'
+import { toRadians, modulo } from './extraMath'
 import { Matrix } from 'ts-matrix'
+import { getLineLength, getPointAlongLine } from './makeMosfet'
 
 // const GLOBAL_LINE_THICKNESS = 6 // px
 const GLOBAL_LINE_THICKNESS = 0.1 // px
@@ -37,7 +38,8 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         {start: {x: 1.73, y: 0}, end: {x: 2.00, y: 0}},
     ]
 
-    const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] : [{center: {x: 1.53, y: 0}, outerDiameter: 0.4}]
+    const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] :
+    [{center: {x: 1.53, y: 0}, outerDiameter: 0.4}]
 
     // 50 mA -> colorScale of 1
     // 5 mA -> colorScale of 1
@@ -64,12 +66,19 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 2
     mosfet.schematicEffects[0].color = gateColor
 
-    mosfet.dots.forEach(dot => {
-        ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y) / 100)})`
-        ctx.beginPath()
-        ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
+    const dotPath: Line = {
+        start: {x: -0.5, y: -2},
+        end: {x: -0.5, y: 2},
+    }
+    const dotTravelDistance = getLineLength(dotPath)
+    const nDots = 6
+    for (let n = 0; n < nDots; n++) {
+        const thisDotPercentage = modulo(mosfet.dotPercentage + n / nDots, 1)
+        const dotPosition = getPointAlongLine(dotPath, thisDotPercentage)
+        ctx.fillStyle = `rgba(0, 0, 255, ${(0.50 - Math.abs(thisDotPercentage - 0.50)) * 2})`
+        ctx.arc(dotPosition.x, dotPosition.y, 0.1, 0, Math.PI * 2)
         ctx.fill()
-    })
+    }
 
     ctx.strokeStyle = 'black'
     ctx.fillStyle = 'black'
