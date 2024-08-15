@@ -88,6 +88,8 @@ export const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: Can
         ctx.save()
         ctx.clip()
         ctx.fillStyle = gradient
+        ctx.fill()
+        ctx.resetTransform()
         ctx.fillRect(0, 0, canvasSize.x, canvasSize.y)
         ctx.restore()
         ctx.beginPath()

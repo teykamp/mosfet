@@ -98,7 +98,7 @@ export const getSliderPercentValue = (slider: AngleSlider): number => {
 export const makeVoltageSource = (parentTransformationMatrix: Matrix, origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
 
   const voltageSource = {
-    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1, 0, origin.x], [0, 1, origin.y], [0, 0, 1]])),
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[mirror ? -1 : 1, 0, origin.x], [0, 1, origin.y], [0, 0, 1]])),
     vplus: vplus,
     vminus: vminus,
     fixedAt: fixedAt,
@@ -106,17 +106,14 @@ export const makeVoltageSource = (parentTransformationMatrix: Matrix, origin: Po
     schematicEffects: [],
     current: 0 // Amps
   }
-  if (mirror) {
-    voltageSource.voltageDrop = makeAngleSlider(voltageSource.transformationMatrix, 0, 0, 50, toRadians(140), toRadians(220), false, 0, 5, name, Visibility.Visible)
-  } else {
-    voltageSource.voltageDrop = makeAngleSlider(voltageSource.transformationMatrix, 0, 0, 50, toRadians(40), toRadians(-40), true, 0, 5, name, Visibility.Visible)
-  }
+  voltageSource.voltageDrop = makeAngleSlider(voltageSource.transformationMatrix, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
   return voltageSource
 }
 
 export const makeMosfet = (parentTransformationMatrix: Matrix, mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
   const originXcanvas = originX * schematicScale + schematicOrigin.x
   const originYcanvas = originY * schematicScale + schematicOrigin.y
+
 
   const mosfet: Mosfet = {
     transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1 * (mirror ? -1 : 1), 0, originX], [0, 1, originY], [0, 0, 1]])),

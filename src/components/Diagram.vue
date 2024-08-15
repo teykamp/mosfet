@@ -184,11 +184,14 @@ const checkDrag = (event: MouseEvent) => {
 
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
+
+  // reset node capacitances
   for (const nodeId in circuit.value.nodes) {
     const node = circuit.value.nodes[nodeId].value
     node.capacitance = node.originalCapacitance
   }
 
+  // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
     if (slider.dragging) {
       const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
@@ -197,30 +200,28 @@ const drag = (event: MouseEvent) => {
       const mouseAngle = Math.atan2(transformedMouseY, transformedMouseX)
 
       const percentValue = between(0, 1, mouseAngle / slider.endAngle)
-        // slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
-        slider.value = percentValue * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
+      slider.value = percentValue * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
 
-        console.log(mouseAngle)
-        slider.location = {
-          x: Math.cos(mouseAngle) * slider.radius,
-          y: Math.sin(mouseAngle) * slider.radius
-        }
-
-        if ((percentValue < 0.05) && (slider.value <= slider.previousValue)) {
-          slider.valueRateOfChange = -0.01
-
-        }
-        else if ((percentValue > 0.95) && (slider.value >= slider.previousValue)) {
-          slider.valueRateOfChange = 0.01
-        }
-        else {
-          slider.valueRateOfChange = 0
-        }
-        slider.previousValue = slider.value
-        // console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
+      console.log(mouseAngle)
+      slider.location = {
+        x: Math.cos(mouseAngle) * slider.radius,
+        y: Math.sin(mouseAngle) * slider.radius
       }
-    })
-    updateNodeVoltagesBasedOnSliders()
+
+      if ((percentValue < 0.05) && (slider.value <= slider.previousValue)) {
+        slider.valueRateOfChange = -0.01
+
+      }
+      else if ((percentValue > 0.95) && (slider.value >= slider.previousValue)) {
+        slider.valueRateOfChange = 0.01
+      }
+      else {
+        slider.valueRateOfChange = 0
+      }
+      slider.previousValue = slider.value
+    }
+  })
+  updateNodeVoltagesBasedOnSliders()
 }
 
 const mouseUp = () => {
