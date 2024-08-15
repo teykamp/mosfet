@@ -1,17 +1,15 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix } from './drawFuncs'
-import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness } from './drawFuncs'
+import { interpolateInferno, local } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians, modulo } from './extraMath'
 import { Matrix } from 'ts-matrix'
 import { getPointAlongLine } from './makeMosfet'
 
-// const GLOBAL_LINE_THICKNESS = 6 // px
-const GLOBAL_LINE_THICKNESS = 0.1 // px
-
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(mosfet.transformationMatrix)
 
     // 100 % saturation -> 0 px
     // 50  % saturation -> 50 px
@@ -56,10 +54,10 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const gateColor = interpolateInferno(forwardCurrentScaled)
 
     ctx.beginPath()
-    drawLinesFillSolid(ctx, bodyLines, GLOBAL_LINE_THICKNESS, 'black')
-    drawLinesFillSolid(ctx, gateLines, GLOBAL_LINE_THICKNESS, gateColor)
-    drawCirclesFillSolid(ctx, gateCircles, GLOBAL_LINE_THICKNESS, gateColor)
-    drawLinesFillWithGradient(ctx, bodyLines, GLOBAL_LINE_THICKNESS, gradient)
+    drawLinesFillSolid(ctx, bodyLines, localLineThickness, 'black')
+    drawLinesFillSolid(ctx, gateLines, localLineThickness, gateColor)
+    drawCirclesFillSolid(ctx, gateCircles, localLineThickness, gateColor)
+    drawLinesFillWithGradient(ctx, bodyLines, localLineThickness, gradient)
 
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize * 2
     mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
@@ -110,12 +108,13 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
 export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: VoltageSource) => {
     applyTransformationMatrix(ctx, voltageSource.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(voltageSource.transformationMatrix)
 
     const radius = 1
     const symbolSize = 0.5
     const symbolHeight = 0.35
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 0.1
+    ctx.lineWidth = localLineThickness
     // circle
     ctx.beginPath()
     ctx.moveTo(radius, 0)
@@ -131,7 +130,7 @@ export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: 
     ctx.lineTo(0, -2)
     ctx.stroke()
     // plus
-    ctx.lineWidth = 0.1
+    ctx.lineWidth = localLineThickness * 0.8
     ctx.beginPath()
     ctx.moveTo(symbolSize / 2, -symbolHeight)
     ctx.lineTo(-symbolSize / 2, -symbolHeight)
@@ -153,10 +152,13 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         return
     }
     applyTransformationMatrix(ctx, slider.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(slider.transformationMatrix)
+    console.log(localLineThickness)
+    console.log(slider.transformationMatrix.values)
 
     // draw slider path
     ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
-    ctx.lineWidth = 5
+    ctx.lineWidth = localLineThickness
     ctx.beginPath()
     ctx.arc(0, 0, slider.radius, 0, slider.endAngle, false)
 
@@ -233,19 +235,20 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
     applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(circuit.transformationMatrix)
 
     // draw vdd and gnd symbols
     circuit.schematic.gndLocations.forEach((gndLocation) => {
-        drawGnd(ctx, gndLocation)
+        drawGnd(ctx, gndLocation, localLineThickness)
     })
     circuit.schematic.vddLocations.forEach((vddLocation) => {
-        drawVdd(ctx, vddLocation)
+        drawVdd(ctx, vddLocation, localLineThickness)
     })
 
     // draw all the lines in black
     for (const nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId].value
-        drawLinesFillSolid(ctx, node.lines, GLOBAL_LINE_THICKNESS, 'black')
+        drawLinesFillSolid(ctx, node.lines, localLineThickness, 'black')
     }
 
     // add gradient regions from each of the mosfets
@@ -257,7 +260,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
                 y: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(1, 0),
             }
             const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
-            drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, GLOBAL_LINE_THICKNESS, gradient)
+            drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, localLineThickness, gradient)
         })
     }
 
@@ -279,9 +282,9 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     }
 }
 
-export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point) => {
+export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number) => {
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = GLOBAL_LINE_THICKNESS
+    ctx.lineWidth = lineThickness
     ctx.beginPath()
     ctx.moveTo(origin.x, origin.y)
     ctx.lineTo(origin.x + 0.25, origin.y)
@@ -291,9 +294,9 @@ export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point) => {
     ctx.stroke()
 }
 
-export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point) => {
+export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number) => {
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = GLOBAL_LINE_THICKNESS
+    ctx.lineWidth = lineThickness
     ctx.beginPath()
     ctx.moveTo(origin.x - 0.25, origin.y)
     ctx.lineTo(origin.x + 0.25, origin.y)

@@ -1,6 +1,7 @@
 import { Point, Line, Circle } from '../types'
 import { canvasSize, lineDrawRepetitions } from '../constants'
 import { Matrix } from 'ts-matrix'
+import { GLOBAL_LINE_THICKNESS } from '../constants'
 
 export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
     if (resetFirst) {
@@ -9,6 +10,10 @@ export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transfo
       ctx.transform(   transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
     }
   }
+
+export const getLocalLineThickness = (transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
+    return lineThickness / Math.sqrt(Math.abs(transformationMatrix.determinant()))
+}
 
 export const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5) => {
     const deltaX = end.x - start.x
