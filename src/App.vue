@@ -1,7 +1,7 @@
 <template>
   <div>
     <Diagram />
-    <Switch v-model="test" :label-up="'HIhihi'" :label-down="'hohoHOho'", :option="'test option'" />
+    <Switch v-model="test" :label-up="'HIhihi'" :label-down="'hohoHOho'" :option="'test option'" />
   </div>
 </template>
 
