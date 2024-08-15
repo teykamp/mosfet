@@ -1,6 +1,5 @@
 
 import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, Line, VoltageSource, Circuit } from "../types"
-import { schematicOrigin, schematicScale } from "../constants"
 import { toRadians, between } from "./extraMath"
 import { ekvNmos, ekvPmos, generateCurrent } from "./ekvModel"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
@@ -104,10 +103,6 @@ export const makeVoltageSource = (textTransformationMatrix: Matrix, parentTransf
 }
 
 export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
-  const originXcanvas = originX * schematicScale + schematicOrigin.x
-  const originYcanvas = originY * schematicScale + schematicOrigin.y
-
-
   const mosfet: Mosfet = {
     transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1 * (mirror ? -1 : 1), 0, originX], [0, 1, originY], [0, 0, 1]])),
     textTransformationMatrix: textTransformationMatrix,

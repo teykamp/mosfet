@@ -5,7 +5,7 @@ import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians, modulo } from './extraMath'
 import { Matrix } from 'ts-matrix'
-import { getLineLength, getPointAlongLine } from './makeMosfet'
+import { getPointAlongLine } from './makeMosfet'
 
 // const GLOBAL_LINE_THICKNESS = 6 // px
 const GLOBAL_LINE_THICKNESS = 0.1 // px
@@ -70,12 +70,12 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         start: {x: -0.5, y: -2},
         end: {x: -0.5, y: 2},
     }
-    const dotTravelDistance = getLineLength(dotPath)
     const nDots = 6
     for (let n = 0; n < nDots; n++) {
         const thisDotPercentage = modulo(mosfet.dotPercentage + n / nDots, 1)
         const dotPosition = getPointAlongLine(dotPath, thisDotPercentage)
         ctx.fillStyle = `rgba(0, 0, 255, ${(0.50 - Math.abs(thisDotPercentage - 0.50)) * 2})`
+        ctx.beginPath()
         ctx.arc(dotPosition.x, dotPosition.y, 0.1, 0, Math.PI * 2)
         ctx.fill()
     }
