@@ -163,12 +163,12 @@ export const makeMosfet = (parentTransformationMatrix: Matrix, mosfetType: 'nmos
   mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
   if (mosfet.mosfetType == 'nmos') {
-    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, 0.25, 0.16, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
-    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, 0.5, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, 0.35, 0.35, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
+    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, 1, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
   }
   else {
-    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, 0.25, -0.16, 60, toRadians(-5), toRadians(-75), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
-    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, 0.5, 0, 75, toRadians(140), toRadians(220), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
+    mosfet.vgs = makeAngleSlider(mosfet.transformationMatrix, 0.35, -0.35, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
+    mosfet.vds = makeAngleSlider(mosfet.transformationMatrix, 1, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
   }
 
   return mosfet

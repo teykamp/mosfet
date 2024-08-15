@@ -7,6 +7,7 @@ import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
 import { schematicOrigin, schematicScale } from '../constants'
 import { Matrix } from 'ts-matrix'
+import { apply } from 'mathjs'
 
 // const GLOBAL_LINE_THICKNESS = 6 // px
 const GLOBAL_LINE_THICKNESS = 0.1 // px
@@ -42,10 +43,10 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     ] :
     [
         {start: {x: 1.33, y: 1}, end: {x: 1.33, y: -1}},
-        {start: {x: 1.90, y: 0}, end: {x: 2.00, y: 0}},
+        {start: {x: 1.73, y: 0}, end: {x: 2.00, y: 0}},
     ]
 
-    const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] : [{center: {x: 0.76, y: 0}, outerDiameter: 0.30}]
+    const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] : [{center: {x: 1.53, y: 0}, outerDiameter: 0.4}]
 
     // 50 mA -> colorScale of 1
     // 5 mA -> colorScale of 1
@@ -209,38 +210,24 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
     ctx.fillStyle = slider.visibility == Visibility.Visible ? '#000' : 'lightgrey'
 
-    // draw text label
-    const textHeight = 32
-    const sliderAngle = Math.atan2(slider.location.y, slider.location.x)
-    const adjustedSliderRadius = slider.radius + 15
-    const adjustedSliderPosition: Point = {x: adjustedSliderRadius * Math.cos(sliderAngle), y: adjustedSliderRadius * Math.sin(sliderAngle)}
-    const lowerYposition = adjustedSliderPosition.y + Math.cos(sliderAngle) * textHeight / 2
-    const upperYposition = adjustedSliderPosition.y - Math.cos(sliderAngle) * textHeight / 2
-    const lowerAngle = Math.atan2(lowerYposition, adjustedSliderPosition.x)
-    const upperAngle = Math.atan2(upperYposition, adjustedSliderPosition.x)
-    const lowerXposition = Math.cos(lowerAngle) * adjustedSliderRadius
-    const upperXposition = Math.cos(upperAngle) * adjustedSliderRadius
-    let finalXposition = lowerXposition
-    if (Math.abs(upperXposition) > Math.abs(lowerXposition)) {
-        finalXposition = upperXposition
+    const textLocation: Point = {
+        x: slider.location.x * (slider.radius + 15) / slider.radius,
+        y: slider.location.y * (slider.radius + 15) / slider.radius,
     }
-    if (Math.sign(lowerAngle) != Math.sign(upperAngle)) {
-        if ((Math.abs(lowerAngle) < Math.PI) && (Math.abs(upperAngle) < Math.PI / 2)) {
-            finalXposition = adjustedSliderRadius
-        } else {
-            finalXposition = -adjustedSliderRadius
-        }
-    }
-    const finalYposition = finalXposition * Math.tan(sliderAngle)
+
+    ctx.resetTransform()
+    const displayTextLocationVector = slider.transformationMatrix.multiply(new Matrix(3, 1, [[textLocation.x], [textLocation.y], [1]]))
+    const globalSliderLocationVector = slider.transformationMatrix.multiply(new Matrix(3, 1, [[slider.location.x], [slider.location.y], [1]]))
+    const globalSliderDirectionX = displayTextLocationVector.at(0, 0) - globalSliderLocationVector.at(0, 0)
 
     const displayTextLocation: Point = {
-        x: finalXposition,
-        y: finalYposition
+        x: displayTextLocationVector.at(0, 0),
+        y: displayTextLocationVector.at(1, 0),
     }
-    ctx.textAlign = (((-Math.PI / 2) < sliderAngle) && ((Math.PI / 2) > sliderAngle)) ? 'left' : 'right'
-    ctx.font = '2px Arial'
+    ctx.textAlign = globalSliderDirectionX > 0 ? 'left' : 'right'
+    ctx.font = '16px Arial'
     ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
-    ctx.font = '1.8px Arial'
+    ctx.font = '14px Arial'
     ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 16)
 }
 
@@ -299,7 +286,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
             const transformedLocation = transformPoint(labelLocation, transformParameters)
             ctx.fillStyle = 'black'
             ctx.font = '0.6px sans-serif'
-            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), transformedLocation.x, transformedLocation.y + 4)
+            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), transformedLocation.x, transformedLocation.y)
         })
     }
 }
