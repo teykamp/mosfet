@@ -1,7 +1,7 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness } from './drawFuncs'
-import { interpolateInferno, local } from 'd3' // https://stackoverflow.com/a/42505940
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, transformPoint, fillTextGlobalReferenceFrame } from './drawFuncs'
+import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians, modulo } from './extraMath'
 import { Matrix } from 'ts-matrix'
@@ -80,27 +80,28 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
     ctx.strokeStyle = 'black'
     ctx.fillStyle = 'black'
-    ctx.font = "0.2px sans-serif";
-    ctx.moveTo(0, 0)
 
     const currentToDisplay = toSiPrefix(mosfet.current, "A")
     let currentMantissa = ""
     for (const char of currentToDisplay) {
         if ("-0123456789.".indexOf(char) > -1)
-        currentMantissa += char
+            currentMantissa += char
       }
-    const currentSuffix = currentToDisplay.slice(currentMantissa.length)
+      const currentSuffix = currentToDisplay.slice(currentMantissa.length)
 
-    if (mosfet.mirror) {
-        ctx.textAlign = 'left'
-        ctx.fillText(currentMantissa, -22, -3)
-        ctx.fillText(currentSuffix, -22, 12)
-    } else {
-        ctx.textAlign = 'right'
-        ctx.fillText(currentMantissa, 22, -3)
-        ctx.fillText(currentSuffix, 22, 12)
-
-    }
+      ctx.font = "14px sans-serif";
+      const nextLineLocation = fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, {x: 20/30, y: -3/30}, currentMantissa, true, true, 14)
+      ctx.font = "14px sans-serif";
+    fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, nextLineLocation, currentSuffix, true, true)
+    // if (mosfet.mirror) {
+    //     ctx.textAlign = 'left'
+    //     ctx.fillText(currentMantissa, -22, -3)
+    //     ctx.fillText(currentSuffix, -22, 12)
+    // } else {
+    //     ctx.textAlign = 'right'
+    //     ctx.fillText(currentMantissa, 22, -3)
+    //     ctx.fillText(currentSuffix, 22, 12)
+    // }
 
     drawAngleSlider(ctx, mosfet.vgs)
     drawAngleSlider(ctx, mosfet.vds)
@@ -153,8 +154,6 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     }
     applyTransformationMatrix(ctx, slider.transformationMatrix, true)
     const localLineThickness = getLocalLineThickness(slider.transformationMatrix)
-    console.log(localLineThickness)
-    console.log(slider.transformationMatrix.values)
 
     // draw slider path
     ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
@@ -217,20 +216,20 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         y: slider.location.y * (slider.radius + 15) / slider.radius,
     }
 
-    applyTransformationMatrix(ctx, slider.textTransformationMatrix, true)
-    const displayTextLocationVector = slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix.multiply(new Matrix(3, 1, [[textLocation.x], [textLocation.y], [1]])))
-    const globalSliderLocationVector = slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix.multiply(new Matrix(3, 1, [[slider.location.x], [slider.location.y], [1]])))
-    const globalSliderDirectionX = displayTextLocationVector.at(0, 0) - globalSliderLocationVector.at(0, 0)
-
-    const displayTextLocation: Point = {
-        x: displayTextLocationVector.at(0, 0),
-        y: displayTextLocationVector.at(1, 0),
-    }
-    ctx.textAlign = globalSliderDirectionX > 0 ? 'left' : 'right'
     ctx.font = '18px Arial'
-    ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
+    const nextLineLocation = fillTextGlobalReferenceFrame(ctx, slider.textTransformationMatrix, slider.transformationMatrix, textLocation, slider.displayText, true, false, 18)
     ctx.font = '16px Arial'
-    ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 18)
+    fillTextGlobalReferenceFrame(ctx, slider.textTransformationMatrix, slider.transformationMatrix, nextLineLocation, toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), true)
+
+    // applyTransformationMatrix(ctx, slider.textTransformationMatrix, true)
+    // const displayTextLocation = transformPoint(textLocation, slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix))
+    // const globalSliderLocation = transformPoint(slider.location, slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix))
+
+    // ctx.textAlign = displayTextLocation.x - globalSliderLocation.x > 0 ? 'left' : 'right'
+    // ctx.font = '18px Arial'
+    // ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
+    // ctx.font = '16px Arial'
+    // ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 18)
 }
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {

@@ -116,7 +116,6 @@ const checkDrag = (event: MouseEvent) => {
     const transformedMouseY = transformedMousePos.at(1, 0)
 
     if (slider.visibility == Visibility.Visible) {
-        console.log(transformedMouseX, transformedMouseY)
         const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
         const mouseDistanceFromDraggableSliderSquared = (transformedMouseX - slider.location.x) ** 2 + (transformedMouseY - slider.location.y) ** 2
         const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
@@ -126,7 +125,6 @@ const checkDrag = (event: MouseEvent) => {
         (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
       ) {
         slider.dragging = true
-        console.log("Selected")
         if (event.button == 1) {
           slider.preciseDragging = true
         }
@@ -172,7 +170,6 @@ const drag = (event: MouseEvent) => {
       const percentValue = between(0, 1, mouseAngle / slider.endAngle)
       slider.value = percentValue * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
 
-      console.log(mouseAngle)
       slider.location = {
         x: Math.cos(mouseAngle) * slider.radius,
         y: Math.sin(mouseAngle) * slider.radius

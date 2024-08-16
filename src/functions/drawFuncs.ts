@@ -11,6 +11,39 @@ export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transfo
     }
   }
 
+export const transformPoint = (point: Point, transformationMatrix: Matrix): Point => {
+    const transformedVector = transformationMatrix.multiply(new Matrix(3, 1, [[point.x], [point.y], [1]]))
+    return {
+        x: transformedVector.at(0, 0),
+        y: transformedVector.at(1, 0),
+    }
+}
+
+export const fillTextGlobalReferenceFrame = (ctx: CanvasRenderingContext2D, textTransformationMatrix: Matrix, localTransformationMatrix: Matrix, localTextLocation: Point, text: string, autoTextAlign: boolean = false, oppositeTextAlign = false, lineHeight: number = 16): Point => {
+    // switch to the global text reference frame
+    applyTransformationMatrix(ctx, textTransformationMatrix)
+
+    if (autoTextAlign) {
+        const globalOrigin = transformPoint({x: 0, y: 0}, localTransformationMatrix)
+        const globalTextLocation = transformPoint(localTextLocation, localTransformationMatrix)
+        if ((globalTextLocation.x < globalOrigin.x) == (!oppositeTextAlign)) {
+            ctx.textAlign = 'right'
+        }
+        else if ((globalTextLocation.x > globalOrigin.x) == (!oppositeTextAlign)) {
+            ctx.textAlign = 'left'
+        }
+        else {
+            ctx.textAlign = 'center'
+        }
+    }
+    const displayTextLocation = transformPoint(localTextLocation, textTransformationMatrix.inverse().multiply(localTransformationMatrix))
+    ctx.fillText(text, displayTextLocation.x, displayTextLocation.y)
+
+    // reset the local reference frame
+    applyTransformationMatrix(ctx, localTransformationMatrix)
+    return transformPoint({x: displayTextLocation.x, y: displayTextLocation.y + lineHeight}, localTransformationMatrix.inverse().multiply(textTransformationMatrix))
+}
+
 export const getLocalLineThickness = (transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
     return lineThickness / Math.sqrt(Math.abs(transformationMatrix.determinant()))
 }
