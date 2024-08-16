@@ -1,47 +1,43 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLine, transformPoint, makeCtxGradientFunc, drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient } from './drawFuncs'
-import { makeTransformParameters } from './makeMosfet'
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame } from './drawFuncs'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
-import { toRadians } from './extraMath'
-import { schematicOrigin, schematicScale } from '../constants'
-
-const GLOBAL_LINE_THICKNESS = 6 // px
+import { toRadians, modulo } from './extraMath'
+import { Matrix } from 'ts-matrix'
+import { getPointAlongLine } from './makeMosfet'
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
-
-    const transformParameters = makeTransformParameters(0, {x: false, y: false}, {x: 60, y: 60}, {x: mosfet.originX, y: mosfet.originY})
-    if (mosfet.mirror) {
-      transformParameters.mirror.x = true
-    }
+    applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(mosfet.transformationMatrix)
 
     // 100 % saturation -> 0 px
     // 50  % saturation -> 50 px
     // 0   % saturation -> 100 px
-    mosfet.gradientSize = 125 - mosfet.saturationLevel * 125
+    mosfet.gradientSize = 1.5 - mosfet.saturationLevel * 1.5
 
-    const gradientOrigin: Point = {x: mosfet.originX, y: mosfet.originY - 60 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
+    const gradientOrigin: Point = {x: 0, y: -2 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
     const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
     const bodyLines: Line[] = [
-        {start: {x: 0, y: 0.33}, end: {x: 0, y: 0.95}},
-        {start: {x: 0, y: 0.33}, end: {x: 0.43, y: 0.33}},
-        {start: {x: 0, y: -0.33}, end: {x: 0, y: -0.95}},
-        {start: {x: 0, y: -0.33}, end: {x: 0.43, y: -0.33}},
-        {start: {x: 0.43, y: -0.66}, end: {x: 0.43, y: 0.66}},
+        {start: {x: 0, y: 0.66}, end: {x: 0, y: 1.90}},
+        {start: {x: 0, y: 0.66}, end: {x: 0.86, y: 0.66}},
+        {start: {x: 0, y: -0.66}, end: {x: 0, y: -1.90}},
+        {start: {x: 0, y: -0.66}, end: {x: 0.86, y: -0.66}},
+        {start: {x: 0.86, y: -1.33}, end: {x: 0.86, y: 1.33}},
     ]
 
     const gateLines: Line[] = mosfet.mosfetType == 'nmos' ? [
-        {start: {x: 0.66, y: 0.50}, end: {x: 0.66, y: -0.50}},
-        {start: {x: 0.66, y: 0}, end: {x: 1.00, y: 0}},
+        {start: {x: 1.33, y: 1}, end: {x: 1.33, y: -1}},
+        {start: {x: 1.33, y: 0}, end: {x: 2.00, y: 0}},
     ] :
     [
-        {start: {x: 0.66, y: 0.50}, end: {x: 0.66, y: -0.50}},
-        {start: {x: 0.90, y: 0}, end: {x: 1.00, y: 0}},
+        {start: {x: 1.33, y: 1}, end: {x: 1.33, y: -1}},
+        {start: {x: 1.73, y: 0}, end: {x: 2.00, y: 0}},
     ]
 
-    const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] : [{center: {x: 0.76, y: 0}, outerDiameter: 0.30}]
+    const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] :
+    [{center: {x: 1.53, y: 0}, outerDiameter: 0.4}]
 
     // 50 mA -> colorScale of 1
     // 5 mA -> colorScale of 1
@@ -49,94 +45,96 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 50 uA -> colorScale of 0.6
     // 5 uA -> colorScale of 0.4
     // 500 nA -> colorScale of 0.2
-    // 50 nA -? colorScale of 0
-    // 5 nA -? colorScale of 0
-    // 500 pA -? colorScale of 0
-    // 50 pA -? colorScale of 0
-    // 5 pA -? colorScale of 0
+    // 50 nA -> colorScale of 0
+    // 5 nA -> colorScale of 0
+    // 500 pA -> colorScale of 0
+    // 50 pA -> colorScale of 0
+    // 5 pA -> colorScale of 0
     const forwardCurrentScaled = Math.max(Math.min(Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1, 1), 0)
     const gateColor = interpolateInferno(forwardCurrentScaled)
 
     ctx.beginPath()
-    drawLinesFillSolid(ctx, bodyLines, GLOBAL_LINE_THICKNESS, 'black', transformParameters)
-    drawLinesFillSolid(ctx, gateLines, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
-    drawCirclesFillSolid(ctx, gateCircles, GLOBAL_LINE_THICKNESS, gateColor, transformParameters)
-    drawLinesFillWithGradient(ctx, bodyLines, GLOBAL_LINE_THICKNESS, gradient, transformParameters)
+    drawLinesFillSolid(ctx, bodyLines, localLineThickness, 'black')
+    drawLinesFillSolid(ctx, gateLines, localLineThickness, gateColor)
+    drawCirclesFillSolid(ctx, gateCircles, localLineThickness, gateColor)
+    drawLinesFillWithGradient(ctx, bodyLines, localLineThickness, gradient)
 
-    mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 2
+    mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize * 2
     mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
-    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * schematicScale * 2
+    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 2
     mosfet.schematicEffects[0].color = gateColor
 
-    mosfet.dots.forEach(dot => {
-        ctx.fillStyle = `rgba(0, 0, 255, ${Math.abs(-0.9 + Math.abs(dot.y - mosfet.originY) / 100)})`
+    const dotPath: Line = {
+        start: {x: -0.5, y: -2},
+        end: {x: -0.5, y: 2},
+    }
+    const nDots = 6
+    for (let n = 0; n < nDots; n++) {
+        const thisDotPercentage = modulo(mosfet.dotPercentage + n / nDots, 1)
+        const dotPosition = getPointAlongLine(dotPath, thisDotPercentage)
+        ctx.fillStyle = `rgba(0, 0, 255, ${(0.50 - Math.abs(thisDotPercentage - 0.50)) * 2})`
         ctx.beginPath()
-        ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2)
+        ctx.arc(dotPosition.x, dotPosition.y, 0.1, 0, Math.PI * 2)
         ctx.fill()
-    })
+    }
 
-    ctx.strokeStyle = 'black'
-    ctx.fillStyle = 'black'
-    ctx.font = "14px sans-serif";
-    ctx.moveTo(mosfet.originX, mosfet.originY)
-
+    // display current read-out, separating quantity and unit on separate lines
     const currentToDisplay = toSiPrefix(mosfet.current, "A")
     let currentMantissa = ""
     for (const char of currentToDisplay) {
         if ("-0123456789.".indexOf(char) > -1)
-        currentMantissa += char
-      }
+            currentMantissa += char
+    }
     const currentSuffix = currentToDisplay.slice(currentMantissa.length)
 
-    if (mosfet.mirror) {
-        ctx.textAlign = 'left'
-        ctx.fillText(currentMantissa, mosfet.originX - 22, mosfet.originY - 3)
-        ctx.fillText(currentSuffix, mosfet.originX - 22, mosfet.originY + 12)
-    } else {
-        ctx.textAlign = 'right'
-        ctx.fillText(currentMantissa, mosfet.originX + 22, mosfet.originY - 3)
-        ctx.fillText(currentSuffix, mosfet.originX + 22, mosfet.originY + 12)
+    ctx.fillStyle = 'black'
+    ctx.font = "14px sans-serif";
+    const nextLineLocation = fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, {x: 20/30, y: -3/30}, currentMantissa, true, true, 14)
+    ctx.font = "14px sans-serif";
+    fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, nextLineLocation, currentSuffix, true, true)
 
-    }
-
+    // draw mosfet angle sliders
     drawAngleSlider(ctx, mosfet.vgs)
     drawAngleSlider(ctx, mosfet.vds)
 }
 
 export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: VoltageSource) => {
-    const radius = 30
-    const symbolSize = 15
-    const symbolHeight = 10
+    applyTransformationMatrix(ctx, voltageSource.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(voltageSource.transformationMatrix)
+
+    const radius = 1
+    const symbolSize = 0.5
+    const symbolHeight = 0.35
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 6
+    ctx.lineWidth = localLineThickness
     // circle
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX + radius, voltageSource.originY)
-    ctx.arc(voltageSource.originX, voltageSource.originY, radius, 0, 2 * Math.PI)
+    ctx.moveTo(radius, 0)
+    ctx.arc(0, 0, radius, 0, 2 * Math.PI)
     ctx.stroke()
     // top and bottom lines
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX, voltageSource.originY + radius)
-    ctx.lineTo(voltageSource.originX, voltageSource.originY + 60)
+    ctx.moveTo(0, radius)
+    ctx.lineTo(0, 2)
     ctx.stroke()
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX, voltageSource.originY - radius)
-    ctx.lineTo(voltageSource.originX, voltageSource.originY - 60)
+    ctx.moveTo(0, -radius)
+    ctx.lineTo(0, -2)
     ctx.stroke()
     // plus
-    ctx.lineWidth = 3
+    ctx.lineWidth = localLineThickness * 0.8
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX - symbolSize / 2, voltageSource.originY - symbolHeight)
-    ctx.lineTo(voltageSource.originX + symbolSize / 2, voltageSource.originY - symbolHeight)
+    ctx.moveTo(symbolSize / 2, -symbolHeight)
+    ctx.lineTo(-symbolSize / 2, -symbolHeight)
     ctx.stroke()
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX, voltageSource.originY - symbolHeight - symbolSize / 2)
-    ctx.lineTo(voltageSource.originX, voltageSource.originY - symbolHeight + symbolSize / 2)
+    ctx.moveTo(0, -symbolHeight - symbolSize / 2)
+    ctx.lineTo(0, -symbolHeight + symbolSize / 2)
     ctx.stroke()
     // minus
     ctx.beginPath()
-    ctx.moveTo(voltageSource.originX - symbolSize / 2, voltageSource.originY + symbolHeight)
-    ctx.lineTo(voltageSource.originX + symbolSize / 2, voltageSource.originY + symbolHeight)
+    ctx.moveTo(symbolSize / 2, symbolHeight)
+    ctx.lineTo(-symbolSize / 2, symbolHeight)
     ctx.stroke()
     drawAngleSlider(ctx, voltageSource.voltageDrop)
 }
@@ -145,29 +143,31 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     if (slider.visibility == Visibility.Hidden) {
         return
     }
+    applyTransformationMatrix(ctx, slider.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(slider.transformationMatrix)
 
     // draw slider path
     ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
-    ctx.lineWidth = 5
+    ctx.lineWidth = localLineThickness
     ctx.beginPath()
-    ctx.arc(slider.center.x, slider.center.y, slider.radius, slider.startAngle, slider.endAngle, slider.CCW)
+    ctx.arc(0, 0, slider.radius, 0, slider.endAngle, false)
 
     // switch head and tail if the min and max are negative valued
-    const headAngle = slider.displayNegative ? slider.startAngle : slider.endAngle
-    const tailAngle = slider.displayNegative ? slider.endAngle : slider.startAngle
+    const headAngle = slider.displayNegative ? 0 : slider.endAngle
+    const tailAngle = slider.displayNegative ? slider.endAngle : 0
 
     // draw tail flourish on slider path
     const tailSize = 7
-    ctx.moveTo(slider.center.x + (slider.radius + tailSize) * Math.cos(tailAngle), slider.center.y + (slider.radius + tailSize) * Math.sin(tailAngle))
-    ctx.lineTo(slider.center.x + (slider.radius - tailSize) * Math.cos(tailAngle), slider.center.y + (slider.radius - tailSize) * Math.sin(tailAngle))
+    ctx.moveTo((slider.radius + tailSize) * Math.cos(tailAngle), (slider.radius + tailSize) * Math.sin(tailAngle))
+    ctx.lineTo((slider.radius - tailSize) * Math.cos(tailAngle), (slider.radius - tailSize) * Math.sin(tailAngle))
 
     // draw head flourish on slider path
     const headSize = 7
-    const headDirection = (slider.CCW != slider.displayNegative) ? 1 : -1
+    const headDirection = (slider.displayNegative) ? 1 : -1
     const arrowAngle = headDirection * toRadians(5)
-    ctx.moveTo(slider.center.x + (slider.radius + headSize) * Math.cos(headAngle + arrowAngle), slider.center.y + (slider.radius + headSize) * Math.sin(headAngle + arrowAngle))
-    ctx.lineTo(slider.center.x + (slider.radius           ) * Math.cos(headAngle            ), slider.center.y + (slider.radius           ) * Math.sin(headAngle            ))
-    ctx.lineTo(slider.center.x + (slider.radius - headSize) * Math.cos(headAngle + arrowAngle), slider.center.y + (slider.radius - headSize) * Math.sin(headAngle + arrowAngle))
+    ctx.moveTo((slider.radius + headSize) * Math.cos(headAngle + arrowAngle), (slider.radius + headSize) * Math.sin(headAngle + arrowAngle))
+    ctx.lineTo((slider.radius           ) * Math.cos(headAngle            ), (slider.radius           ) * Math.sin(headAngle            ))
+    ctx.lineTo((slider.radius - headSize) * Math.cos(headAngle + arrowAngle), (slider.radius - headSize) * Math.sin(headAngle + arrowAngle))
     ctx.stroke()
 
     if (slider.dragging && slider.preciseDragging) {
@@ -175,21 +175,21 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         const drawTickAtAngle = (angle: number, majorTick: boolean = true) => {
             const outerRadius = slider.radius + (majorTick ? 15 : 8)
             ctx.beginPath()
-            ctx.moveTo(slider.center.x + slider.radius * Math.cos(angle), slider.center.y + slider.radius * Math.sin(angle))
-            ctx.lineTo(slider.center.x + outerRadius * Math.cos(angle),   slider.center.y + outerRadius   * Math.sin(angle))
+            ctx.moveTo(slider.radius * Math.cos(angle), slider.radius * Math.sin(angle))
+            ctx.lineTo(outerRadius * Math.cos(angle),   outerRadius   * Math.sin(angle))
             ctx.stroke()
         }
         // find all locations between temporaryMinValue and temporaryMaxValue that should have a tick and draw one
         let x = Math.ceil(slider.temporaryMinValue) // major ticks every 1 unit
         while (x < slider.temporaryMaxValue) {
             const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, true)
+            drawTickAtAngle((slider.endAngle) * percentValue, true)
             x += 1
         }
         x = Math.ceil(slider.temporaryMinValue + 0.5) - 0.5 // minor ticks every 1 unit starting on n + 1/2 for integer n
         while (x < slider.temporaryMaxValue) {
             const percentValue = (x - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-            drawTickAtAngle(slider.startAngle + (slider.endAngle - slider.startAngle) * percentValue, false)
+            drawTickAtAngle((slider.endAngle) * percentValue, false)
             x += 1
         }
     }
@@ -202,75 +202,45 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
     ctx.fillStyle = slider.visibility == Visibility.Visible ? '#000' : 'lightgrey'
 
-    // draw text label
-    const textHeight = 32
-    const sliderAngle = Math.atan2(slider.location.y - slider.center.y, slider.location.x - slider.center.x)
-    const adjustedSliderRadius = slider.radius + 15
-    const adjustedSliderPosition: Point = {x: adjustedSliderRadius * Math.cos(sliderAngle), y: adjustedSliderRadius * Math.sin(sliderAngle)}
-    const lowerYposition = adjustedSliderPosition.y + Math.cos(sliderAngle) * textHeight / 2
-    const upperYposition = adjustedSliderPosition.y - Math.cos(sliderAngle) * textHeight / 2
-    const lowerAngle = Math.atan2(lowerYposition, adjustedSliderPosition.x)
-    const upperAngle = Math.atan2(upperYposition, adjustedSliderPosition.x)
-    const lowerXposition = Math.cos(lowerAngle) * adjustedSliderRadius
-    const upperXposition = Math.cos(upperAngle) * adjustedSliderRadius
-    let finalXposition = lowerXposition
-    if (Math.abs(upperXposition) > Math.abs(lowerXposition)) {
-        finalXposition = upperXposition
+    const textLocation: Point = {
+        x: slider.location.x * (slider.radius + 15) / slider.radius,
+        y: slider.location.y * (slider.radius + 15) / slider.radius,
     }
-    if (Math.sign(lowerAngle) != Math.sign(upperAngle)) {
-        if ((Math.abs(lowerAngle) < Math.PI) && (Math.abs(upperAngle) < Math.PI / 2)) {
-            finalXposition = adjustedSliderRadius
-        } else {
-            finalXposition = -adjustedSliderRadius
-        }
-    }
-    const finalYposition = finalXposition * Math.tan(sliderAngle)
 
-    const displayTextLocation: Point = {
-        x: slider.center.x + finalXposition,
-        y: slider.center.y + finalYposition
-    }
-    ctx.textAlign = (((-Math.PI / 2) < sliderAngle) && ((Math.PI / 2) > sliderAngle)) ? 'left' : 'right'
+    ctx.font = '18px Arial'
+    const nextLineLocation = fillTextGlobalReferenceFrame(ctx, slider.textTransformationMatrix, slider.transformationMatrix, textLocation, slider.displayText, true, false, 18)
     ctx.font = '16px Arial'
-    ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
-    ctx.font = '14px Arial'
-    ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 16)
+    fillTextGlobalReferenceFrame(ctx, slider.textTransformationMatrix, slider.transformationMatrix, nextLineLocation, toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), true)
 }
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
-    const transformParameters = makeTransformParameters(undefined, undefined, {x: schematicScale, y: schematicScale}, schematicOrigin)
+    applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
+    const localLineThickness = getLocalLineThickness(circuit.transformationMatrix)
 
     // draw vdd and gnd symbols
     circuit.schematic.gndLocations.forEach((gndLocation) => {
-        drawGnd(ctx, transformPoint(gndLocation, transformParameters))
+        drawGnd(ctx, gndLocation, localLineThickness)
     })
     circuit.schematic.vddLocations.forEach((vddLocation) => {
-        drawVdd(ctx, transformPoint(vddLocation, transformParameters))
+        drawVdd(ctx, vddLocation, localLineThickness)
     })
 
     // draw all the lines in black
-    ctx.fillStyle = 'black'
     for (const nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId].value
-        node.lines.forEach((line) => {
-            ctx.beginPath()
-            drawLine(ctx, line.start, line.end, GLOBAL_LINE_THICKNESS, transformParameters)
-            ctx.fill()
-        })
+        drawLinesFillSolid(ctx, node.lines, localLineThickness, 'black')
     }
 
     // add gradient regions from each of the mosfets
     for (const mosfetId in circuit.devices.mosfets) {
         const mosfet = circuit.devices.mosfets[mosfetId]
         mosfet.schematicEffects.forEach((schematicEffect) => {
-            const gradient = makeStandardGradient(ctx, schematicEffect.origin, schematicEffect.gradientSize, schematicEffect.color)
-
-            ctx.beginPath()
-            schematicEffect.node.value.lines.forEach((line) => {
-                drawLine(ctx, line.start, line.end, Math.ceil(GLOBAL_LINE_THICKNESS / 2) * 2, transformParameters)
-                const ctxGradientFunc = makeCtxGradientFunc(ctx, gradient)
-                ctxGradientFunc()
-            })
+            const gradientOrigin: Point = {
+                x: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(0, 0),
+                y: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(1, 0),
+            }
+            const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
+            drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, localLineThickness, gradient)
         })
     }
 
@@ -278,31 +248,37 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     for (const nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId].value
         node.voltageDisplayLocations.forEach((labelLocation: Point) => {
-            const transformedLocation = transformPoint(labelLocation, transformParameters)
+            applyTransformationMatrix(ctx, circuit.textTransformationMatrix, true)
+
+            const displayTextLocationVector = circuit.textTransformationMatrix.inverse().multiply(circuit.transformationMatrix.multiply(new Matrix(3, 1, [[labelLocation.x], [labelLocation.y], [1]])))
+            const displayTextLocation: Point = {
+                x: displayTextLocationVector.at(0, 0),
+                y: displayTextLocationVector.at(1, 0),
+            }
             ctx.fillStyle = 'black'
-            ctx.font = '16px sans-serif'
-            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), transformedLocation.x, transformedLocation.y + 4)
+            ctx.font = '18px sans-serif'
+            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), displayTextLocation.x, displayTextLocation.y)
         })
     }
 }
 
-export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point) => {
+export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number) => {
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 5
+    ctx.lineWidth = lineThickness
     ctx.beginPath()
     ctx.moveTo(origin.x, origin.y)
-    ctx.lineTo(origin.x + 15, origin.y)
-    ctx.lineTo(origin.x, origin.y + 15)
-    ctx.lineTo(origin.x - 15, origin.y)
+    ctx.lineTo(origin.x + 0.25, origin.y)
+    ctx.lineTo(origin.x, origin.y + 0.25)
+    ctx.lineTo(origin.x - 0.25, origin.y)
     ctx.lineTo(origin.x, origin.y)
     ctx.stroke()
 }
 
-export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point) => {
+export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number) => {
     ctx.strokeStyle = 'black'
-    ctx.lineWidth = 5
+    ctx.lineWidth = lineThickness
     ctx.beginPath()
-    ctx.moveTo(origin.x - 15, origin.y)
-    ctx.lineTo(origin.x + 15, origin.y)
+    ctx.moveTo(origin.x - 0.25, origin.y)
+    ctx.lineTo(origin.x + 0.25, origin.y)
     ctx.stroke()
 }

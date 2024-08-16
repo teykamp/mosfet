@@ -29,6 +29,7 @@ import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize, preciseSliderTickRange } from '../constants'
 import { drawMosfet, drawSchematic, drawVoltageSource } from '../functions/drawMosfet'
+import { Matrix } from 'ts-matrix'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -62,21 +63,12 @@ const updateSlidersBasedOnNodeVoltages = () => {
   circuit.value.allSliders.forEach((slider) => {
     slider.value = between(slider.temporaryMinValue, slider.temporaryMaxValue, slider.value)
 
-
     const normalizedSliderValue = (slider.value - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-    if (slider.CCW) {
-      const sliderAngle = normalizedSliderValue * (slider.endAngle - slider.startAngle) + slider.startAngle
+      const sliderAngle = normalizedSliderValue * (slider.endAngle)
       slider.location = {
-        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
-        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
+        x: slider.radius * Math.cos(sliderAngle),
+        y: slider.radius * Math.sin(sliderAngle),
       }
-    } else {
-      const sliderAngle = normalizedSliderValue * modulo((2 * Math.PI - (slider.startAngle - slider.endAngle)), 2 * Math.PI) + slider.startAngle
-      slider.location = {
-        x: slider.center.x + slider.radius * Math.cos(sliderAngle),
-        y: slider.center.y + slider.radius * Math.sin(sliderAngle),
-      }
-    }
   })
 }
 
@@ -107,37 +99,6 @@ const updateNodeVoltagesBasedOnSliders = () => {
     })
 }
 
-const normalizeAngle = (angle: number, startAngle: number, endAngle: number, CCW: boolean) => {
-  const angleSpan = modulo(CCW ? startAngle - endAngle : endAngle - startAngle, 2 * Math.PI)
-
-  // subtract out the starting angle so what was once the starting angle is now considered zero.
-  // mod by 2pi so that angles just to the left of the starting angle are considered to be +2pi;
-  // angles just to the right of the starting angle are considered close to zero;
-  // and angles about opposite from the starting angle are about +pi.
-  const normalizedAngle = modulo(CCW ? startAngle - angle : angle - startAngle, 2 * Math.PI)
-
-  // default case: the angle is in between the starting and ending angles.
-  let returnAngle = angle
-  // calculate the value of the slider as the fraction of the way between the start and end angles
-  let value = normalizedAngle / Math.abs(angleSpan)
-
-  // if the angle is outside the bounds of [0, angleSpan], then
-  // check whether the angle is closer to the starting angle or closer to the ending angle
-  if (normalizedAngle > Math.PI + angleSpan / 2) {
-    returnAngle = startAngle
-    value = 0
-  }
-  else if (normalizedAngle > angleSpan) {
-    returnAngle = endAngle
-    value = 1
-  }
-
-  return {
-    returnAngle,
-    value
-  }
-}
-
 const getMousePos = (event: MouseEvent) => {
   if (!canvas.value) return { mouseX: 0, mouseY: 0 }
   const rect = canvas.value.getBoundingClientRect()
@@ -150,36 +111,41 @@ const getMousePos = (event: MouseEvent) => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
-      if (slider.visibility == Visibility.Visible) {
-          const mouseRadiusSquared = (mouseX - slider.center.x) ** 2 + (mouseY - slider.center.y) ** 2
-          const mouseTheta = Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x)
-          const sliderValue = normalizeAngle(mouseTheta, slider.startAngle, slider.endAngle, slider.CCW).value
-        if (
-          (((mouseX - slider.location.x) ** 2 + (mouseY - slider.location.y) ** 2) <= 10 ** 2) || // mouse hovering over slider knob
-          (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
-        ) {
-          slider.dragging = true
-          if (event.button == 1) {
-            slider.preciseDragging = true
-          }
-          if (slider.preciseDragging) {
-            slider.radius = slider.originalRadius + 10
-          }
-          // set the temporary min and max slider values
-          if (slider.preciseDragging) {
-            const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
-            slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
-            slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
-          }
-          else {
-            slider.temporaryMinValue = slider.minValue
-            slider.temporaryMaxValue = slider.maxValue
-          }
+    const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
+    const transformedMouseX = transformedMousePos.at(0, 0)
+    const transformedMouseY = transformedMousePos.at(1, 0)
 
-          drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
+    if (slider.visibility == Visibility.Visible) {
+        const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
+        const mouseDistanceFromDraggableSliderSquared = (transformedMouseX - slider.location.x) ** 2 + (transformedMouseY - slider.location.y) ** 2
+        const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
+        const sliderValue = mouseTheta / slider.endAngle
+      if (
+        (mouseDistanceFromDraggableSliderSquared <= 10 ** 2) || // mouse hovering over slider knob
+        (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
+      ) {
+        slider.dragging = true
+        if (event.button == 1) {
+          slider.preciseDragging = true
         }
+        if (slider.preciseDragging) {
+          slider.radius = slider.originalRadius + 10
+        }
+        // set the temporary min and max slider values
+        if (slider.preciseDragging) {
+          const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
+          slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
+          slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
+        }
+        else {
+          slider.temporaryMinValue = slider.minValue
+          slider.temporaryMaxValue = slider.maxValue
+        }
+
+        drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
       }
-    })
+    }
+  })
   document.addEventListener('mousemove', drag)
   document.addEventListener('mouseup', mouseUp)
 }
@@ -187,44 +153,42 @@ const checkDrag = (event: MouseEvent) => {
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
+  // reset node capacitances
   for (const nodeId in circuit.value.nodes) {
     const node = circuit.value.nodes[nodeId].value
     node.capacitance = node.originalCapacitance
   }
 
+  // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
     if (slider.dragging) {
-        const result = normalizeAngle(
-          Math.atan2(mouseY - slider.center.y, mouseX - slider.center.x),
-          slider.startAngle,
-          slider.endAngle,
-          slider.CCW
-        )
-        const mouseAngle = result.returnAngle
-        // slider.value = result.value * (slider.maxValue - slider.minValue) + slider.minValue
-        slider.value = result.value * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
-        console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
+      const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
+      const transformedMouseX = transformedMousePos.at(0, 0)
+      const transformedMouseY = transformedMousePos.at(1, 0)
+      const mouseAngle = Math.atan2(transformedMouseY, transformedMouseX)
 
-        slider.location = {
-          x: Math.cos(mouseAngle) * slider.radius + slider.center.x,
-          y: Math.sin(mouseAngle) * slider.radius + slider.center.y
-        }
+      const percentValue = between(0, 1, mouseAngle / slider.endAngle)
+      slider.value = percentValue * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
 
-        if ((result.value < 0.05) && (slider.value <= slider.previousValue)) {
-          slider.valueRateOfChange = -0.01
-
-        }
-        else if ((result.value > 0.95) && (slider.value >= slider.previousValue)) {
-          slider.valueRateOfChange = 0.01
-        }
-        else {
-          slider.valueRateOfChange = 0
-        }
-        slider.previousValue = slider.value
-        // console.log('min: ', slider.temporaryMinValue, 'max: ', slider.temporaryMaxValue)
+      slider.location = {
+        x: Math.cos(mouseAngle) * slider.radius,
+        y: Math.sin(mouseAngle) * slider.radius
       }
-    })
-    updateNodeVoltagesBasedOnSliders()
+
+      if ((percentValue < 0.05) && (slider.value <= slider.previousValue)) {
+        slider.valueRateOfChange = -0.01
+
+      }
+      else if ((percentValue > 0.95) && (slider.value >= slider.previousValue)) {
+        slider.valueRateOfChange = 0.01
+      }
+      else {
+        slider.valueRateOfChange = 0
+      }
+      slider.previousValue = slider.value
+    }
+  })
+  updateNodeVoltagesBasedOnSliders()
 }
 
 const mouseUp = () => {
@@ -260,6 +224,7 @@ const mouseUp = () => {
 const draw = () => {
   if (!ctx.value || !canvas.value) return
 
+  ctx.value.resetTransform()
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   updateSlidersBasedOnNodeVoltages()
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
@@ -309,7 +274,7 @@ const animate = (timestamp: number) => {
     // 1 uA -> speed of 1/9
     // 100nA -> speed of 1/16
     const unityCurrent = 1e-4 // Amps
-    const unitySpeed = 50 // px / s
+    const unitySpeed = 1 // (100 percent) / s
     let dotSpeed = unitySpeed
     if (mosfet.current <= 0) {
       dotSpeed = 0
@@ -326,10 +291,7 @@ const animate = (timestamp: number) => {
       dotSpeed = 0.001 * unitySpeed
     }
 
-    mosfet.dots[0].y += dotSpeed * (timeDifference / 1000)
-    mosfet.dots.forEach((dot, index) => {
-      dot.y = modulo(mosfet.dots[0].y - mosfet.originY + 60 + index * 20, 120) + mosfet.originY - 60
-    })
+    mosfet.dotPercentage = modulo(mosfet.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
   })
 
   draw()

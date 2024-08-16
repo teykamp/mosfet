@@ -1,15 +1,9 @@
 import { Ref } from 'vue'
+import { Matrix } from 'ts-matrix'
 
 export type Point = {
   x: number
   y: number
-}
-
-export type TransformParameters = {
-  rotation: number,
-  mirror: {x: boolean, y: boolean},
-  scale: {x: number, y: number},
-  translation: {x: number, y: number},
 }
 
 export enum Visibility {
@@ -38,15 +32,17 @@ export type Chart = {
 }
 
 export type AngleSlider = {
+  transformationMatrix: Matrix,
+  textTransformationMatrix: Matrix,
   dragging: boolean,
   preciseDragging: boolean,
   location: Point,
   radius: number,
   originalRadius: number,
-  center: Point,
-  startAngle: number,
+  // center: Point, // obsolete
+  // startAngle: number, // obsolete
   endAngle: number,
-  CCW: boolean,
+  // CCW: boolean, // obsolete
   displayText: string,
   displayTextLocation: RelativeDirection,
   minValue: number,
@@ -69,11 +65,13 @@ export type SchematicEffect = {
 }
 
 export type Mosfet = {
+  transformationMatrix: Matrix,
+  textTransformationMatrix: Matrix,
   mosfetType: 'nmos' | 'pmos',
-  originX: number,
-  originY: number,
-  mirror: boolean,
-  dots: Point[],
+  // originX: number, // obsolete
+  // originY: number, // obsolete
+  mirror: boolean, // obsolete
+  dotPercentage: number,
   gradientSize: number,
   schematicEffects: SchematicEffect[],
   vgs: AngleSlider,
@@ -88,8 +86,10 @@ export type Mosfet = {
 }
 
 export type VoltageSource = {
-  originX: number,
-  originY: number,
+  transformationMatrix: Matrix,
+  textTransformationMatrix: Matrix,
+  // originX: number, // obsolete
+  // originY: number, // obsolete
   voltageDrop: AngleSlider,
   vplus: Ref<Node>,
   vminus: Ref<Node>,
@@ -131,6 +131,8 @@ export type Node = {
 }
 
 export type Circuit = {
+  transformationMatrix: Matrix,
+  textTransformationMatrix: Matrix,
   schematic: Schematic, // how to draw the circuit
   // drawSchematic: () => void, // a function to draw the non-device parts of the circuit
   devices: {
