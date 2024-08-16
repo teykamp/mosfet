@@ -20,24 +20,24 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
     const bodyLines: Line[] = [
-        {start: {x: 0, y: 0.66}, end: {x: 0, y: 1.90}},
-        {start: {x: 0, y: 0.66}, end: {x: 0.86, y: 0.66}},
-        {start: {x: 0, y: -0.66}, end: {x: 0, y: -1.90}},
-        {start: {x: 0, y: -0.66}, end: {x: 0.86, y: -0.66}},
-        {start: {x: 0.86, y: -1.33}, end: {x: 0.86, y: 1.33}},
+        {start: {x: 0, y: 20}, end: {x: 0, y: 59}},
+        {start: {x: 0, y: 20}, end: {x: 26, y: 20}},
+        {start: {x: 0, y: -20}, end: {x: 0, y: -59}},
+        {start: {x: 0, y: -20}, end: {x: 26, y: -20}},
+        {start: {x: 26, y: -40}, end: {x: 26, y: 40}},
     ]
 
     const gateLines: Line[] = mosfet.mosfetType == 'nmos' ? [
-        {start: {x: 1.33, y: 1}, end: {x: 1.33, y: -1}},
-        {start: {x: 1.33, y: 0}, end: {x: 2.00, y: 0}},
+        {start: {x: 40, y: 30}, end: {x: 40, y: -30}},
+        {start: {x: 40, y: 0}, end: {x: 60, y: 0}},
     ] :
     [
-        {start: {x: 1.33, y: 1}, end: {x: 1.33, y: -1}},
-        {start: {x: 1.73, y: 0}, end: {x: 2.00, y: 0}},
+        {start: {x: 40, y: 30}, end: {x: 40, y: -30}},
+        {start: {x: 50, y: 0}, end: {x: 60, y: 0}},
     ]
 
     const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] :
-    [{center: {x: 1.53, y: 0}, outerDiameter: 0.4}]
+    [{center: {x: 45, y: 0}, outerDiameter: 10}]
 
     // 50 mA -> colorScale of 1
     // 5 mA -> colorScale of 1
@@ -65,8 +65,8 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     mosfet.schematicEffects[0].color = gateColor
 
     const dotPath: Line = {
-        start: {x: -0.5, y: -2},
-        end: {x: -0.5, y: 2},
+        start: {x: -15, y: -60},
+        end: {x: -15, y: 60},
     }
     const nDots = 6
     for (let n = 0; n < nDots; n++) {
@@ -74,7 +74,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         const dotPosition = getPointAlongLine(dotPath, thisDotPercentage)
         ctx.fillStyle = `rgba(0, 0, 255, ${(0.50 - Math.abs(thisDotPercentage - 0.50)) * 2})`
         ctx.beginPath()
-        ctx.arc(dotPosition.x, dotPosition.y, 0.1, 0, Math.PI * 2)
+        ctx.arc(dotPosition.x, dotPosition.y, 4, 0, Math.PI * 2)
         ctx.fill()
     }
 
@@ -89,7 +89,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
     ctx.fillStyle = 'black'
     ctx.font = "14px sans-serif";
-    const nextLineLocation = fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, {x: 20/30, y: -3/30}, currentMantissa, true, true, 14)
+    const nextLineLocation = fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, {x: 20, y: -3}, currentMantissa, true, true, 14)
     ctx.font = "14px sans-serif";
     fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, nextLineLocation, currentSuffix, true, true)
 
@@ -102,9 +102,9 @@ export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: 
     applyTransformationMatrix(ctx, voltageSource.transformationMatrix, true)
     const localLineThickness = getLocalLineThickness(voltageSource.transformationMatrix)
 
-    const radius = 1
-    const symbolSize = 0.5
-    const symbolHeight = 0.35
+    const radius = 30
+    const symbolSize = 15
+    const symbolHeight = 10
     ctx.strokeStyle = 'black'
     ctx.lineWidth = localLineThickness
     // circle
@@ -115,11 +115,11 @@ export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: 
     // top and bottom lines
     ctx.beginPath()
     ctx.moveTo(0, radius)
-    ctx.lineTo(0, 2)
+    ctx.lineTo(0, 60)
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(0, -radius)
-    ctx.lineTo(0, -2)
+    ctx.lineTo(0, -60)
     ctx.stroke()
     // plus
     ctx.lineWidth = localLineThickness * 0.8
@@ -267,9 +267,9 @@ export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickn
     ctx.lineWidth = lineThickness
     ctx.beginPath()
     ctx.moveTo(origin.x, origin.y)
-    ctx.lineTo(origin.x + 0.25, origin.y)
-    ctx.lineTo(origin.x, origin.y + 0.25)
-    ctx.lineTo(origin.x - 0.25, origin.y)
+    ctx.lineTo(origin.x + 0.4, origin.y)
+    ctx.lineTo(origin.x, origin.y + 0.4)
+    ctx.lineTo(origin.x - 0.4, origin.y)
     ctx.lineTo(origin.x, origin.y)
     ctx.stroke()
 }
@@ -278,7 +278,7 @@ export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickn
     ctx.strokeStyle = 'black'
     ctx.lineWidth = lineThickness
     ctx.beginPath()
-    ctx.moveTo(origin.x - 0.25, origin.y)
-    ctx.lineTo(origin.x + 0.25, origin.y)
+    ctx.moveTo(origin.x - 0.4, origin.y)
+    ctx.lineTo(origin.x + 0.4, origin.y)
     ctx.stroke()
 }

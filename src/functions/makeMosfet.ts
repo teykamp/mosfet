@@ -26,29 +26,21 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
 
 export const makeAngleSlider = (circuitTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
   return {
-    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [ // scale
       [1, 0, 0],
       [0, 1, 0],
       [0, 0, 1]
-    ])).multiply(new Matrix(3, 3, [
+    ])).multiply(new Matrix(3, 3, [ // shift
       [1, 0, centerX],
       [0, 1, centerY],
       [0, 0, 1]
-    ])).multiply(new Matrix(3, 3, [
-      [1/30, 0, 0],
-      [0, 1/30, 0],
-      [0,    0, 1]
-    ])).multiply(new Matrix(3, 3, [
+    ])).multiply(new Matrix(3, 3, [ // rotate
       [Math.cos(startAngle), -Math.sin(startAngle), 0],
       [Math.sin(startAngle),  Math.cos(startAngle), 0],
       [0                   , 0                    , 1]
-    ])).multiply(new Matrix(3, 3, [
+    ])).multiply(new Matrix(3, 3, [ // mirror
       [1, 0, 0],
       [0, (CCW ? -1 : 1), 0],
-      [0, 0, 1]
-    ])).multiply(new Matrix(3, 3, [
-      [1, 0, 0],
-      [0, 1, 0],
       [0, 0, 1]
     ])),
     textTransformationMatrix: circuitTransformationMatrix,
@@ -89,7 +81,7 @@ export const getSliderPercentValue = (slider: AngleSlider): number => {
 export const makeVoltageSource = (textTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
 
   const voltageSource = {
-    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[mirror ? -1 : 1, 0, origin.x], [0, 1, origin.y], [0, 0, 1]])),
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30 * (mirror ? -1 : 1), 0, origin.x], [0, 1/30, origin.y], [0, 0, 1]])),
     textTransformationMatrix: textTransformationMatrix,
     vplus: vplus,
     vminus: vminus,
@@ -104,7 +96,7 @@ export const makeVoltageSource = (textTransformationMatrix: Matrix, parentTransf
 
 export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
   const mosfet: Mosfet = {
-    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1 * (mirror ? -1 : 1), 0, originX], [0, 1, originY], [0, 0, 1]])),
+    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30 * (mirror ? -1 : 1), 0, originX], [0, 1/30, originY], [0, 0, 1]])),
     textTransformationMatrix: textTransformationMatrix,
     mosfetType: mosfetType,
     mirror: mirror,
@@ -145,12 +137,12 @@ export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformatio
   mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
 
   if (mosfet.mosfetType == 'nmos') {
-    mosfet.vgs = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 0.35, 0.35, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
-    mosfet.vds = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 1, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+    mosfet.vgs = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
+    mosfet.vds = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
   }
   else {
-    mosfet.vgs = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 0.35, -0.35, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
-    mosfet.vds = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 1, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
+    mosfet.vgs = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
+    mosfet.vds = makeAngleSlider(textTransformationMatrix, mosfet.transformationMatrix, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
   }
 
   return mosfet
