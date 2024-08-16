@@ -1,6 +1,6 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, transformPoint, fillTextGlobalReferenceFrame } from './drawFuncs'
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame } from './drawFuncs'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians, modulo } from './extraMath'
@@ -45,11 +45,11 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 50 uA -> colorScale of 0.6
     // 5 uA -> colorScale of 0.4
     // 500 nA -> colorScale of 0.2
-    // 50 nA -? colorScale of 0
-    // 5 nA -? colorScale of 0
-    // 500 pA -? colorScale of 0
-    // 50 pA -? colorScale of 0
-    // 5 pA -? colorScale of 0
+    // 50 nA -> colorScale of 0
+    // 5 nA -> colorScale of 0
+    // 500 pA -> colorScale of 0
+    // 50 pA -> colorScale of 0
+    // 5 pA -> colorScale of 0
     const forwardCurrentScaled = Math.max(Math.min(Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1, 1), 0)
     const gateColor = interpolateInferno(forwardCurrentScaled)
 
@@ -78,31 +78,22 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         ctx.fill()
     }
 
-    ctx.strokeStyle = 'black'
-    ctx.fillStyle = 'black'
-
+    // display current read-out, separating quantity and unit on separate lines
     const currentToDisplay = toSiPrefix(mosfet.current, "A")
     let currentMantissa = ""
     for (const char of currentToDisplay) {
         if ("-0123456789.".indexOf(char) > -1)
             currentMantissa += char
-      }
-      const currentSuffix = currentToDisplay.slice(currentMantissa.length)
+    }
+    const currentSuffix = currentToDisplay.slice(currentMantissa.length)
 
-      ctx.font = "14px sans-serif";
-      const nextLineLocation = fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, {x: 20/30, y: -3/30}, currentMantissa, true, true, 14)
-      ctx.font = "14px sans-serif";
+    ctx.fillStyle = 'black'
+    ctx.font = "14px sans-serif";
+    const nextLineLocation = fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, {x: 20/30, y: -3/30}, currentMantissa, true, true, 14)
+    ctx.font = "14px sans-serif";
     fillTextGlobalReferenceFrame(ctx, mosfet.textTransformationMatrix, mosfet.transformationMatrix, nextLineLocation, currentSuffix, true, true)
-    // if (mosfet.mirror) {
-    //     ctx.textAlign = 'left'
-    //     ctx.fillText(currentMantissa, -22, -3)
-    //     ctx.fillText(currentSuffix, -22, 12)
-    // } else {
-    //     ctx.textAlign = 'right'
-    //     ctx.fillText(currentMantissa, 22, -3)
-    //     ctx.fillText(currentSuffix, 22, 12)
-    // }
 
+    // draw mosfet angle sliders
     drawAngleSlider(ctx, mosfet.vgs)
     drawAngleSlider(ctx, mosfet.vds)
 }
@@ -220,16 +211,6 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
     const nextLineLocation = fillTextGlobalReferenceFrame(ctx, slider.textTransformationMatrix, slider.transformationMatrix, textLocation, slider.displayText, true, false, 18)
     ctx.font = '16px Arial'
     fillTextGlobalReferenceFrame(ctx, slider.textTransformationMatrix, slider.transformationMatrix, nextLineLocation, toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), true)
-
-    // applyTransformationMatrix(ctx, slider.textTransformationMatrix, true)
-    // const displayTextLocation = transformPoint(textLocation, slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix))
-    // const globalSliderLocation = transformPoint(slider.location, slider.textTransformationMatrix.inverse().multiply(slider.transformationMatrix))
-
-    // ctx.textAlign = displayTextLocation.x - globalSliderLocation.x > 0 ? 'left' : 'right'
-    // ctx.font = '18px Arial'
-    // ctx.fillText(slider.displayText, displayTextLocation.x, displayTextLocation.y - 0)
-    // ctx.font = '16px Arial'
-    // ctx.fillText(toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), displayTextLocation.x, displayTextLocation.y + 18)
 }
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
