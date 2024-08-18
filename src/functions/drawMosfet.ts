@@ -1,12 +1,11 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame } from './drawFuncs'
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame, getRelativeScaling, transformPoint } from './drawFuncs'
 import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
 import { toSiPrefix } from './toSiPrefix'
-import { toRadians, modulo } from './extraMath'
+import { between, toRadians, modulo } from './extraMath'
 import { Matrix } from 'ts-matrix'
 import { getPointAlongLine } from './makeMosfet'
-import { lineDrawRepetitions } from '../constants'
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
@@ -15,9 +14,9 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 100 % saturation -> 0 px
     // 50  % saturation -> 50 px
     // 0   % saturation -> 100 px
-    mosfet.gradientSize = 1.5 - mosfet.saturationLevel * 1.5
+    mosfet.gradientSize = 60 - mosfet.saturationLevel * 60
 
-    const gradientOrigin: Point = {x: 0, y: -2 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
+    const gradientOrigin: Point = {x: 0, y: -60 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
     const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
     const bodyLines: Line[] = [
@@ -51,7 +50,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     // 500 pA -> colorScale of 0
     // 50 pA -> colorScale of 0
     // 5 pA -> colorScale of 0
-    const forwardCurrentScaled = Math.max(Math.min(Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1, 1), 0)
+    const forwardCurrentScaled = between(0, 1, Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1)
     const gateColor = interpolateInferno(forwardCurrentScaled)
 
     ctx.beginPath()
@@ -60,9 +59,10 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     drawCirclesFillSolid(ctx, gateCircles, localLineThickness, gateColor)
     drawLinesFillWithGradient(ctx, bodyLines, localLineThickness, gradient)
 
-    mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize * 2
+    console.log(getRelativeScaling(mosfet.textTransformationMatrix, mosfet.transformationMatrix))
+    mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 30 * 3.5
     mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
-    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 2
+    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 3.5
     mosfet.schematicEffects[0].color = gateColor
 
     const dotPath: Line = {
@@ -224,10 +224,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     for (const mosfetId in circuit.devices.mosfets) {
         const mosfet = circuit.devices.mosfets[mosfetId]
         mosfet.schematicEffects.forEach((schematicEffect) => {
-            const gradientOrigin: Point = {
-                x: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(0, 0),
-                y: circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).multiply(new Matrix(3, 1, [[schematicEffect.origin.x], [schematicEffect.origin.y], [1]])).at(1, 0),
-            }
+            const gradientOrigin: Point = transformPoint(schematicEffect.origin, circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix))
             const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
             drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, localLineThickness, gradient)
         })

@@ -9,7 +9,16 @@ export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transfo
     } else {
       ctx.transform(   transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
     }
-  }
+}
+
+export const getRelativeScaling = (textTransformationMatrix: Matrix, transformationMatrix: Matrix): number => {
+    return Math.sqrt(Math.abs(textTransformationMatrix.determinant())) / Math.sqrt(Math.abs(transformationMatrix.determinant()))
+}
+
+export const getLocalLineThickness = (textTransformationMatrix: Matrix, transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
+    return lineThickness * getRelativeScaling(textTransformationMatrix, transformationMatrix)
+}
+
 
 export const transformPoint = (point: Point, transformationMatrix: Matrix): Point => {
     const transformedVector = transformationMatrix.multiply(new Matrix(3, 1, [[point.x], [point.y], [1]]))
@@ -23,6 +32,7 @@ export const fillTextGlobalReferenceFrame = (ctx: CanvasRenderingContext2D, text
     // switch to the global text reference frame
     applyTransformationMatrix(ctx, textTransformationMatrix)
 
+    // to determine the automatic text alignment, see if the text origin is to the left or right of the caller's origin
     if (autoTextAlign) {
         const globalOrigin = transformPoint({x: 0, y: 0}, localTransformationMatrix)
         const globalTextLocation = transformPoint(localTextLocation, localTransformationMatrix)
@@ -42,10 +52,6 @@ export const fillTextGlobalReferenceFrame = (ctx: CanvasRenderingContext2D, text
     // reset the local reference frame
     applyTransformationMatrix(ctx, localTransformationMatrix)
     return transformPoint({x: displayTextLocation.x, y: displayTextLocation.y + lineHeight}, localTransformationMatrix.inverse().multiply(textTransformationMatrix))
-}
-
-export const getLocalLineThickness = (textTransformationMatrix: Matrix, transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
-    return lineThickness * Math.sqrt(Math.abs(textTransformationMatrix.determinant())) / Math.sqrt(Math.abs(transformationMatrix.determinant()))
 }
 
 export const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5) => {
