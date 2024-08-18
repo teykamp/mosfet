@@ -1,23 +1,14 @@
 
 import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame, getRelativeScaling, transformPoint } from './drawFuncs'
-import { interpolateInferno } from 'd3' // https://stackoverflow.com/a/42505940
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame, transformPoint, getMovingDotPositions, drawCirclesFillWithGradient } from './drawFuncs'
 import { toSiPrefix } from './toSiPrefix'
-import { between, toRadians, modulo } from './extraMath'
+import { toRadians } from './extraMath'
 import { Matrix } from 'ts-matrix'
-import { getPointAlongLine } from './makeMosfet'
+import { getForwardCurrentScaled, getGradientSizeFromSaturationLevel, getGateColorFromForwardCurrent } from './nonLinearMappingFunctions'
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
     const localLineThickness = getLocalLineThickness(mosfet.textTransformationMatrix, mosfet.transformationMatrix)
-
-    // 100 % saturation -> 0 px
-    // 50  % saturation -> 50 px
-    // 0   % saturation -> 100 px
-    mosfet.gradientSize = 60 - mosfet.saturationLevel * 60
-
-    const gradientOrigin: Point = {x: 0, y: -60 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
-    const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
     const bodyLines: Line[] = [
         {start: {x: 0, y: 20}, end: {x: 0, y: 59}},
@@ -39,45 +30,37 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     const gateCircles: Circle[] = mosfet.mosfetType == 'nmos' ? [] :
     [{center: {x: 45, y: 0}, outerDiameter: 10}]
 
-    // 50 mA -> colorScale of 1
-    // 5 mA -> colorScale of 1
-    // 500 uA -> colorScale of 0.8
-    // 50 uA -> colorScale of 0.6
-    // 5 uA -> colorScale of 0.4
-    // 500 nA -> colorScale of 0.2
-    // 50 nA -> colorScale of 0
-    // 5 nA -> colorScale of 0
-    // 500 pA -> colorScale of 0
-    // 50 pA -> colorScale of 0
-    // 5 pA -> colorScale of 0
-    const forwardCurrentScaled = between(0, 1, Math.log10(mosfet.forwardCurrent / 5e-3) * 0.2 + 1)
-    const gateColor = interpolateInferno(forwardCurrentScaled)
+    mosfet.gradientSize = getGradientSizeFromSaturationLevel(mosfet)
+    const gradientOrigin: Point = {x: 0, y: -60 * (mosfet.mosfetType == 'nmos' ? 1 : -1)}
+    const gradient = makeStandardGradient(ctx, gradientOrigin, mosfet.gradientSize, 'rgba(200, 200, 200, 1')
 
-    ctx.beginPath()
+    const forwardCurrentScaled = getForwardCurrentScaled(mosfet)
+    const gateColor = getGateColorFromForwardCurrent(mosfet)
+
     drawLinesFillSolid(ctx, bodyLines, localLineThickness, 'black')
     drawLinesFillSolid(ctx, gateLines, localLineThickness, gateColor)
     drawCirclesFillSolid(ctx, gateCircles, localLineThickness, gateColor)
     drawLinesFillWithGradient(ctx, bodyLines, localLineThickness, gradient)
 
-    console.log(getRelativeScaling(mosfet.textTransformationMatrix, mosfet.transformationMatrix))
     mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 30 * 3.5
     mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
     mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 3.5
     mosfet.schematicEffects[0].color = gateColor
 
-    const dotPath: Line = {
+    const dotPath: Line[] = [{
         start: {x: -15, y: -60},
         end: {x: -15, y: 60},
-    }
-    const nDots = 6
-    for (let n = 0; n < nDots; n++) {
-        const thisDotPercentage = modulo(mosfet.dotPercentage + n / nDots, 1)
-        const dotPosition = getPointAlongLine(dotPath, thisDotPercentage)
-        ctx.fillStyle = `rgba(0, 0, 255, ${(0.50 - Math.abs(thisDotPercentage - 0.50)) * 2})`
-        ctx.beginPath()
-        ctx.arc(dotPosition.x, dotPosition.y, 4, 0, Math.PI * 2)
-        ctx.fill()
-    }
+    }]
+
+    const dotSize = 8
+    const dotSpacing = 20
+    const dots: Circle[] = getMovingDotPositions(dotPath, dotSpacing, mosfet.dotPercentage).map((dotPosition: Point) => {
+        return {center: dotPosition, outerDiameter: dotSize}
+    })
+    const currentGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 60)
+    currentGradient.addColorStop(0, 'rgba(0, 0, 255, 1)')
+    currentGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
+    drawCirclesFillWithGradient(ctx, dots, dotSize / 2, currentGradient)
 
     // display current read-out, separating quantity and unit on separate lines
     const currentToDisplay = toSiPrefix(mosfet.current, "A")

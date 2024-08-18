@@ -1,6 +1,6 @@
 
 import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, Line, VoltageSource, Circuit } from "../types"
-import { toRadians, between } from "./extraMath"
+import { toRadians } from "./extraMath"
 import { ekvNmos, ekvPmos, generateCurrent } from "./ekvModel"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { unit, type Unit } from "mathjs"
@@ -183,16 +183,4 @@ export const makeListOfSliders = (circuit: Circuit) => {
       const voltageSource = circuit.devices.voltageSources[voltageSourceId]
       circuit.allSliders.push(voltageSource.voltageDrop)
     }
-}
-
-export const getLineLength = (line: Line): number => {
-  return Math.sqrt((line.end.x - line.start.x) ** 2 + (line.end.y - line.start.y) ** 2)
-}
-
-export const getPointAlongLine = (line: Line, percentage: number): Point => {
-  percentage = between(0, 1, percentage)
-  return {
-    x: line.start.x + (line.end.x - line.start.x) * percentage,
-    y: line.start.y + (line.end.y - line.start.y) * percentage,
-  }
 }

@@ -30,6 +30,7 @@ import { circuits } from '../circuits/circuits'
 import { canvasSize, preciseSliderTickRange } from '../constants'
 import { drawMosfet, drawSchematic, drawVoltageSource } from '../functions/drawMosfet'
 import { Matrix } from 'ts-matrix'
+import { getDotSpeedFromCurrent } from '../functions/nonLinearMappingFunctions'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -267,30 +268,7 @@ const animate = (timestamp: number) => {
   incrementCircuit(circuit.value)
 
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-    // 10 mA -> speed of 3
-    // 1 mA -> speed of 2
-    // 100 uA -> speed of 1 // unityCurrent
-    // 10 uA -> speed of 1/4
-    // 1 uA -> speed of 1/9
-    // 100nA -> speed of 1/16
-    const unityCurrent = 1e-4 // Amps
-    const unitySpeed = 1 // (100 percent) / s
-    let dotSpeed = unitySpeed
-    if (mosfet.current <= 0) {
-      dotSpeed = 0
-    }
-    else if (mosfet.current > unityCurrent) {
-      dotSpeed = (Math.log10(mosfet.current / unityCurrent) + 1) ** 2 * unitySpeed
-    } else {
-      dotSpeed = 1 / (1 - Math.log10(mosfet.current / unityCurrent)) ** 2 * unitySpeed
-    }
-    if (dotSpeed > 5 * unitySpeed) {
-      dotSpeed = 5 * unitySpeed
-    }
-    else if (dotSpeed < 0.001 * unitySpeed) {
-      dotSpeed = 0.001 * unitySpeed
-    }
-
+    const dotSpeed = getDotSpeedFromCurrent(mosfet.current)
     mosfet.dotPercentage = modulo(mosfet.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
   })
 

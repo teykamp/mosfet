@@ -2,13 +2,60 @@ import { Point, Line, Circle } from '../types'
 import { canvasSize, lineDrawRepetitions } from '../constants'
 import { Matrix } from 'ts-matrix'
 import { GLOBAL_LINE_THICKNESS } from '../constants'
+import { between } from './extraMath'
 
-export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
-    if (resetFirst) {
-      ctx.setTransform(transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
-    } else {
-      ctx.transform(   transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
+export const getLineLength = (line: Line): number => {
+    return Math.sqrt((line.end.x - line.start.x) ** 2 + (line.end.y - line.start.y) ** 2)
+}
+
+export const getPathLength = (pathLines: Line[]): number => {
+    let pathLength = 0
+    pathLines.forEach((line: Line) => {
+        pathLength += getLineLength(line)
+    })
+    return pathLength
+}
+
+export const getPointAlongLine = (line: Line, percentage: number): Point => {
+    percentage = between(0, 1, percentage)
+    return {
+        x: line.start.x + (line.end.x - line.start.x) * percentage,
+        y: line.start.y + (line.end.y - line.start.y) * percentage,
     }
+}
+
+export const getPointAlongPath = (pathLines: Line[], percentage: number): Point => {
+    const pathLength = getPathLength(pathLines)
+    const distanceToTravel = percentage * pathLength
+
+    let distanceTravelled = 0
+    // count the cumulative line lengths until you reach the desired distance to travel along the path
+    for (let line of pathLines) {
+        const thisLineLength = getLineLength(line)
+        distanceTravelled += thisLineLength
+        if (distanceTravelled >= distanceToTravel) {
+            const distanceTravelledBeforeThisLine = distanceTravelled - thisLineLength
+            const distanceToTravelAlongThisLine = distanceToTravel - distanceTravelledBeforeThisLine
+            const percentageToTravelAlongThisLine = distanceToTravelAlongThisLine / thisLineLength
+            return getPointAlongLine(line, percentageToTravelAlongThisLine)
+        }
+    }
+    // this should never be triggered
+    console.log("Error finding point along path")
+    return {x: 0, y: 0}
+}
+
+export const getMovingDotPositions = (pathLines: Line[], spacingBetweenDots: number, percentageOffset: number): Point[] => {
+    const pathLength = getPathLength(pathLines)
+
+    const dotPositions: Point[] = []
+    const nDots = Math.floor(pathLength / spacingBetweenDots)
+    for (let n = 0; n < nDots; n++) {
+        const thisDotPercentage = (n + percentageOffset) / nDots
+        const dotPosition = getPointAlongPath(pathLines, thisDotPercentage)
+        dotPositions.push(dotPosition)
+    }
+    return dotPositions
 }
 
 export const getRelativeScaling = (textTransformationMatrix: Matrix, transformationMatrix: Matrix): number => {
@@ -19,12 +66,19 @@ export const getLocalLineThickness = (textTransformationMatrix: Matrix, transfor
     return lineThickness * getRelativeScaling(textTransformationMatrix, transformationMatrix)
 }
 
-
 export const transformPoint = (point: Point, transformationMatrix: Matrix): Point => {
     const transformedVector = transformationMatrix.multiply(new Matrix(3, 1, [[point.x], [point.y], [1]]))
     return {
         x: transformedVector.at(0, 0),
         y: transformedVector.at(1, 0),
+    }
+}
+
+export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
+    if (resetFirst) {
+      ctx.setTransform(transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
+    } else {
+      ctx.transform(   transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
     }
 }
 
