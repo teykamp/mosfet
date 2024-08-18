@@ -44,8 +44,8 @@ export const fillTextGlobalReferenceFrame = (ctx: CanvasRenderingContext2D, text
     return transformPoint({x: displayTextLocation.x, y: displayTextLocation.y + lineHeight}, localTransformationMatrix.inverse().multiply(textTransformationMatrix))
 }
 
-export const getLocalLineThickness = (transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
-    return lineThickness / Math.sqrt(Math.abs(transformationMatrix.determinant()))
+export const getLocalLineThickness = (textTransformationMatrix: Matrix, transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
+    return lineThickness * Math.sqrt(Math.abs(textTransformationMatrix.determinant())) / Math.sqrt(Math.abs(transformationMatrix.determinant()))
 }
 
 export const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5) => {

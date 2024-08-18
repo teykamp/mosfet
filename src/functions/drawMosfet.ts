@@ -9,7 +9,7 @@ import { getPointAlongLine } from './makeMosfet'
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
-    const localLineThickness = getLocalLineThickness(mosfet.transformationMatrix)
+    const localLineThickness = getLocalLineThickness(mosfet.textTransformationMatrix, mosfet.transformationMatrix)
 
     // 100 % saturation -> 0 px
     // 50  % saturation -> 50 px
@@ -100,7 +100,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
 
 export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: VoltageSource) => {
     applyTransformationMatrix(ctx, voltageSource.transformationMatrix, true)
-    const localLineThickness = getLocalLineThickness(voltageSource.transformationMatrix)
+    const localLineThickness = getLocalLineThickness(voltageSource.textTransformationMatrix, voltageSource.transformationMatrix)
 
     const radius = 30
     const symbolSize = 15
@@ -144,7 +144,7 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
         return
     }
     applyTransformationMatrix(ctx, slider.transformationMatrix, true)
-    const localLineThickness = getLocalLineThickness(slider.transformationMatrix)
+    const localLineThickness = getLocalLineThickness(slider.textTransformationMatrix, slider.transformationMatrix)
 
     // draw slider path
     ctx.strokeStyle = slider.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
@@ -215,7 +215,7 @@ export const drawAngleSlider = (ctx: CanvasRenderingContext2D, slider: AngleSlid
 
 export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
     applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
-    const localLineThickness = getLocalLineThickness(circuit.transformationMatrix)
+    const localLineThickness = getLocalLineThickness(circuit.textTransformationMatrix, circuit.transformationMatrix)
 
     // draw vdd and gnd symbols
     circuit.schematic.gndLocations.forEach((gndLocation) => {
