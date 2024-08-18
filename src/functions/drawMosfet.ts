@@ -6,6 +6,7 @@ import { toSiPrefix } from './toSiPrefix'
 import { toRadians, modulo } from './extraMath'
 import { Matrix } from 'ts-matrix'
 import { getPointAlongLine } from './makeMosfet'
+import { lineDrawRepetitions } from '../constants'
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
@@ -103,39 +104,27 @@ export const drawVoltageSource = (ctx: CanvasRenderingContext2D, voltageSource: 
     const localLineThickness = getLocalLineThickness(voltageSource.textTransformationMatrix, voltageSource.transformationMatrix)
 
     const radius = 30
-    const symbolSize = 15
+    const symbolSize = 11
     const symbolHeight = 10
     ctx.strokeStyle = 'black'
     ctx.lineWidth = localLineThickness
-    // circle
-    ctx.beginPath()
-    ctx.moveTo(radius, 0)
-    ctx.arc(0, 0, radius, 0, 2 * Math.PI)
-    ctx.stroke()
-    // top and bottom lines
-    ctx.beginPath()
-    ctx.moveTo(0, radius)
-    ctx.lineTo(0, 60)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(0, -radius)
-    ctx.lineTo(0, -60)
-    ctx.stroke()
-    // plus
-    ctx.lineWidth = localLineThickness * 0.8
-    ctx.beginPath()
-    ctx.moveTo(symbolSize / 2, -symbolHeight)
-    ctx.lineTo(-symbolSize / 2, -symbolHeight)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(0, -symbolHeight - symbolSize / 2)
-    ctx.lineTo(0, -symbolHeight + symbolSize / 2)
-    ctx.stroke()
-    // minus
-    ctx.beginPath()
-    ctx.moveTo(symbolSize / 2, symbolHeight)
-    ctx.lineTo(-symbolSize / 2, symbolHeight)
-    ctx.stroke()
+
+    const majorLines: Line[] = [
+        {start: {x: 0, y: radius}, end: {x: 0, y: 60}},
+        {start: {x: 0, y: -radius}, end: {x: 0, y: -60}},
+    ]
+    const minorLines: Line[] = [
+        {start: {x: symbolSize / 2, y: -symbolHeight}, end: {x: -symbolSize / 2, y: -symbolHeight}},
+        {start: {x: 0, y: -symbolHeight - symbolSize / 2}, end: {x: 0, y: -symbolHeight + symbolSize / 2}},
+        {start: {x: symbolSize / 2, y: symbolHeight}, end: {x: -symbolSize / 2, y: symbolHeight}},
+    ]
+    const circles: Circle[] = [
+        {center: {x: 0, y: 0}, outerDiameter: 2 * radius},
+    ]
+    drawLinesFillSolid(ctx, majorLines, localLineThickness, 'black')
+    drawLinesFillSolid(ctx, minorLines, localLineThickness * 0.8, 'black')
+    drawCirclesFillSolid(ctx, circles, localLineThickness, 'black')
+
     drawAngleSlider(ctx, voltageSource.voltageDrop)
 }
 

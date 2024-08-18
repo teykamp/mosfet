@@ -1,12 +1,12 @@
 import { makeListOfSliders, makeMosfet, makeNode, makeVoltageSource } from '../functions/makeMosfet'
 import { Circuit, Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
-import { schematicOrigin, schematicScale } from '../constants'
+import { schematicScale } from '../constants'
 import { Matrix } from 'ts-matrix'
 
 const useNmos9TransistorOpAmp = () => {
     const circuit: Circuit = {
-        transformationMatrix: new Matrix(3, 3, [[schematicScale / 2, 0, 200], [0, schematicScale / 2, 300], [0, 0, 1]]),
+        transformationMatrix: new Matrix(3, 3, [[schematicScale * 0.6, 0, 200], [0, schematicScale * 0.6, 300], [0, 0, 1]]),
         textTransformationMatrix: new Matrix(3, 3), // to be updated immediately
         schematic: {
             vddLocations: [{x: -4, y: -15}, {x: 4, y: -10}, {x: 16, y: -10}, {x: 24, y: -15}],
