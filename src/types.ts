@@ -19,7 +19,6 @@ export enum RelativeDirection {
   Down,
 }
 
-
 export type Chart = {
   points: Point[]
   xAxisLabel: string
@@ -73,7 +72,7 @@ export type Mosfet = {
   mirror: boolean, // obsolete
   dotPercentage: number,
   gradientSize: number,
-  schematicEffects: SchematicEffect[],
+  schematicEffects: {[name: string]: SchematicEffect},
   vgs: AngleSlider,
   vds: AngleSlider,
   Vg: Ref<Node>,
@@ -93,7 +92,7 @@ export type VoltageSource = {
   voltageDrop: AngleSlider,
   vplus: Ref<Node>,
   vminus: Ref<Node>,
-  schematicEffects: SchematicEffect[],
+  schematicEffects: {[name: string]: SchematicEffect},
   current: number, // in Amps
   fixedAt: 'gnd' | 'vdd',
 }

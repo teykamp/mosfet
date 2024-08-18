@@ -42,10 +42,10 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     drawCirclesFillSolid(ctx, gateCircles, localLineThickness, gateColor)
     drawLinesFillWithGradient(ctx, bodyLines, localLineThickness, gradient)
 
-    mosfet.schematicEffects[1].gradientSize = mosfet.gradientSize / 30 * 3.5
-    mosfet.schematicEffects[1].color = 'rgba(200, 200, 200, 1)'
-    mosfet.schematicEffects[0].gradientSize = forwardCurrentScaled * 3.5
-    mosfet.schematicEffects[0].color = gateColor
+    mosfet.schematicEffects["saturation"].gradientSize = mosfet.gradientSize / 30 * 3.5
+    mosfet.schematicEffects["saturation"].color = 'rgba(200, 200, 200, 1)'
+    mosfet.schematicEffects["gate"].gradientSize = forwardCurrentScaled * 3.5
+    mosfet.schematicEffects["gate"].color = gateColor
 
     const dotPath: Line[] = [{
         start: {x: -15, y: -60},
@@ -203,14 +203,18 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
         drawLinesFillSolid(ctx, node.lines, localLineThickness, 'black')
     }
 
+    // Go through each key of the indexed object:
+
     // add gradient regions from each of the mosfets
     for (const mosfetId in circuit.devices.mosfets) {
         const mosfet = circuit.devices.mosfets[mosfetId]
-        mosfet.schematicEffects.forEach((schematicEffect) => {
+        for (const schematicEffectName in mosfet.schematicEffects)
+            {
+            const schematicEffect = mosfet.schematicEffects[schematicEffectName];
             const gradientOrigin: Point = transformPoint(schematicEffect.origin, circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix))
             const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
             drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, localLineThickness, gradient)
-        })
+        }
     }
 
     // draw node voltage labels

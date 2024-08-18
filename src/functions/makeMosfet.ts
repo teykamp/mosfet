@@ -87,7 +87,7 @@ export const makeVoltageSource = (textTransformationMatrix: Matrix, parentTransf
     vminus: vminus,
     fixedAt: fixedAt,
     voltageDrop: makeAngleSlider(new Matrix(3, 3), new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 0, '', Visibility.Hidden), // to be updated immediately
-    schematicEffects: [],
+    schematicEffects: {},
     current: 0 // Amps
   }
   voltageSource.voltageDrop = makeAngleSlider(textTransformationMatrix, voltageSource.transformationMatrix, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
@@ -101,8 +101,8 @@ export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformatio
     mosfetType: mosfetType,
     mirror: mirror,
     gradientSize: 100,
-    schematicEffects: [
-      {
+    schematicEffects: {
+      "gate": {
         node: Vg,
         origin: {
           x: 30,
@@ -111,7 +111,7 @@ export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformatio
         color: 'red',
         gradientSize: 2,
       },
-      {
+      "saturation": {
         node: Vd,
         origin: {
           x: 0,
@@ -120,7 +120,7 @@ export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformatio
         color: 'red',
         gradientSize: 100,
       },
-    ],
+    },
     dotPercentage: 0,
     vgs: makeAngleSlider(new Matrix(3, 3), new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 1, '', Visibility.Hidden), // to be updated immediately
     vds: makeAngleSlider(new Matrix(3, 3), new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 1, '', Visibility.Hidden), // to be updated immediately
