@@ -30,14 +30,18 @@
   </div>
 </template>
 
-<script setup lang='ts' generic="T extends string">
+<script setup lang='ts' generic="T">
 // need more type safety here with the labels being part of the T union if modelValue is not a boolean
-const props = defineProps<{ 
-  labelUp: string,
-  labelDown: string,
+type UnionType = T extends string ? T : never
+
+type Props<T> = {
+  labelUp: T extends UnionType ? T : never,
+  labelDown: T extends UnionType ? T : never,
   option: string,
-  modelValue: boolean | T,
-}>()
+  modelValue: boolean | T
+}
+
+const props = defineProps<Props<T>>()
 
 const isBoolean = typeof props.modelValue === 'boolean'
 
