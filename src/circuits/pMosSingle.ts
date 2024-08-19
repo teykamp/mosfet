@@ -12,6 +12,7 @@ const usePmosSingle = () => {
             // wires: [],
             vddLocations: [{x: 0, y: -2}],
             gndLocations: [],
+            parasiticCapacitors: [],
         },
         devices: {
             mosfets: {},

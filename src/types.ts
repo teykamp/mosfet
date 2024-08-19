@@ -115,6 +115,17 @@ export type Circle = {
 export type Schematic = {
   vddLocations: Point[], // a list of locations to draw vdd symbols
   gndLocations: Point[], // a list of locations to draw gnd symbols
+  parasiticCapacitors: ParasiticCapacitor[],
+}
+
+export type ParasiticCapacitor = {
+  transformationMatrix: Matrix,
+  textTransformationMatrix: Matrix,
+  circuitTransformationMatrix: Matrix,
+  node: Ref<Node>,
+  extraNodeLines: Line[],
+  currentPath: Line[],
+  dotPercentage: number,
 }
 
 export type Node = {

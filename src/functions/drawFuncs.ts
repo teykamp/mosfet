@@ -74,6 +74,17 @@ export const transformPoint = (point: Point, transformationMatrix: Matrix): Poin
     }
 }
 
+export const transformLine = (line: Line, transformationMatrix: Matrix): Line => {
+    return {
+        start: transformPoint(line.start, transformationMatrix),
+        end:   transformPoint(line.end,   transformationMatrix),
+    }
+}
+
+export const transformPath = (pathLines: Line[], transformationMatrix: Matrix): Line[] => {
+    return pathLines.map((line: Line) => transformLine(line, transformationMatrix))
+}
+
 export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
     if (resetFirst) {
       ctx.setTransform(transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))

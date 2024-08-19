@@ -11,6 +11,7 @@ const useNmos9TransistorOpAmp = () => {
         schematic: {
             vddLocations: [{x: -4, y: -15}, {x: 4, y: -10}, {x: 16, y: -10}, {x: 24, y: -15}],
             gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}, {x: 24, y: 9}, {x: 16, y: 9}],
+            parasiticCapacitors: [], // to be updated immediately
         },
         devices: {
             mosfets: {},

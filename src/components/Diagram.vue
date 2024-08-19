@@ -271,6 +271,11 @@ const animate = (timestamp: number) => {
     const dotSpeed = getDotSpeedFromCurrent(mosfet.current)
     mosfet.dotPercentage = modulo(mosfet.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
   })
+  Object.values(circuit.value.schematic.parasiticCapacitors).forEach(capacitor => {
+    const dotSpeed = getDotSpeedFromCurrent(capacitor.node.value.netCurrent)
+    capacitor.dotPercentage = modulo(capacitor.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
+  })
+
 
   draw()
   requestAnimationFrame(animate)

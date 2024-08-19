@@ -42,11 +42,16 @@ export const getDotSpeedFromCurrent = (current: number): number => {
     const unityCurrent = 1e-4 // Amps
     const unitySpeed = 1 // (100 percent) / s
     let dotSpeed = unitySpeed
+    let negativeCurrent = false
 
-    if (current <= 0) {
-      dotSpeed = 0
+    if (current == 0) {
+        return 0
     }
-    else if (current > unityCurrent) {
+    if (current < 0) {
+      current = Math.abs(current)
+      negativeCurrent = true
+    }
+    if (current > unityCurrent) {
       dotSpeed = (Math.log10(current / unityCurrent) + 1) ** 2 * unitySpeed
     } else {
       dotSpeed = 1 / (1 - Math.log10(current / unityCurrent)) ** 2 * unitySpeed
@@ -58,5 +63,5 @@ export const getDotSpeedFromCurrent = (current: number): number => {
       dotSpeed = 0.001 * unitySpeed
     }
 
-    return dotSpeed
+    return negativeCurrent ? -dotSpeed : dotSpeed
 }

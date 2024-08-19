@@ -12,6 +12,7 @@ const useNmosSingle = () => {
             // wires: [],
             vddLocations: [],
             gndLocations: [{x: 0, y: 2}],
+            parasiticCapacitors: [],
         },
         devices: {
             mosfets: {},

@@ -1,4 +1,4 @@
-import { makeListOfSliders, makeMosfet, makeNode, makeVoltageSource } from '../functions/makeMosfet'
+import { makeListOfSliders, makeMosfet, makeNode, makeParasiticCapacitor, makeVoltageSource } from '../functions/makeMosfet'
 import { Circuit, Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { schematicOrigin, schematicScale } from '../constants'
@@ -11,6 +11,7 @@ const useNmos5TransistorOpAmp = () => {
         schematic: {
             vddLocations: [{x: -4, y: -12}, {x: 4, y: -12}],
             gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
+            parasiticCapacitors: [],
         },
         devices: {
             mosfets: {},
@@ -190,6 +191,16 @@ const useNmos5TransistorOpAmp = () => {
             'gnd'
         ),
     }
+    circuit.schematic.parasiticCapacitors = [
+        makeParasiticCapacitor(
+            circuit.textTransformationMatrix,
+            circuit.transformationMatrix,
+            circuit.nodes["Vout"],
+            {x: 6, y: -4},
+            [
+                {start: {x: 6, y: -5}, end: {x: 6, y: -4}},
+            ],
+        )]
     makeListOfSliders(circuit)
     return circuit
 }

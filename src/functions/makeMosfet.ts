@@ -1,5 +1,5 @@
 
-import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, Line, VoltageSource, Circuit } from "../types"
+import { Point, RelativeDirection, Visibility, Mosfet, AngleSlider, Node, Queue, Line, VoltageSource, Circuit, ParasiticCapacitor } from "../types"
 import { toRadians } from "./extraMath"
 import { ekvNmos, ekvPmos, generateCurrent } from "./ekvModel"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
@@ -22,6 +22,19 @@ export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: 
     voltageDisplayLabel: voltageDisplayLabel,
     voltageDisplayLocations: voltageDisplayLocations
   })
+}
+
+export const makeParasiticCapacitor = (textTransformationMatrix: Matrix, parentTrnasformationMatrix: Matrix, node: Ref<Node>, center: Point, extraNodeLines: Line[], currentPath: Line[] = extraNodeLines): ParasiticCapacitor => {
+  const parasiticCapacitor = {
+    transformationMatrix: parentTrnasformationMatrix.multiply(new Matrix(3, 3, [[1/30, 0, center.x], [0, 1/30, center.y], [0, 0, 1]])),
+    textTransformationMatrix: textTransformationMatrix,
+    circuitTransformationMatrix: parentTrnasformationMatrix,
+    node: node,
+    extraNodeLines: extraNodeLines,
+    currentPath: currentPath,
+    dotPercentage: 0,
+  }
+  return parasiticCapacitor
 }
 
 export const makeAngleSlider = (circuitTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {

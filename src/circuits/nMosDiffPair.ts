@@ -11,6 +11,7 @@ const useNmosDiffPair = () => {
         schematic: {
             vddLocations: [{x: -4, y: -3}, {x: 4, y: -3}],
             gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
+            parasiticCapacitors: [],
         },
         devices: {
             mosfets: {},

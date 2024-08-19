@@ -1,10 +1,20 @@
 
-import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle } from '../types'
-import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame, transformPoint, getMovingDotPositions, drawCirclesFillWithGradient } from './drawFuncs'
+import { Point, Mosfet, Visibility, AngleSlider, Circuit, VoltageSource, Line, Circle, ParasiticCapacitor } from '../types'
+import { drawLinesFillSolid, drawLinesFillWithGradient, drawCirclesFillSolid, makeStandardGradient, applyTransformationMatrix, getLocalLineThickness, fillTextGlobalReferenceFrame, transformPoint, getMovingDotPositions, drawCirclesFillWithGradient, transformPath } from './drawFuncs'
 import { toSiPrefix } from './toSiPrefix'
 import { toRadians } from './extraMath'
 import { Matrix } from 'ts-matrix'
 import { getForwardCurrentScaled, getGradientSizeFromSaturationLevel, getGateColorFromForwardCurrent } from './nonLinearMappingFunctions'
+
+const drawCurrentDots = (ctx: CanvasRenderingContext2D, dotPath: Line[], currentPercentage: number, dotSize: number = 8, dotSpacing: number = 20, gradientSize: number = 60) => {
+    const dots: Circle[] = getMovingDotPositions(dotPath, dotSpacing, currentPercentage).map((dotPosition: Point) => {
+        return {center: dotPosition, outerDiameter: dotSize}
+    })
+    const currentGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, gradientSize)
+    currentGradient.addColorStop(0, 'rgba(0, 0, 255, 1)')
+    currentGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
+    drawCirclesFillWithGradient(ctx, dots, dotSize / 2, currentGradient)
+}
 
 export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
     applyTransformationMatrix(ctx, mosfet.transformationMatrix, true)
@@ -51,16 +61,7 @@ export const drawMosfet = (ctx: CanvasRenderingContext2D, mosfet: Mosfet) => {
         start: {x: -15, y: -60},
         end: {x: -15, y: 60},
     }]
-
-    const dotSize = 8
-    const dotSpacing = 20
-    const dots: Circle[] = getMovingDotPositions(dotPath, dotSpacing, mosfet.dotPercentage).map((dotPosition: Point) => {
-        return {center: dotPosition, outerDiameter: dotSize}
-    })
-    const currentGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 60)
-    currentGradient.addColorStop(0, 'rgba(0, 0, 255, 1)')
-    currentGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
-    drawCirclesFillWithGradient(ctx, dots, dotSize / 2, currentGradient)
+    drawCurrentDots(ctx, dotPath, mosfet.dotPercentage, 8, 20, 60)
 
     // display current read-out, separating quantity and unit on separate lines
     const currentToDisplay = toSiPrefix(mosfet.current, "A")
@@ -191,11 +192,15 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
 
     // draw vdd and gnd symbols
     circuit.schematic.gndLocations.forEach((gndLocation) => {
-        drawGnd(ctx, gndLocation, localLineThickness)
+        drawGnd(ctx, gndLocation, localLineThickness, 0.8)
     })
     circuit.schematic.vddLocations.forEach((vddLocation) => {
-        drawVdd(ctx, vddLocation, localLineThickness)
+        drawVdd(ctx, vddLocation, localLineThickness, 0.8)
     })
+    circuit.schematic.parasiticCapacitors.forEach((capacitor) => {
+        drawParasiticCapacitor(ctx, capacitor)
+    })
+    applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
 
     // draw all the lines in black
     for (const nodeId in circuit.nodes) {
@@ -223,11 +228,7 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
         node.voltageDisplayLocations.forEach((labelLocation: Point) => {
             applyTransformationMatrix(ctx, circuit.textTransformationMatrix, true)
 
-            const displayTextLocationVector = circuit.textTransformationMatrix.inverse().multiply(circuit.transformationMatrix.multiply(new Matrix(3, 1, [[labelLocation.x], [labelLocation.y], [1]])))
-            const displayTextLocation: Point = {
-                x: displayTextLocationVector.at(0, 0),
-                y: displayTextLocationVector.at(1, 0),
-            }
+            const displayTextLocation = transformPoint(labelLocation, circuit.textTransformationMatrix.inverse().multiply(circuit.transformationMatrix))
             ctx.fillStyle = 'black'
             ctx.font = '18px sans-serif'
             ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), displayTextLocation.x, displayTextLocation.y)
@@ -235,23 +236,51 @@ export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) =
     }
 }
 
-export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number) => {
+export const drawParasiticCapacitor = (ctx: CanvasRenderingContext2D, capacitor: ParasiticCapacitor, displayCurrent: boolean = false) => {
+    const localLineThickness = getLocalLineThickness(capacitor.textTransformationMatrix, capacitor.transformationMatrix)
+
+    const localTransformationMatrix = capacitor.transformationMatrix.multiply(new Matrix(3, 3, [[0.5, 0, 0], [0, 0.5, 0], [0, 0, 1]]))
+    applyTransformationMatrix(ctx, localTransformationMatrix, true)
+
+    const airGapSize = 7
+    const capacitorLines: Line[] = [
+        {start: {x: 0, y: 50}, end: {x: 0, y: airGapSize}},
+        {start: {x: -30, y: airGapSize}, end: {x: 30, y: airGapSize}},
+        {start: {x: -30, y: -airGapSize}, end: {x: 30, y: -airGapSize}},
+        {start: {x: 0, y: -60}, end: {x: 0, y: -airGapSize}},
+    ]
+    const extraNodeLines = transformPath(capacitor.extraNodeLines, localTransformationMatrix.inverse().multiply(capacitor.circuitTransformationMatrix))
+
+    drawLinesFillSolid(ctx, capacitorLines, localLineThickness, 'black')
+    drawLinesFillSolid(ctx, extraNodeLines, localLineThickness, 'black')
+    ctx.clearRect(-30 - localLineThickness, -airGapSize + localLineThickness / 2, 60 + 2 * localLineThickness, 2 * airGapSize - 2 * localLineThickness / 2)
+    drawGnd(ctx, {x: 0, y: 50}, localLineThickness, 30)
+    drawCurrentDots(ctx, [{start: {x: 10, y: -60}, end: {x: 10, y: 60}}], capacitor.dotPercentage, 8, 20, 60)
+
+    if (displayCurrent) {
+        ctx.fillStyle = 'black'
+        ctx.font = '14px sans-serif'
+        fillTextGlobalReferenceFrame(ctx, capacitor.textTransformationMatrix, localTransformationMatrix, {x: 40, y: 0}, toSiPrefix(capacitor.node.value.netCurrent, 'A'))
+    }
+}
+
+export const drawGnd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number, symbolSize: number) => {
     ctx.strokeStyle = 'black'
     ctx.lineWidth = lineThickness
     ctx.beginPath()
     ctx.moveTo(origin.x, origin.y)
-    ctx.lineTo(origin.x + 0.4, origin.y)
-    ctx.lineTo(origin.x, origin.y + 0.4)
-    ctx.lineTo(origin.x - 0.4, origin.y)
+    ctx.lineTo(origin.x + symbolSize / 2, origin.y)
+    ctx.lineTo(origin.x, origin.y + symbolSize / 2)
+    ctx.lineTo(origin.x - symbolSize / 2, origin.y)
     ctx.lineTo(origin.x, origin.y)
     ctx.stroke()
 }
 
-export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number) => {
+export const drawVdd = (ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number, symbolSize: number) => {
     ctx.strokeStyle = 'black'
     ctx.lineWidth = lineThickness
     ctx.beginPath()
-    ctx.moveTo(origin.x - 0.4, origin.y)
-    ctx.lineTo(origin.x + 0.4, origin.y)
+    ctx.moveTo(origin.x - symbolSize / 2, origin.y)
+    ctx.lineTo(origin.x + symbolSize / 2, origin.y)
     ctx.stroke()
 }
