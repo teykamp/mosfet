@@ -1,24 +1,62 @@
 <template>
   <div>
     <Diagram />
-    <Switch v-model="test2" :label-up="'on'" :label-down="'off'" :option="'test option'" />
-    {{test2}}
+    <Tutorial :data="tutorialData[tutorialStep]" :setTutorialStep="setTutorialStep" />
   </div>
 </template>
 
 <script setup lang="ts">
 import Diagram from './components/Diagram.vue'
-import Switch from './components/Switch.vue'
-
+import Tutorial from './components/Tutorial.vue'
 import { ref } from 'vue'
 
-const test = ref(true)
-const test2 = ref<'on' | 'off'>('on')
+const tutorialData = [
+  {
+    title: '',
+    text: ''
+  },
+  {
+    title: 'Welcome to Mosfets',
+    text: 'This will show you around the program.'
+  },
+  {
+    title: 'Side Bar',
+    text: 'These buttons allow you to switch circuits.',
+    location: {
+      x: 'left: 300px;',
+      y: 'top: 90px;'
+    }
+  },
+  {
+    title: 'Circuits',
+    text: 'Highlighted sliders allow you to manipulate the voltages on each voltage source. Move one to see how they work.',
+    location: {
+      x: 'right: 45vw;',
+      y: 'top: 200px;'
+    }
+  },
+  {
+    title: 'Current',
+    text: 'Blue dots move relative to the current flowing through the mosfet. Move the orange voltage sliders to see it change.',
+    location: {
+      x: 'right: 45vw;',
+      y: 'top: 200px;'
+    }
+  },
+]
+const tutorialStep = ref(1)
+
+const setTutorialStep = (skip: boolean = false) => {
+  if (skip) tutorialStep.value = tutorialData.length
+  else tutorialStep.value++
+  if (tutorialStep.value > tutorialData.length - 1) tutorialStep.value = 0
+}
+
 
 document.body.onmousedown = function(e) {
-    if(e.button == 1) {
-        e.preventDefault();
-        return false;
-    }
+  if(e.button == 1) {
+    e.preventDefault()
+    return false
+  }
 }
 </script>
