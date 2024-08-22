@@ -2,6 +2,10 @@
   <div>
     <Diagram />
     <Tutorial v-if="firstTimeLoad" :data="tutorialData[tutorialStep]" :setTutorialStep="setTutorialStep" />
+    <button
+      @click="resetTutorial"
+      style="position: absolute; bottom: 5px; left: 5px;"
+    >?</button>
   </div>
 </template>
 
@@ -63,7 +67,12 @@ const isFirstTimeLoad = (): boolean => {
   return firstTime
 }
 
-const firstTimeLoad = isFirstTimeLoad()
+const firstTimeLoad = ref(isFirstTimeLoad())
+
+const resetTutorial = () => { 
+  firstTimeLoad.value = true
+  tutorialStep.value = 1 
+}
 
 document.body.onmousedown = function(e) {
   if(e.button == 1) {
