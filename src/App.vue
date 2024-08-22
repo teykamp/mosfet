@@ -1,7 +1,7 @@
 <template>
   <div>
     <Diagram />
-    <Tutorial :data="tutorialData[tutorialStep]" :setTutorialStep="setTutorialStep" />
+    <Tutorial v-if="firstTimeLoad" :data="tutorialData[tutorialStep]" :setTutorialStep="setTutorialStep" />
   </div>
 </template>
 
@@ -52,6 +52,18 @@ const setTutorialStep = (skip: boolean = false) => {
   if (tutorialStep.value > tutorialData.length - 1) tutorialStep.value = 0
 }
 
+const isFirstTimeLoad = (): boolean => {
+  const localStorageKey = 'firstTimeLoad'
+  const firstTime = localStorage.getItem(localStorageKey) === null
+
+  if (firstTime) {
+    localStorage.setItem(localStorageKey, 'false')
+  }
+
+  return firstTime
+}
+
+const firstTimeLoad = isFirstTimeLoad()
 
 document.body.onmousedown = function(e) {
   if(e.button == 1) {
