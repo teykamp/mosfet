@@ -66,58 +66,58 @@ export const getLocalLineThickness = (textTransformationMatrix: Matrix, transfor
     return lineThickness * getRelativeScaling(textTransformationMatrix, transformationMatrix)
 }
 
-export const transformPoint = (point: Point, transformationMatrix: Matrix): Point => {
-    const transformedVector = transformationMatrix.multiply(new Matrix(3, 1, [[point.x], [point.y], [1]]))
-    return {
-        x: transformedVector.at(0, 0),
-        y: transformedVector.at(1, 0),
-    }
-}
+// export const transformPoint = (point: Point, transformationMatrix: Matrix): Point => {
+//     const transformedVector = transformationMatrix.multiply(new Matrix(3, 1, [[point.x], [point.y], [1]]))
+//     return {
+//         x: transformedVector.at(0, 0),
+//         y: transformedVector.at(1, 0),
+//     }
+// }
 
-export const transformLine = (line: Line, transformationMatrix: Matrix): Line => {
-    return {
-        start: transformPoint(line.start, transformationMatrix),
-        end:   transformPoint(line.end,   transformationMatrix),
-    }
-}
+// export const transformLine = (line: Line, transformationMatrix: Matrix): Line => {
+//     return {
+//         start: transformPoint(line.start, transformationMatrix),
+//         end:   transformPoint(line.end,   transformationMatrix),
+//     }
+// }
 
-export const transformPath = (pathLines: Line[], transformationMatrix: Matrix): Line[] => {
-    return pathLines.map((line: Line) => transformLine(line, transformationMatrix))
-}
+// export const transformPath = (pathLines: Line[], transformationMatrix: Matrix): Line[] => {
+//     return pathLines.map((line: Line) => transformLine(line, transformationMatrix))
+// }
 
-export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
-    if (resetFirst) {
-      ctx.setTransform(transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
-    } else {
-      ctx.transform(   transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
-    }
-}
+// export const applyTransformationMatrix = (ctx: CanvasRenderingContext2D, transformationMatrix: Matrix, resetFirst: boolean = true) => {
+//     if (resetFirst) {
+//       ctx.setTransform(transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
+//     } else {
+//       ctx.transform(   transformationMatrix.at(0, 0), transformationMatrix.at(1, 0), transformationMatrix.at(0, 1), transformationMatrix.at(1, 1), transformationMatrix.at(0, 2), transformationMatrix.at(1, 2))
+//     }
+// }
 
-export const fillTextGlobalReferenceFrame = (ctx: CanvasRenderingContext2D, textTransformationMatrix: Matrix, localTransformationMatrix: Matrix, localTextLocation: Point, text: string, autoTextAlign: boolean = false, oppositeTextAlign = false, lineHeight: number = 16): Point => {
-    // switch to the global text reference frame
-    applyTransformationMatrix(ctx, textTransformationMatrix)
+// export const fillTextGlobalReferenceFrame = (ctx: CanvasRenderingContext2D, textTransformationMatrix: Matrix, localTransformationMatrix: Matrix, localTextLocation: Point, text: string, autoTextAlign: boolean = false, oppositeTextAlign = false, lineHeight: number = 16): Point => {
+//     // switch to the global text reference frame
+//     applyTransformationMatrix(ctx, textTransformationMatrix)
 
-    // to determine the automatic text alignment, see if the text origin is to the left or right of the caller's origin
-    if (autoTextAlign) {
-        const globalOrigin = transformPoint({x: 0, y: 0}, localTransformationMatrix)
-        const globalTextLocation = transformPoint(localTextLocation, localTransformationMatrix)
-        if ((globalTextLocation.x < globalOrigin.x) == (!oppositeTextAlign)) {
-            ctx.textAlign = 'right'
-        }
-        else if ((globalTextLocation.x > globalOrigin.x) == (!oppositeTextAlign)) {
-            ctx.textAlign = 'left'
-        }
-        else {
-            ctx.textAlign = 'center'
-        }
-    }
-    const displayTextLocation = transformPoint(localTextLocation, textTransformationMatrix.inverse().multiply(localTransformationMatrix))
-    ctx.fillText(text, displayTextLocation.x, displayTextLocation.y)
+//     // to determine the automatic text alignment, see if the text origin is to the left or right of the caller's origin
+//     if (autoTextAlign) {
+//         const globalOrigin = transformPoint({x: 0, y: 0}, localTransformationMatrix)
+//         const globalTextLocation = transformPoint(localTextLocation, localTransformationMatrix)
+//         if ((globalTextLocation.x < globalOrigin.x) == (!oppositeTextAlign)) {
+//             ctx.textAlign = 'right'
+//         }
+//         else if ((globalTextLocation.x > globalOrigin.x) == (!oppositeTextAlign)) {
+//             ctx.textAlign = 'left'
+//         }
+//         else {
+//             ctx.textAlign = 'center'
+//         }
+//     }
+//     const displayTextLocation = transformPoint(localTextLocation, textTransformationMatrix.inverse().multiply(localTransformationMatrix))
+//     ctx.fillText(text, displayTextLocation.x, displayTextLocation.y)
 
-    // reset the local reference frame
-    applyTransformationMatrix(ctx, localTransformationMatrix)
-    return transformPoint({x: displayTextLocation.x, y: displayTextLocation.y + lineHeight}, localTransformationMatrix.inverse().multiply(textTransformationMatrix))
-}
+//     // reset the local reference frame
+//     applyTransformationMatrix(ctx, localTransformationMatrix)
+//     return transformPoint({x: displayTextLocation.x, y: displayTextLocation.y + lineHeight}, localTransformationMatrix.inverse().multiply(textTransformationMatrix))
+// }
 
 export const drawLine = (ctx: CanvasRenderingContext2D, start: Point, end: Point, thickness: number = 5) => {
     const deltaX = end.x - start.x
