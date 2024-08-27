@@ -3,25 +3,32 @@
     v-bind:cornerToCornerGraph="true" />
   <Chart :points="circuit.devices.mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
     v-bind:cornerToCornerGraph="true" /> -->
-  <div style="display: flex; justify-content: space-between; padding: 50px;">
-    <div style="display: flex; flex-direction: column;">
-      <button
-        v-for="circuit in circuitsToChooseFrom"
-        @click="setCircuit(circuit)"
-        :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`"
-      >{{ circuit }}</button>
-    </div>
-    <div>
-      <h1 style="margin-top: -50px;">
-        {{currentCircuit}}
-      </h1>
-      <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag" style=" margin-right: 5%;"></canvas>
-    </div>
+
+  <div style="position: absolute; top: 10px; left: 10px;">
+    <button @click.stop="showSideBar = !showSideBar">Menu</button>
   </div>
+
+  <Transition>
+    <div 
+      v-show="showSideBar"
+      ref="sideBar"
+      style="display: flex; flex-direction: column; width: 250px; height: 100vh; padding: 10px; background-color: whitesmoke; position: absolute;">
+      <h3 style="text-align: center;">Circuits</h3>
+      <div style="border: 1px solid grey;"></div>
+      <button v-for="circuit in circuitsToChooseFrom" @click.prevent="setCircuit(circuit)"
+        :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`">{{
+        circuit }}</button>
+      <button
+        @click="showSideBar = false"
+        style="position: absolute; bottom: 40px; right: 15px;"
+      >Close</button>
+    </div>
+  </Transition>
+  <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef } from 'vue'
+import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { Visibility } from '../types'
 import { modulo, between } from '../functions/extraMath'
 import { getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent } from '../functions/makeMosfet'
@@ -35,6 +42,13 @@ import { getDotSpeedFromCurrent } from '../functions/nonLinearMappingFunctions'
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
 let previousTime = 0
+
+const sideBar = ref<HTMLElement | null>(null)
+const showSideBar = ref(false)
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
+}
 
 type DefinedCircuits = keyof typeof circuits
 const currentCircuit = ref<DefinedCircuits>('nMosSingle')
@@ -285,16 +299,32 @@ onMounted(() => {
   if (canvas.value) {
     ctx.value = canvas.value.getContext('2d')
     // if (ctx.value) ctx.value.scale(0.8, 0.8)
+  document.addEventListener('click', handleClickOutside)
+
 
     draw()
     requestAnimationFrame(animate)
 
   }
 })
+
+onBeforeUnmount(() => {
+  // document.removeEventListener('click', handleClickOutside);
+})
 </script>
 
 <style scoped>
 canvas {
   border: 1px solid black;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: transform 0.15s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  transform: translateX(-300px);
 }
 </style>

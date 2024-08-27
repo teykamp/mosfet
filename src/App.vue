@@ -27,8 +27,8 @@ const tutorialData = [
     title: 'Side Bar',
     text: 'These buttons allow you to switch circuits.',
     location: {
-      x: 'left: 300px;',
-      y: 'top: 90px;'
+      x: 'left: 200px;',
+      y: 'top: 50px;'
     }
   },
   {
