@@ -72,7 +72,7 @@ export class TransformationMatrix {
         }
     }
 
-    rotate(angle: number, inPlace: boolean = false): TransformationMatrix | void {
+    rotate(angle: number, inPlace: boolean = false): TransformationMatrix {
         const result = new TransformationMatrix()
         Object.assign(result, this)
 
@@ -85,13 +85,14 @@ export class TransformationMatrix {
         )
         if (inPlace) {
             Object.assign(this, result)
+            return result
         }
         else {
             return result
         }
     }
 
-    translate(coordinates: Point, inPlace: boolean = false): TransformationMatrix | void {
+    translate(coordinates: Point, inPlace: boolean = false): TransformationMatrix {
         const result = new TransformationMatrix()
         Object.assign(result, this)
 
@@ -104,13 +105,14 @@ export class TransformationMatrix {
         )
         if (inPlace) {
             Object.assign(this, result)
+            return result
         }
         else {
             return result
         }
     }
 
-    mirror(x: boolean, y: boolean, inPlace: boolean = false): TransformationMatrix | void {
+    mirror(x: boolean, y: boolean = false, inPlace: boolean = false): TransformationMatrix {
         const result = new TransformationMatrix()
         Object.assign(result, this)
 
@@ -126,6 +128,7 @@ export class TransformationMatrix {
         )
         if (inPlace) {
             Object.assign(this, result)
+            return result
         }
         else {
             return result
@@ -145,6 +148,7 @@ export class TransformationMatrix {
         )
         if (inPlace) {
             Object.assign(this, result)
+            return result
         }
         else {
             return result
@@ -157,6 +161,7 @@ export class TransformationMatrix {
         result.matrix = result.matrix.inverse()
         if (inPlace) {
             Object.assign(this, result)
+            return result
         }
         else {
             return result

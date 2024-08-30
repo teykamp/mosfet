@@ -1,9 +1,10 @@
 import { Point, RelativeDirection, Visibility } from "../types"
-import { Matrix } from 'ts-matrix'
+import { CtxArtist } from "./ctxArtist"
+import { TransformationMatrix } from "./transformationMatrix"
+import { toSiPrefix } from "../functions/toSiPrefix"
+import { toRadians } from "../functions/extraMath"
 
-export class AngleSlider {
-    transformationMatrix: Matrix
-    textTransformationMatrix: Matrix
+export class AngleSlider extends CtxArtist{
     dragging: boolean
     preciseDragging: boolean
     location: Point
@@ -22,21 +23,9 @@ export class AngleSlider {
     previousValue: number
     valueRateOfChange: number
 
-    constructor(circuitTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
-        this.transformationMatrix = parentTransformationMatrix.multiply(new Matrix(3, 3, [ // shift
-            [1, 0, centerX],
-            [0, 1, centerY],
-            [0, 0, 1]
-        ])).multiply(new Matrix(3, 3, [ // rotate
-            [Math.cos(startAngle), -Math.sin(startAngle), 0],
-            [Math.sin(startAngle),  Math.cos(startAngle), 0],
-            [0                   , 0                    , 1]
-        ])).multiply(new Matrix(3, 3, [ // mirror
-            [1, 0, 0],
-            [0, (CCW ? -1 : 1), 0],
-            [0, 0, 1]
-        ]))
-        this.textTransformationMatrix = circuitTransformationMatrix
+    constructor(parentTransformationMatrix: TransformationMatrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
+        super(parentTransformationMatrix.translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW))
+
         this.dragging = false
         this.preciseDragging = false
         this.location = {x: 0, y: 0}
@@ -60,8 +49,8 @@ export class AngleSlider {
         if (this.visibility == Visibility.Hidden) {
             return
         }
-        applyTransformationMatrix(ctx, this.transformationMatrix, true)
-        const localLineThickness = getLocalLineThickness(this.textTransformationMatrix, this.transformationMatrix)
+        this.transformationMatrix.transformCanvas(ctx)
+        const localLineThickness = this.getLocalLineThickness()
 
         // draw slider path
         ctx.strokeStyle = this.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
@@ -125,8 +114,8 @@ export class AngleSlider {
         }
 
         ctx.font = '18px Arial'
-        const nextLineLocation = fillTextGlobalReferenceFrame(ctx, this.textTransformationMatrix, this.transformationMatrix, textLocation, this.displayText, true, false, 18)
+        const nextLineLocation = this.fillTextGlobalReferenceFrame(ctx, textLocation, this.displayText, true, false, 18)
         ctx.font = '16px Arial'
-        fillTextGlobalReferenceFrame(ctx, this.textTransformationMatrix, this.transformationMatrix, nextLineLocation, toSiPrefix(this.value * (this.displayNegative ? -1 : 1), 'V', 3), true)
+        this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, toSiPrefix(this.value * (this.displayNegative ? -1 : 1), 'V', 3), true)
     }
   }
