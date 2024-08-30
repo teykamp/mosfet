@@ -69,26 +69,26 @@ export class Mosfet extends CtxArtist{
 
     getMosfetEkvResult(): { I: Unit, saturationLevel: number, IF: Unit } {
         if (this.mosfetType == 'pmos') {
-          return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
+            return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
         }
         else {
-          return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
+            return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
         }
-      }
+    }
 
     getMosfetCurrent(): number {
         const result = this.getMosfetEkvResult()
         return result.I.toNumber('A')
-      }
+    }
 
     getMosfetSaturationLevel(): number {
         const result = this.getMosfetEkvResult()
         return result.saturationLevel
-      }
+    }
 
     getMosfetForwardCurrent(): number {
         const result = this.getMosfetEkvResult()
         return result.IF.toNumber('A')
-      }
+    }
 
 }
