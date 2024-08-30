@@ -30,31 +30,31 @@ export type Chart = {
   cornerToCornerGraph?: boolean
 }
 
-export type AngleSlider = {
-  transformationMatrix: Matrix,
-  textTransformationMatrix: Matrix,
-  dragging: boolean,
-  preciseDragging: boolean,
-  location: Point,
-  radius: number,
-  originalRadius: number,
-  // center: Point, // obsolete
-  // startAngle: number, // obsolete
-  endAngle: number,
-  // CCW: boolean, // obsolete
-  displayText: string,
-  displayTextLocation: RelativeDirection,
-  minValue: number,
-  maxValue: number,
-  value: number, // a number between minValue and maxValue
-  visibility: Visibility
-  data: Point[],
-  displayNegative: boolean,
-  temporaryMinValue: number,
-  temporaryMaxValue: number,
-  previousValue: number,
-  valueRateOfChange: number,
-}
+// export type AngleSlider = {
+//   transformationMatrix: Matrix,
+//   textTransformationMatrix: Matrix,
+//   dragging: boolean,
+//   preciseDragging: boolean,
+//   location: Point,
+//   radius: number,
+//   originalRadius: number,
+//   // center: Point, // obsolete
+//   // startAngle: number, // obsolete
+//   endAngle: number,
+//   // CCW: boolean, // obsolete
+//   displayText: string,
+//   displayTextLocation: RelativeDirection,
+//   minValue: number,
+//   maxValue: number,
+//   value: number, // a number between minValue and maxValue
+//   visibility: Visibility
+//   data: Point[],
+//   displayNegative: boolean,
+//   temporaryMinValue: number,
+//   temporaryMaxValue: number,
+//   previousValue: number,
+//   valueRateOfChange: number,
+// }
 
 export type SchematicEffect = {
   node: Ref<Node>,
@@ -63,26 +63,26 @@ export type SchematicEffect = {
   gradientSize: number,
 }
 
-export type Mosfet = {
-  transformationMatrix: Matrix,
-  textTransformationMatrix: Matrix,
-  mosfetType: 'nmos' | 'pmos',
-  // originX: number, // obsolete
-  // originY: number, // obsolete
-  mirror: boolean, // obsolete
-  dotPercentage: number,
-  gradientSize: number,
-  schematicEffects: {[name: string]: SchematicEffect},
-  vgs: AngleSlider,
-  vds: AngleSlider,
-  Vg: Ref<Node>,
-  Vs: Ref<Node>,
-  Vd: Ref<Node>,
-  Vb: Ref<Node>,
-  current: number, // in Amps
-  saturationLevel: number, // as a fraction of total saturation (0 to 1)
-  forwardCurrent: number // in Amps
-}
+// export type Mosfet = {
+//   transformationMatrix: Matrix,
+//   textTransformationMatrix: Matrix,
+//   mosfetType: 'nmos' | 'pmos',
+//   // originX: number, // obsolete
+//   // originY: number, // obsolete
+//   mirror: boolean, // obsolete
+//   dotPercentage: number,
+//   gradientSize: number,
+//   schematicEffects: {[name: string]: SchematicEffect},
+//   vgs: AngleSlider,
+//   vds: AngleSlider,
+//   Vg: Ref<Node>,
+//   Vs: Ref<Node>,
+//   Vd: Ref<Node>,
+//   Vb: Ref<Node>,
+//   current: number, // in Amps
+//   saturationLevel: number, // as a fraction of total saturation (0 to 1)
+//   forwardCurrent: number // in Amps
+// }
 
 export type VoltageSource = {
   transformationMatrix: Matrix,

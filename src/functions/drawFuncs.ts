@@ -58,13 +58,13 @@ export const getMovingDotPositions = (pathLines: Line[], spacingBetweenDots: num
     return dotPositions
 }
 
-export const getRelativeScaling = (textTransformationMatrix: Matrix, transformationMatrix: Matrix): number => {
-    return Math.sqrt(Math.abs(textTransformationMatrix.determinant())) / Math.sqrt(Math.abs(transformationMatrix.determinant()))
-}
+// export const getRelativeScaling = (textTransformationMatrix: Matrix, transformationMatrix: Matrix): number => {
+//     return Math.sqrt(Math.abs(textTransformationMatrix.determinant())) / Math.sqrt(Math.abs(transformationMatrix.determinant()))
+// }
 
-export const getLocalLineThickness = (textTransformationMatrix: Matrix, transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
-    return lineThickness * getRelativeScaling(textTransformationMatrix, transformationMatrix)
-}
+// export const getLocalLineThickness = (textTransformationMatrix: Matrix, transformationMatrix: Matrix, lineThickness: number = GLOBAL_LINE_THICKNESS): number => {
+//     return lineThickness * getRelativeScaling(textTransformationMatrix, transformationMatrix)
+// }
 
 // export const transformPoint = (point: Point, transformationMatrix: Matrix): Point => {
 //     const transformedVector = transformationMatrix.multiply(new Matrix(3, 1, [[point.x], [point.y], [1]]))
