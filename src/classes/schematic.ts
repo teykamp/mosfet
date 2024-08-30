@@ -26,14 +26,13 @@ export class Schematic extends CtxArtist{
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
-        const localLineThickness = this.getLocalLineThickness()
 
         // draw vdd and gnd symbols
         this.gndLocations.forEach((gndLocation) => {
-            Schematic.drawGnd(ctx, gndLocation, localLineThickness, 0.8)
+            Schematic.drawGnd(ctx, gndLocation, this.localLineThickness, 0.8)
         })
         this.vddLocations.forEach((vddLocation) => {
-            Schematic.drawVdd(ctx, vddLocation, localLineThickness, 0.8)
+            Schematic.drawVdd(ctx, vddLocation, this.localLineThickness, 0.8)
         })
         this.parasiticCapacitors.forEach((capacitor) => {
             capacitor.draw(ctx)
@@ -44,7 +43,7 @@ export class Schematic extends CtxArtist{
 
         // draw all the lines in black
         this.nodes.forEach((node: Ref<Node>) => {
-            drawLinesFillSolid(ctx, node.value.lines, localLineThickness, 'black')
+            drawLinesFillSolid(ctx, node.value.lines, this.localLineThickness, 'black')
         })
 
         // add gradient regions from each of the mosfets
@@ -52,7 +51,7 @@ export class Schematic extends CtxArtist{
             Object.values(mosfet.schematicEffects).forEach((schematicEffect: SchematicEffect) => {
                 const gradientOrigin: Point = this.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).transformPoint(schematicEffect.origin)
                 const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
-                drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, localLineThickness, gradient)
+                drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, this.localLineThickness, gradient)
             })
         })
 

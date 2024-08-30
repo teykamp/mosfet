@@ -26,13 +26,12 @@ export class VoltageSource extends CtxArtist{
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
-        const localLineThickness = this.getLocalLineThickness()
 
         const radius = 30
         const symbolSize = 11
         const symbolHeight = 10
         ctx.strokeStyle = 'black'
-        ctx.lineWidth = localLineThickness
+        ctx.lineWidth = this.localLineThickness
 
         const majorLines: Line[] = [
             {start: {x: 0, y: radius}, end: {x: 0, y: 60}},
@@ -46,9 +45,9 @@ export class VoltageSource extends CtxArtist{
         const circles: Circle[] = [
             {center: {x: 0, y: 0}, outerDiameter: 2 * radius},
         ]
-        drawLinesFillSolid(ctx, majorLines, localLineThickness, 'black')
-        drawLinesFillSolid(ctx, minorLines, localLineThickness * 0.8, 'black')
-        drawCirclesFillSolid(ctx, circles, localLineThickness, 'black')
+        drawLinesFillSolid(ctx, majorLines, this.localLineThickness, 'black')
+        drawLinesFillSolid(ctx, minorLines, this.localLineThickness * 0.8, 'black')
+        drawCirclesFillSolid(ctx, circles, this.localLineThickness, 'black')
 
         this.voltageDrop.draw(ctx)
     }

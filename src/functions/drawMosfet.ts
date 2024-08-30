@@ -185,55 +185,55 @@ import { Matrix } from 'ts-matrix'
 //     fillTextGlobalReferenceFrame(ctx, slider.textTransformationMatrix, slider.transformationMatrix, nextLineLocation, toSiPrefix(slider.value * (slider.displayNegative ? -1 : 1), 'V', 3), true)
 // }
 
-export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
-    applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
-    const localLineThickness = getLocalLineThickness(circuit.textTransformationMatrix, circuit.transformationMatrix)
+// export const drawSchematic = (ctx: CanvasRenderingContext2D, circuit: Circuit) => {
+//     applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
+//     const localLineThickness = getLocalLineThickness(circuit.textTransformationMatrix, circuit.transformationMatrix)
 
-    // draw vdd and gnd symbols
-    circuit.schematic.gndLocations.forEach((gndLocation) => {
-        drawGnd(ctx, gndLocation, localLineThickness, 0.8)
-    })
-    circuit.schematic.vddLocations.forEach((vddLocation) => {
-        drawVdd(ctx, vddLocation, localLineThickness, 0.8)
-    })
-    circuit.schematic.parasiticCapacitors.forEach((capacitor) => {
-        drawParasiticCapacitor(ctx, capacitor)
-    })
-    applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
+//     // draw vdd and gnd symbols
+//     circuit.schematic.gndLocations.forEach((gndLocation) => {
+//         drawGnd(ctx, gndLocation, localLineThickness, 0.8)
+//     })
+//     circuit.schematic.vddLocations.forEach((vddLocation) => {
+//         drawVdd(ctx, vddLocation, localLineThickness, 0.8)
+//     })
+//     circuit.schematic.parasiticCapacitors.forEach((capacitor) => {
+//         drawParasiticCapacitor(ctx, capacitor)
+//     })
+//     applyTransformationMatrix(ctx, circuit.transformationMatrix, true)
 
-    // draw all the lines in black
-    for (const nodeId in circuit.nodes) {
-        const node = circuit.nodes[nodeId].value
-        drawLinesFillSolid(ctx, node.lines, localLineThickness, 'black')
-    }
+//     // draw all the lines in black
+//     for (const nodeId in circuit.nodes) {
+//         const node = circuit.nodes[nodeId].value
+//         drawLinesFillSolid(ctx, node.lines, localLineThickness, 'black')
+//     }
 
-    // Go through each key of the indexed object:
+//     // Go through each key of the indexed object:
 
-    // add gradient regions from each of the mosfets
-    for (const mosfetId in circuit.devices.mosfets) {
-        const mosfet = circuit.devices.mosfets[mosfetId]
-        for (const schematicEffectName in mosfet.schematicEffects)
-            {
-            const schematicEffect = mosfet.schematicEffects[schematicEffectName];
-            const gradientOrigin: Point = transformPoint(schematicEffect.origin, circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix))
-            const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
-            drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, localLineThickness, gradient)
-        }
-    }
+//     // add gradient regions from each of the mosfets
+//     for (const mosfetId in circuit.devices.mosfets) {
+//         const mosfet = circuit.devices.mosfets[mosfetId]
+//         for (const schematicEffectName in mosfet.schematicEffects)
+//             {
+//             const schematicEffect = mosfet.schematicEffects[schematicEffectName];
+//             const gradientOrigin: Point = transformPoint(schematicEffect.origin, circuit.transformationMatrix.inverse().multiply(mosfet.transformationMatrix))
+//             const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
+//             drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, localLineThickness, gradient)
+//         }
+//     }
 
-    // draw node voltage labels
-    for (const nodeId in circuit.nodes) {
-        const node = circuit.nodes[nodeId].value
-        node.voltageDisplayLocations.forEach((labelLocation: Point) => {
-            applyTransformationMatrix(ctx, circuit.textTransformationMatrix, true)
+//     // draw node voltage labels
+//     for (const nodeId in circuit.nodes) {
+//         const node = circuit.nodes[nodeId].value
+//         node.voltageDisplayLocations.forEach((labelLocation: Point) => {
+//             applyTransformationMatrix(ctx, circuit.textTransformationMatrix, true)
 
-            const displayTextLocation = transformPoint(labelLocation, circuit.textTransformationMatrix.inverse().multiply(circuit.transformationMatrix))
-            ctx.fillStyle = 'black'
-            ctx.font = '18px sans-serif'
-            ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), displayTextLocation.x, displayTextLocation.y)
-        })
-    }
-}
+//             const displayTextLocation = transformPoint(labelLocation, circuit.textTransformationMatrix.inverse().multiply(circuit.transformationMatrix))
+//             ctx.fillStyle = 'black'
+//             ctx.font = '18px sans-serif'
+//             ctx.fillText(node.voltageDisplayLabel + " = " + toSiPrefix(node.voltage, "V"), displayTextLocation.x, displayTextLocation.y)
+//         })
+//     }
+// }
 
 // export const drawParasiticCapacitor = (ctx: CanvasRenderingContext2D, capacitor: ParasiticCapacitor, displayCurrent: boolean = false) => {
 //     const localLineThickness = getLocalLineThickness(capacitor.textTransformationMatrix, capacitor.transformationMatrix)

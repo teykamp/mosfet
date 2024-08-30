@@ -24,7 +24,6 @@ export class ParasiticCapacitor extends CtxArtist{
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.scale(0.5).transformCanvas(ctx)
-        const localLineThickness = this.getLocalLineThickness()
 
         const airGapSize = 7
         const capacitorLines: Line[] = [
@@ -35,10 +34,10 @@ export class ParasiticCapacitor extends CtxArtist{
         ]
         const extraNodeLines = this.transformationMatrix.transformPath(this.extraNodeLines)
 
-        drawLinesFillSolid(ctx, capacitorLines, localLineThickness, 'black')
-        drawLinesFillSolid(ctx, extraNodeLines, localLineThickness, 'black')
-        ctx.clearRect(-30 - localLineThickness, -airGapSize + localLineThickness / 2, 60 + 2 * localLineThickness, 2 * airGapSize - 2 * localLineThickness / 2)
-        Schematic.drawGnd(ctx, {x: 0, y: 50}, localLineThickness, 30)
+        drawLinesFillSolid(ctx, capacitorLines, this.localLineThickness, 'black')
+        drawLinesFillSolid(ctx, extraNodeLines, this.localLineThickness, 'black')
+        ctx.clearRect(-30 - this.localLineThickness, -airGapSize + this.localLineThickness / 2, 60 + 2 * this.localLineThickness, 2 * airGapSize - 2 * this.localLineThickness / 2)
+        Schematic.drawGnd(ctx, {x: 0, y: 50}, this.localLineThickness, 30)
         drawCurrentDots(ctx, [{start: {x: 10, y: -60}, end: {x: 10, y: 60}}], this.dotPercentage, 8, 20, 60)
 
         if (ParasiticCapacitor.displayCurrent) {

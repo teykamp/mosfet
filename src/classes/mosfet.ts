@@ -73,7 +73,6 @@ export class Mosfet extends CtxArtist{
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
-        const localLineThickness = this.getLocalLineThickness()
 
         const bodyLines: Line[] = [
             {start: {x: 0, y: 20}, end: {x: 0, y: 59}},
@@ -102,10 +101,10 @@ export class Mosfet extends CtxArtist{
         const forwardCurrentScaled = this.getForwardCurrentScaled()
         const gateColor = this.getGateColorFromForwardCurrent()
 
-        drawLinesFillSolid(ctx, bodyLines, localLineThickness, 'black')
-        drawLinesFillSolid(ctx, gateLines, localLineThickness, gateColor)
-        drawCirclesFillSolid(ctx, gateCircles, localLineThickness, gateColor)
-        drawLinesFillWithGradient(ctx, bodyLines, localLineThickness, gradient)
+        drawLinesFillSolid(ctx, bodyLines, this.localLineThickness, 'black')
+        drawLinesFillSolid(ctx, gateLines, this.localLineThickness, gateColor)
+        drawCirclesFillSolid(ctx, gateCircles, this.localLineThickness, gateColor)
+        drawLinesFillWithGradient(ctx, bodyLines, this.localLineThickness, gradient)
 
         this.schematicEffects["saturation"].gradientSize = this.gradientSize / 30 * 3.5
         this.schematicEffects["saturation"].color = 'rgba(200, 200, 200, 1)'

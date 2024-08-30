@@ -1,6 +1,10 @@
 import { Ref } from 'vue'
 import { Matrix } from 'ts-matrix'
 import { Node } from './classes/node'
+import { Schematic } from './classes/schematic'
+import { Mosfet } from './classes/mosfet'
+import { VoltageSource } from './classes/voltageSource'
+import { AngleSlider } from './classes/angleSlider'
 
 export type Point = {
   x: number
@@ -143,49 +147,17 @@ export type Circle = {
 //   voltageDisplayLocations: Point[],
 // }
 
-export type Circuit = {
-  transformationMatrix: Matrix,
-  textTransformationMatrix: Matrix,
-  schematic: Schematic, // how to draw the circuit
-  // drawSchematic: () => void, // a function to draw the non-device parts of the circuit
-  devices: {
-    mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
-    voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
-  },
-  allSliders: AngleSlider[], // a list of all the AngleSliders belonging to all of the devices, to make it easier to loop over them
-  nodes: {[nodeId: string]: Ref<Node>}, // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
-  // solveNodeVoltages: (circuit: Circuit) => void, // a function that returns a list of the voltages (in V) at each of the nodes of the circuit
-  // checkKirchoffsLaws: () => void, // a function that runs a series of assertions ensuring that KCL and KVL hold within a small tolerance
-}
-
-export class Queue<T> { // from https://www.basedash.com/blog/how-to-implement-a-queue-in-typescript
-  public items: T[] = [];
-
-  enqueue(item: T): void {
-      this.items.push(item);
-  }
-
-  dequeue(): T | undefined {
-      return this.items.shift();
-  }
-
-  peek(): T | undefined {
-      return this.items[0];
-  }
-
-  isEmpty(): boolean {
-      return this.items.length === 0;
-  }
-
-  size(): number {
-      return this.items.length;
-  }
-
-  toArray(): T[] {
-    return this.items
-  }
-
-  fill(item: T, size: number) {
-    this.items = Array(size).fill(item)
-  }
-}
+// export type Circuit = {
+//   transformationMatrix: Matrix,
+//   textTransformationMatrix: Matrix,
+//   schematic: Schematic, // how to draw the circuit
+//   // drawSchematic: () => void, // a function to draw the non-device parts of the circuit
+//   devices: {
+//     mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
+//     voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
+//   },
+//   allSliders: AngleSlider[], // a list of all the AngleSliders belonging to all of the devices, to make it easier to loop over them
+//   nodes: {[nodeId: string]: Ref<Node>}, // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
+//   // solveNodeVoltages: (circuit: Circuit) => void, // a function that returns a list of the voltages (in V) at each of the nodes of the circuit
+//   // checkKirchoffsLaws: () => void, // a function that runs a series of assertions ensuring that KCL and KVL hold within a small tolerance
+// }

@@ -1,4 +1,5 @@
-import { Line, Point, Queue } from "../types"
+import { Line, Point } from "../types"
+import { Queue } from "./queue"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 
 export class Node {

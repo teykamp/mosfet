@@ -50,11 +50,10 @@ export class AngleSlider extends CtxArtist{
             return
         }
         this.transformationMatrix.transformCanvas(ctx)
-        const localLineThickness = this.getLocalLineThickness()
 
         // draw slider path
         ctx.strokeStyle = this.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
-        ctx.lineWidth = localLineThickness
+        ctx.lineWidth = this.localLineThickness
         ctx.beginPath()
         ctx.arc(0, 0, this.radius, 0, this.endAngle, false)
 

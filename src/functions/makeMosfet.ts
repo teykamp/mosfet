@@ -185,15 +185,15 @@ import { Matrix } from 'ts-matrix'
 //   return result.IF.toNumber('A')
 // }
 
-export const makeListOfSliders = (circuit: Circuit) => {
-  circuit.allSliders = []
-  for (const mosfetId in circuit.devices.mosfets) {
-    const mosfet = circuit.devices.mosfets[mosfetId]
-    circuit.allSliders.push(mosfet.vgs)
-    circuit.allSliders.push(mosfet.vds)
-  }
-    for (const voltageSourceId in circuit.devices.voltageSources) {
-      const voltageSource = circuit.devices.voltageSources[voltageSourceId]
-      circuit.allSliders.push(voltageSource.voltageDrop)
-    }
-}
+// export const makeListOfSliders = (circuit: Circuit) => {
+//   circuit.allSliders = []
+//   for (const mosfetId in circuit.devices.mosfets) {
+//     const mosfet = circuit.devices.mosfets[mosfetId]
+//     circuit.allSliders.push(mosfet.vgs)
+//     circuit.allSliders.push(mosfet.vds)
+//   }
+//     for (const voltageSourceId in circuit.devices.voltageSources) {
+//       const voltageSource = circuit.devices.voltageSources[voltageSourceId]
+//       circuit.allSliders.push(voltageSource.voltageDrop)
+//     }
+// }
