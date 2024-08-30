@@ -6,6 +6,7 @@ import { AngleSlider } from "./angleSlider"
 import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
+import { Node } from "./node"
 
 export class Circuit extends CtxArtist{
     schematic: Schematic // how to draw the circuit

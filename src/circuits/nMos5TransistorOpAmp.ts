@@ -1,87 +1,87 @@
-import { makeListOfSliders, makeMosfet, makeNode, makeParasiticCapacitor, makeVoltageSource } from '../functions/makeMosfet'
-import { Circuit, Visibility } from '../types'
+import { Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { schematicOrigin, schematicScale } from '../constants'
-import { Matrix } from 'ts-matrix'
+import { Circuit } from '../classes/circuit'
+import { Node } from '../classes/node'
+import { ref } from 'vue'
+import { ParasiticCapacitor } from '../classes/parasiticCapacitor'
+import { Schematic } from '../classes/schematic'
+import { Mosfet } from '../classes/mosfet'
+import { VoltageSource } from '../classes/voltageSource'
 
-const useNmos5TransistorOpAmp = () => {
-    const circuit: Circuit = {
-        transformationMatrix: new Matrix(3, 3, [[schematicScale * 0.75, 0, schematicOrigin.x], [0, schematicScale * 0.75, schematicOrigin.y + 100], [0, 0, 1]]),
-        textTransformationMatrix: new Matrix(3, 3), // to be updated immediately
-        schematic: {
-            vddLocations: [{x: -4, y: -12}, {x: 4, y: -12}],
-            gndLocations: [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
-            parasiticCapacitors: [],
-        },
-        devices: {
-            mosfets: {},
-            voltageSources: {}
-        },
-        allSliders: [],
-        nodes: {
-            [gndNodeId]: makeNode(gndVoltage, true,
-                [
-                    {start: {x: 0, y: 8}, end: {x: 0, y: 9}},
-                ]
-            ),
-            [vddNodeId]: makeNode(vddVoltage, true,
-                [
-                    {start: {x: -4, y: -11}, end: {x: -4, y: -12}},
-                    {start: {x: 4, y: -11}, end: {x: 4, y: -12}},
-                ]
-            ),
-            "M1_gate": makeNode(2, false,
-                [
-                    {start: {x: -8, y: 1}, end: {x: -8, y: 0}},
-                    {start: {x: -8, y: 0}, end: {x: -6, y: 0}},
-                ]
+const useNmos5TransistorOpAmp = (): Circuit => {
+    const circuit: Circuit = new Circuit(schematicOrigin, schematicScale * 0.75)
 
-            ),
-            "M1_drain": makeNode(4, false,
-                [
-                    {start: {x: -4, y: -2}, end: {x: -4, y: -7}},
-                    {start: {x: -4, y: -6}, end: {x: -1, y: -6}},
-                    {start: {x: -1, y: -6}, end: {x: -1, y: -9}},
-                    {start: {x: -2, y: -9}, end: {x: 2, y: -9}},
-                ]
-            ),
-            "M2_gate": makeNode(2, false,
-                [
-                    {start: {x: 8, y: 1}, end: {x: 8, y: 0}},
-                    {start: {x: 8, y: 0}, end: {x: 6, y: 0}},
-                ]
+    //////////////////////////////
+    ///          NODES         ///
+    //////////////////////////////
 
-            ),
-            "Vout": makeNode(4, false,
-                [
-                    {start: {x: 4, y: -2}, end: {x: 4, y: -7}},
-                    {start: {x: 4, y: -5}, end: {x: 6, y: -5}},
-                ],
-                "Vout",
-                [{x: 6.5, y: -5}]
-            ),
-            "Mb_gate": makeNode(0.7, false,
-                [
-                    {start: {x: 4, y: 7}, end: {x: 4, y: 6}},
-                    {start: {x: 4, y: 6}, end: {x: 2, y: 6}},
-                ]
-            ),
-            "Vnode": makeNode(1, false,
-                [
-                    {start: {x: -4, y: 2}, end: {x: -4, y: 3}},
-                    {start: {x:  4, y: 2}, end: {x:  4, y: 3}},
-                    {start: {x: -4, y: 3}, end: {x:  4, y: 3}},
-                    {start: {x:  0, y: 3}, end: {x:  0, y: 4}},
-                ],
-                "V",
-                [{x: -1, y: 2.5}]
-            ),
-        },
+    circuit.nodes = {
+        [gndNodeId]: ref(new Node(gndVoltage, true,
+            [
+                {start: {x: 0, y: 8}, end: {x: 0, y: 9}},
+            ]
+        )),
+        [vddNodeId]: ref(new Node(vddVoltage, true,
+            [
+                {start: {x: -4, y: -11}, end: {x: -4, y: -12}},
+                {start: {x: 4, y: -11}, end: {x: 4, y: -12}},
+            ]
+        )),
+        "M1_gate": ref(new Node(2, false,
+            [
+                {start: {x: -8, y: 1}, end: {x: -8, y: 0}},
+                {start: {x: -8, y: 0}, end: {x: -6, y: 0}},
+            ]
+
+        )),
+        "M1_drain": ref(new Node(4, false,
+            [
+                {start: {x: -4, y: -2}, end: {x: -4, y: -7}},
+                {start: {x: -4, y: -6}, end: {x: -1, y: -6}},
+                {start: {x: -1, y: -6}, end: {x: -1, y: -9}},
+                {start: {x: -2, y: -9}, end: {x: 2, y: -9}},
+            ]
+        )),
+        "M2_gate": ref(new Node(2, false,
+            [
+                {start: {x: 8, y: 1}, end: {x: 8, y: 0}},
+                {start: {x: 8, y: 0}, end: {x: 6, y: 0}},
+            ]
+
+        )),
+        "Vout": ref(new Node(4, false,
+            [
+                {start: {x: 4, y: -2}, end: {x: 4, y: -7}},
+                {start: {x: 4, y: -5}, end: {x: 6, y: -5}},
+            ],
+            "Vout",
+            [{x: 6.5, y: -5}]
+        )),
+        "Mb_gate": ref(new Node(0.7, false,
+            [
+                {start: {x: 4, y: 7}, end: {x: 4, y: 6}},
+                {start: {x: 4, y: 6}, end: {x: 2, y: 6}},
+            ]
+        )),
+        "Vnode": ref(new Node(1, false,
+            [
+                {start: {x: -4, y: 2}, end: {x: -4, y: 3}},
+                {start: {x:  4, y: 2}, end: {x:  4, y: 3}},
+                {start: {x: -4, y: 3}, end: {x:  4, y: 3}},
+                {start: {x:  0, y: 3}, end: {x:  0, y: 4}},
+            ],
+            "V",
+            [{x: -1, y: 2.5}]
+        )),
     }
-    circuit.textTransformationMatrix = circuit.transformationMatrix.multiply(new Matrix(3, 3, [[1/schematicScale, 0, 0], [0, 1/schematicScale, 0], [0, 0, 1]]))
+
+    //////////////////////////////
+    ///         MOSFETS        ///
+    //////////////////////////////
+
     circuit.devices.mosfets = {
-        "Mb": makeMosfet(
-            circuit.textTransformationMatrix,
+        "Mb": new Mosfet(
             circuit.transformationMatrix,
             'nmos',
             0,
@@ -96,8 +96,7 @@ const useNmos5TransistorOpAmp = () => {
             Visibility.Locked,
             Visibility.Locked
         ),
-        "M1": makeMosfet(
-            circuit.textTransformationMatrix,
+        "M1": new Mosfet(
             circuit.transformationMatrix,
             'nmos',
             -4,
@@ -112,8 +111,7 @@ const useNmos5TransistorOpAmp = () => {
             Visibility.Locked,
             Visibility.Locked,
         ),
-        "M2": makeMosfet(
-            circuit.textTransformationMatrix,
+        "M2": new Mosfet(
             circuit.transformationMatrix,
             'nmos',
             4,
@@ -128,8 +126,7 @@ const useNmos5TransistorOpAmp = () => {
             Visibility.Locked,
             Visibility.Locked,
         ),
-        "M3": makeMosfet(
-            circuit.textTransformationMatrix,
+        "M3": new Mosfet(
             circuit.transformationMatrix,
             'pmos',
             -4,
@@ -144,8 +141,7 @@ const useNmos5TransistorOpAmp = () => {
             Visibility.Locked,
             Visibility.Locked,
         ),
-        "M4": makeMosfet(
-            circuit.textTransformationMatrix,
+        "M4": new Mosfet(
             circuit.transformationMatrix,
             'pmos',
             4,
@@ -161,9 +157,13 @@ const useNmos5TransistorOpAmp = () => {
             Visibility.Locked,
         ),
     }
+
+    //////////////////////////////
+    ///     VOLTAGE SOURCES    ///
+    //////////////////////////////
+
     circuit.devices.voltageSources = {
-        "V1": makeVoltageSource(
-            circuit.textTransformationMatrix,
+        "V1": new VoltageSource(
             circuit.transformationMatrix,
             {x: -8, y: 3},
             circuit.nodes[gndNodeId],
@@ -172,8 +172,7 @@ const useNmos5TransistorOpAmp = () => {
             'gnd',
             true
         ),
-        "V2": makeVoltageSource(
-            circuit.textTransformationMatrix,
+        "V2": new VoltageSource(
             circuit.transformationMatrix,
             {x: 8, y: 3},
             circuit.nodes[gndNodeId],
@@ -181,8 +180,7 @@ const useNmos5TransistorOpAmp = () => {
             "V2",
             'gnd'
         ),
-        "Vb": makeVoltageSource(
-            circuit.textTransformationMatrix,
+        "Vb": new VoltageSource(
             circuit.transformationMatrix,
             {x: 4, y: 9},
             circuit.nodes[gndNodeId],
@@ -191,17 +189,27 @@ const useNmos5TransistorOpAmp = () => {
             'gnd'
         ),
     }
-    circuit.schematic.parasiticCapacitors = [
-        makeParasiticCapacitor(
-            circuit.textTransformationMatrix,
+
+    //////////////////////////////
+    ///        SCHEMATIC       ///
+    //////////////////////////////
+
+    circuit.schematic = new Schematic(
+        circuit.transformationMatrix,
+        [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
+        [{x: -4, y: -12}, {x: 4, y: -12}],
+        [new ParasiticCapacitor(
             circuit.transformationMatrix,
             circuit.nodes["Vout"],
             {x: 6, y: -4},
             [
                 {start: {x: 6, y: -5}, end: {x: 6, y: -4}},
             ],
-        )]
-    makeListOfSliders(circuit)
+        )],
+        Object.values(circuit.devices.mosfets),
+        Object.values(circuit.nodes)
+    )
+
     return circuit
 }
 export default useNmos5TransistorOpAmp

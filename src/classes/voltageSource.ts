@@ -5,6 +5,7 @@ import { toRadians } from "../functions/extraMath"
 import { Ref } from 'vue'
 import { AngleSlider } from "./angleSlider"
 import { drawCirclesFillSolid, drawLinesFillSolid } from "../functions/drawFuncs"
+import { Node } from "./node"
 
 export class VoltageSource extends CtxArtist{
     voltageDrop: AngleSlider

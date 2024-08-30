@@ -1,6 +1,7 @@
 import { Line, Point } from "../types"
 import { Queue } from "./queue"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
+import { ref, Ref } from "vue"
 
 export class Node {
     voltage: number // in Volts
@@ -27,5 +28,9 @@ export class Node {
         this.lines = lines
         this.voltageDisplayLabel = voltageDisplayLabel
         this.voltageDisplayLocations = voltageDisplayLocations
+    }
+
+    toRef(): Ref<Node> {
+        return ref(this)
     }
 }
