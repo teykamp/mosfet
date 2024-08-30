@@ -168,6 +168,19 @@ export class TransformationMatrix {
         }
     }
 
+    multiply(rightTransformationMatrix: TransformationMatrix, inPlace: boolean = false): TransformationMatrix {
+        const result = new TransformationMatrix()
+        Object.assign(result, this)
+        result.matrix = result.matrix.multiply(rightTransformationMatrix.matrix)
+        if (inPlace) {
+            Object.assign(this, result)
+            return result
+        }
+        else {
+            return result
+        }
+    }
+
     // apply the transformation matrix to the entire canvas
     transformCanvas(ctx: CanvasRenderingContext2D, resetFirst: boolean = true) {
         if (resetFirst) {

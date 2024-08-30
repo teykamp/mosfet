@@ -1,7 +1,5 @@
 import { Point, Line, Circle } from '../types'
 import { canvasSize, lineDrawRepetitions } from '../constants'
-import { Matrix } from 'ts-matrix'
-import { GLOBAL_LINE_THICKNESS } from '../constants'
 import { between } from './extraMath'
 
 export const getLineLength = (line: Line): number => {
@@ -57,6 +55,17 @@ export const getMovingDotPositions = (pathLines: Line[], spacingBetweenDots: num
     }
     return dotPositions
 }
+
+export const drawCurrentDots = (ctx: CanvasRenderingContext2D, dotPath: Line[], currentPercentage: number, dotSize: number = 8, dotSpacing: number = 20, gradientSize: number = 60) => {
+    const dots: Circle[] = getMovingDotPositions(dotPath, dotSpacing, currentPercentage).map((dotPosition: Point) => {
+        return {center: dotPosition, outerDiameter: dotSize}
+    })
+    const currentGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, gradientSize)
+    currentGradient.addColorStop(0, 'rgba(0, 0, 255, 1)')
+    currentGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
+    drawCirclesFillWithGradient(ctx, dots, dotSize / 2, currentGradient)
+}
+
 
 // export const getRelativeScaling = (textTransformationMatrix: Matrix, transformationMatrix: Matrix): number => {
 //     return Math.sqrt(Math.abs(textTransformationMatrix.determinant())) / Math.sqrt(Math.abs(transformationMatrix.determinant()))

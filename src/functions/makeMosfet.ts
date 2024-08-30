@@ -7,35 +7,35 @@ import { unit, type Unit } from "mathjs"
 import { ref, type Ref } from "vue"
 import { Matrix } from 'ts-matrix'
 
-export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: Line[] = [], voltageDisplayLabel: string = "", voltageDisplayLocations: Point[] = []): Ref<Node> => {
-  const historicVoltages: Queue<number> = new Queue<number>()
-  historicVoltages.fill(0, 10)
-  const capacitance = isPowerSupply ? powerSupplyCapacitance : defaultNodeCapacitance // in Farads
-  return ref({
-    voltage: initialVoltage, // in Volts
-    netCurrent: 0, // in Amps
-    capacitance: capacitance,
-    originalCapacitance: capacitance,
-    fixed: isPowerSupply ? true : false, // GND and VDD nodes are fixed, as are nodes that are being dragged
-    historicVoltages: historicVoltages,
-    lines: lines,
-    voltageDisplayLabel: voltageDisplayLabel,
-    voltageDisplayLocations: voltageDisplayLocations
-  })
-}
+// export const makeNode = (initialVoltage: number, isPowerSupply: boolean, lines: Line[] = [], voltageDisplayLabel: string = "", voltageDisplayLocations: Point[] = []): Ref<Node> => {
+//   const historicVoltages: Queue<number> = new Queue<number>()
+//   historicVoltages.fill(0, 10)
+//   const capacitance = isPowerSupply ? powerSupplyCapacitance : defaultNodeCapacitance // in Farads
+//   return ref({
+//     voltage: initialVoltage, // in Volts
+//     netCurrent: 0, // in Amps
+//     capacitance: capacitance,
+//     originalCapacitance: capacitance,
+//     fixed: isPowerSupply ? true : false, // GND and VDD nodes are fixed, as are nodes that are being dragged
+//     historicVoltages: historicVoltages,
+//     lines: lines,
+//     voltageDisplayLabel: voltageDisplayLabel,
+//     voltageDisplayLocations: voltageDisplayLocations
+//   })
+// }
 
-export const makeParasiticCapacitor = (textTransformationMatrix: Matrix, parentTrnasformationMatrix: Matrix, node: Ref<Node>, center: Point, extraNodeLines: Line[], currentPath: Line[] = extraNodeLines): ParasiticCapacitor => {
-  const parasiticCapacitor = {
-    transformationMatrix: parentTrnasformationMatrix.multiply(new Matrix(3, 3, [[1/30, 0, center.x], [0, 1/30, center.y], [0, 0, 1]])),
-    textTransformationMatrix: textTransformationMatrix,
-    circuitTransformationMatrix: parentTrnasformationMatrix,
-    node: node,
-    extraNodeLines: extraNodeLines,
-    currentPath: currentPath,
-    dotPercentage: 0,
-  }
-  return parasiticCapacitor
-}
+// export const makeParasiticCapacitor = (textTransformationMatrix: Matrix, parentTrnasformationMatrix: Matrix, node: Ref<Node>, center: Point, extraNodeLines: Line[], currentPath: Line[] = extraNodeLines): ParasiticCapacitor => {
+//   const parasiticCapacitor = {
+//     transformationMatrix: parentTrnasformationMatrix.multiply(new Matrix(3, 3, [[1/30, 0, center.x], [0, 1/30, center.y], [0, 0, 1]])),
+//     textTransformationMatrix: textTransformationMatrix,
+//     circuitTransformationMatrix: parentTrnasformationMatrix,
+//     node: node,
+//     extraNodeLines: extraNodeLines,
+//     currentPath: currentPath,
+//     dotPercentage: 0,
+//   }
+//   return parasiticCapacitor
+// }
 
 // export const makeAngleSlider = (circuitTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false): AngleSlider => {
 //   return {
@@ -87,25 +87,25 @@ export const makeParasiticCapacitor = (textTransformationMatrix: Matrix, parentT
 //   }
 // }
 
-export const getSliderPercentValue = (slider: AngleSlider): number => {
-  return (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
-}
+// export const getSliderPercentValue = (slider: AngleSlider): number => {
+//   return (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
+// }
 
-export const makeVoltageSource = (textTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
+// export const makeVoltageSource = (textTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false): VoltageSource => {
 
-  const voltageSource = {
-    transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30 * (mirror ? -1 : 1), 0, origin.x], [0, 1/30, origin.y], [0, 0, 1]])),
-    textTransformationMatrix: textTransformationMatrix,
-    vplus: vplus,
-    vminus: vminus,
-    fixedAt: fixedAt,
-    voltageDrop: makeAngleSlider(new Matrix(3, 3), new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 0, '', Visibility.Hidden), // to be updated immediately
-    schematicEffects: {},
-    current: 0 // Amps
-  }
-  voltageSource.voltageDrop = makeAngleSlider(textTransformationMatrix, voltageSource.transformationMatrix, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
-  return voltageSource
-}
+//   const voltageSource = {
+//     transformationMatrix: parentTransformationMatrix.multiply(new Matrix(3, 3, [[1/30 * (mirror ? -1 : 1), 0, origin.x], [0, 1/30, origin.y], [0, 0, 1]])),
+//     textTransformationMatrix: textTransformationMatrix,
+//     vplus: vplus,
+//     vminus: vminus,
+//     fixedAt: fixedAt,
+//     voltageDrop: makeAngleSlider(new Matrix(3, 3), new Matrix(3, 3), 0, 0, 0, 0, 0, false, 0, 0, '', Visibility.Hidden), // to be updated immediately
+//     schematicEffects: {},
+//     current: 0 // Amps
+//   }
+//   voltageSource.voltageDrop = makeAngleSlider(textTransformationMatrix, voltageSource.transformationMatrix, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
+//   return voltageSource
+// }
 
 // export const makeMosfet = (textTransformationMatrix: Matrix, parentTransformationMatrix: Matrix, mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible): Mosfet => {
 //   const mosfet: Mosfet = {

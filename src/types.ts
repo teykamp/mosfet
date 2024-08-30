@@ -1,5 +1,6 @@
 import { Ref } from 'vue'
 import { Matrix } from 'ts-matrix'
+import { Node } from './classes/node'
 
 export type Point = {
   x: number
@@ -84,22 +85,24 @@ export type SchematicEffect = {
 //   forwardCurrent: number // in Amps
 // }
 
-export type VoltageSource = {
-  transformationMatrix: Matrix,
-  textTransformationMatrix: Matrix,
-  // originX: number, // obsolete
-  // originY: number, // obsolete
-  voltageDrop: AngleSlider,
-  vplus: Ref<Node>,
-  vminus: Ref<Node>,
-  schematicEffects: {[name: string]: SchematicEffect},
-  current: number, // in Amps
-  fixedAt: 'gnd' | 'vdd',
-}
+// export type VoltageSource = {
+//   transformationMatrix: Matrix,
+//   textTransformationMatrix: Matrix,
+//   // originX: number, // obsolete
+//   // originY: number, // obsolete
+//   voltageDrop: AngleSlider,
+//   vplus: Ref<Node>,
+//   vminus: Ref<Node>,
+//   schematicEffects: {[name: string]: SchematicEffect},
+//   current: number, // in Amps
+//   fixedAt: 'gnd' | 'vdd',
+// }
 
 export type Wire = {
-  endPoints: {[name: string]: Point},
-  lines: {start: Point, end: Point}[]
+  node: Ref<Node>,
+  lines: Line[],
+  label: string,
+  locations: Point[],
 }
 
 export type Line = {
@@ -112,33 +115,33 @@ export type Circle = {
   outerDiameter: number,
 }
 
-export type Schematic = {
-  vddLocations: Point[], // a list of locations to draw vdd symbols
-  gndLocations: Point[], // a list of locations to draw gnd symbols
-  parasiticCapacitors: ParasiticCapacitor[],
-}
+// export type Schematic = {
+//   vddLocations: Point[], // a list of locations to draw vdd symbols
+//   gndLocations: Point[], // a list of locations to draw gnd symbols
+//   parasiticCapacitors: ParasiticCapacitor[],
+// }
 
-export type ParasiticCapacitor = {
-  transformationMatrix: Matrix,
-  textTransformationMatrix: Matrix,
-  circuitTransformationMatrix: Matrix,
-  node: Ref<Node>,
-  extraNodeLines: Line[],
-  currentPath: Line[],
-  dotPercentage: number,
-}
+// export type ParasiticCapacitor = {
+//   transformationMatrix: Matrix,
+//   textTransformationMatrix: Matrix,
+//   circuitTransformationMatrix: Matrix,
+//   node: Ref<Node>,
+//   extraNodeLines: Line[],
+//   currentPath: Line[],
+//   dotPercentage: number,
+// }
 
-export type Node = {
-  voltage: number, // in Volts
-  netCurrent: number, // in Amps
-  capacitance: number, // in Farads
-  originalCapacitance: number // in
-  fixed: boolean, // GND and VDD nodes are fixed, as are nodes that are being dragged
-  historicVoltages: Queue<number>,
-  lines: Line[],
-  voltageDisplayLabel: string,
-  voltageDisplayLocations: Point[],
-}
+// export type Node = {
+//   voltage: number, // in Volts
+//   netCurrent: number, // in Amps
+//   capacitance: number, // in Farads
+//   originalCapacitance: number // in
+//   fixed: boolean, // GND and VDD nodes are fixed, as are nodes that are being dragged
+//   historicVoltages: Queue<number>,
+//   lines: Line[],
+//   voltageDisplayLabel: string,
+//   voltageDisplayLocations: Point[],
+// }
 
 export type Circuit = {
   transformationMatrix: Matrix,

@@ -118,4 +118,8 @@ export class AngleSlider extends CtxArtist{
         ctx.font = '16px Arial'
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, toSiPrefix(this.value * (this.displayNegative ? -1 : 1), 'V', 3), true)
     }
+
+    getSliderPercentValue(): number {
+        return (this.value - this.minValue) / (this.maxValue - this.minValue)
+    }
   }
