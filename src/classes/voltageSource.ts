@@ -23,7 +23,7 @@ export class VoltageSource extends CtxArtist{
         if (fixedAt == 'gnd') {
             this.voltageDrop = new AngleSlider(this.transformationMatrix.mirror(false, false), vminus, vplus, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
         } else {
-            this.voltageDrop = new AngleSlider(this.transformationMatrix.mirror(false, true), vminus, vplus, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
+            this.voltageDrop = new AngleSlider(this.transformationMatrix.mirror(false, false), vplus, vminus, 0, 0, 50, toRadians(40), toRadians(80), true, -5, 0, name, Visibility.Visible, true)
         }
         this.schematicEffects = {}
         this.current = 0 // Amps

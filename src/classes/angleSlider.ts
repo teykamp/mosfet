@@ -5,6 +5,7 @@ import { toSiPrefix } from "../functions/toSiPrefix"
 import { between, toRadians } from "../functions/extraMath"
 import { Node } from "./node"
 import { Ref } from "vue"
+import { preciseSliderTickRange } from "../constants"
 
 export class AngleSlider extends CtxArtist{
     dragging: boolean
@@ -180,5 +181,27 @@ export class AngleSlider extends CtxArtist{
         this.preciseDragging = false
         this.dragging = false
         this.toNode.value.fixed = false
+    }
+
+    adjustPreciseSlider() {
+        if (this.dragging && this.preciseDragging) {
+            if ((this.value >= this.maxValue) || (this.temporaryMaxValue > this.maxValue)) {
+                this.value = this.maxValue
+                this.temporaryMaxValue = this.maxValue
+                this.temporaryMinValue = this.maxValue - preciseSliderTickRange
+                this.valueRateOfChange = 0
+            }
+            else if ((this.value <= this.minValue) || (this.temporaryMinValue < this.minValue)) {
+                this.value = this.minValue
+                this.temporaryMinValue = this.minValue
+                this.temporaryMaxValue = this.minValue + preciseSliderTickRange
+                this.valueRateOfChange = 0
+            }
+            else {
+                this.temporaryMinValue += this.valueRateOfChange
+                this.temporaryMaxValue += this.valueRateOfChange
+                this.value += this.valueRateOfChange
+            }
+        }
     }
 }

@@ -140,25 +140,7 @@ const draw = () => {
 
 const animate = (timestamp: number) => {
   circuit.value.allSliders.forEach((slider) => {
-    if (slider.dragging && slider.preciseDragging) {
-      if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue > slider.maxValue)) {
-        slider.value = slider.maxValue
-        slider.temporaryMaxValue = slider.maxValue
-        slider.temporaryMinValue = slider.maxValue - preciseSliderTickRange
-        slider.valueRateOfChange = 0
-      }
-      else if ((slider.value <= slider.minValue) || (slider.temporaryMinValue < slider.minValue)) {
-        slider.value = slider.minValue
-        slider.temporaryMinValue = slider.minValue
-        slider.temporaryMaxValue = slider.minValue + preciseSliderTickRange
-        slider.valueRateOfChange = 0
-      }
-      else {
-        slider.temporaryMinValue += slider.valueRateOfChange
-        slider.temporaryMaxValue += slider.valueRateOfChange
-        slider.value += slider.valueRateOfChange
-      }
-    }
+    slider.adjustPreciseSlider()
     updateNodeVoltagesBasedOnSliders()
   })
 
