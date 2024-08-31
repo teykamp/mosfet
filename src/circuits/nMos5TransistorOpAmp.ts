@@ -1,6 +1,6 @@
 import { Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
-import { schematicOrigin, schematicScale } from '../constants'
+import { schematicOrigin } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
 import { ref } from 'vue'

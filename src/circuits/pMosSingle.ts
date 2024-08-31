@@ -1,34 +1,38 @@
-import { makeListOfSliders, makeMosfet, makeNode } from '../functions/makeMosfet'
-import { Circuit } from '../types'
-import { vddNodeId, vddVoltage } from '../constants'
-import { schematicOrigin, schematicScale } from '../constants'
-import { Matrix } from 'ts-matrix'
+// import { Visibility } from '../types'
+import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
+import { schematicOrigin } from '../constants'
+import { Circuit } from '../classes/circuit'
+import { Node } from '../classes/node'
+import { ref } from 'vue'
+// import { ParasiticCapacitor } from '../classes/parasiticCapacitor'
+import { Schematic } from '../classes/schematic'
+import { Mosfet } from '../classes/mosfet'
+import { VoltageSource } from '../classes/voltageSource'
 
 const usePmosSingle = () => {
-    const circuit: Circuit = {
-        transformationMatrix: new Matrix(3, 3, [[schematicScale, 0, schematicOrigin.x], [0, schematicScale, schematicOrigin.y], [0, 0, 1]]),
-        textTransformationMatrix: new Matrix(3, 3), // to be updated immediately
-        schematic: {
-            // wires: [],
-            vddLocations: [{x: 0, y: -2}],
-            gndLocations: [],
-            parasiticCapacitors: [],
-        },
-        devices: {
-            mosfets: {},
-            voltageSources: {}
-        },
-        nodes: {
-            [vddNodeId]: makeNode(vddVoltage, true),
-            "M1_drain": makeNode(5, false),
-            "M1_gate": makeNode(1, false),
-        },
-        allSliders: []
+    const circuit: Circuit = new Circuit(schematicOrigin, 1)
+
+    //////////////////////////////
+    ///          NODES         ///
+    //////////////////////////////
+
+    circuit.nodes = {
+        [gndNodeId]: ref(new Node(gndVoltage, true)),
+        [vddNodeId]: ref(new Node(vddVoltage, true)),
+        "M1_drain": ref(new Node(5, false,
+            [
+                {start: {x: 0, y: 2}, end: {x: 0, y: 4}}
+            ]
+        )),
+        "M1_gate": ref(new Node(1, false)),
     }
-    circuit.textTransformationMatrix = circuit.transformationMatrix.multiply(new Matrix(3, 3, [[1/schematicScale, 0, 0], [0, 1/schematicScale, 0], [0, 0, 1]]))
+
+    //////////////////////////////
+    ///         MOSFETS        ///
+    //////////////////////////////
+
     circuit.devices.mosfets = {
-        "M1": makeMosfet(
-            circuit.textTransformationMatrix,
+        "M1": new Mosfet(
             circuit.transformationMatrix,
             'pmos',
             0,
@@ -39,7 +43,36 @@ const usePmosSingle = () => {
             circuit.nodes[vddNodeId]
         )
     }
-    makeListOfSliders(circuit)
+
+    //////////////////////////////
+    ///     VOLTAGE SOURCES    ///
+    //////////////////////////////
+
+    circuit.devices.voltageSources = {
+        "Vd": new VoltageSource(
+            circuit.transformationMatrix,
+            {x: 0, y: 6},
+            circuit.nodes[gndNodeId],
+            circuit.nodes["M1_drain"],
+            "Vd",
+            'gnd',
+            true
+        ),
+    }
+
+    //////////////////////////////
+    ///        SCHEMATIC       ///
+    //////////////////////////////
+
+    circuit.schematic = new Schematic(
+        circuit.transformationMatrix,
+        [{x: 0, y: 8}],
+        [{x: 0, y: -2}],
+        [],
+        Object.values(circuit.devices.mosfets),
+        Object.values(circuit.nodes)
+    )
+
     return circuit
 }
 export default usePmosSingle

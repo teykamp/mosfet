@@ -21,7 +21,6 @@ export class Circuit extends CtxArtist{
 
     constructor(origin: Point, scale: number, schematic: Schematic = new Schematic(new TransformationMatrix(), [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         super((new TransformationMatrix()).translate(origin).scale(schematicScale * scale))
-        console.log(this.transformationMatrix)
         this.schematic = schematic
         this.devices = {
             mosfets: mosfets,
