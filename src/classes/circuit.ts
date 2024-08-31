@@ -7,6 +7,7 @@ import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
+import { schematicScale } from "../constants"
 
 export class Circuit extends CtxArtist{
     schematic: Schematic // how to draw the circuit
@@ -16,15 +17,18 @@ export class Circuit extends CtxArtist{
     }
     // allSliders: AngleSlider[] // a list of all the AngleSliders belonging to all of the devices, to make it easier to loop over them
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
+    textTransformationMatrix: TransformationMatrix
 
-    constructor(origin: Point, scale: number, schematic: Schematic = new Schematic(new TransformationMatrix, [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}) {
-        super((new TransformationMatrix()).translate(origin).scale(scale))
+    constructor(origin: Point, scale: number, schematic: Schematic = new Schematic(new TransformationMatrix(), [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
+        super((new TransformationMatrix()).translate(origin).scale(schematicScale * scale))
+        console.log(this.transformationMatrix)
         this.schematic = schematic
         this.devices = {
             mosfets: mosfets,
             voltageSources: voltageSources,
         }
         this.nodes = nodes
+        this.textTransformationMatrix = textTransformationMatrix.translate(origin).scale(scale)
     }
 
     get allSliders(): AngleSlider[] {
@@ -36,11 +40,11 @@ export class Circuit extends CtxArtist{
 
         // set static transformation matrices for the circuit
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
-        CtxArtist.textTransformationMatrix = new TransformationMatrix()
+        CtxArtist.textTransformationMatrix = this.textTransformationMatrix
 
+        this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {mosfet.draw(ctx)})
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {voltageSource.draw(ctx)})
-        this.schematic.draw(ctx)
     }
 
     makeListOfSliders(): AngleSlider[] {

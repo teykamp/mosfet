@@ -16,7 +16,7 @@ export class VoltageSource extends CtxArtist{
     fixedAt: 'gnd' | 'vdd'
 
     constructor(parentTransformationMatrix: TransformationMatrix, origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false) {
-        super(parentTransformationMatrix.translate(origin).mirror(mirror, false))
+        super(parentTransformationMatrix.translate(origin).mirror(mirror, false).scale(1/30))
         this.vplus = vplus,
         this.vminus = vminus,
         this.fixedAt = fixedAt,

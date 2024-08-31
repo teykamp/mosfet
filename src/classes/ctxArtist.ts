@@ -4,13 +4,15 @@ import { GLOBAL_LINE_THICKNESS } from "../constants"
 
 export class CtxArtist {
     transformationMatrix: TransformationMatrix
-    localLineThickness: number
     static textTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static circuitTransformationMatrix: TransformationMatrix = new TransformationMatrix()
 
     constructor (transformationMatrix: TransformationMatrix = new TransformationMatrix()) {
         this.transformationMatrix = transformationMatrix
-        this.localLineThickness = this.getLocalLineThickness()
+    }
+
+    get localLineThickness(): number {
+        return this.getLocalLineThickness()
     }
 
     fillTextGlobalReferenceFrame(ctx: CanvasRenderingContext2D, textLocation: Point, text: string, autoTextAlign: boolean = false, oppositeTextAlign = false, lineHeight: number = 16): Point {

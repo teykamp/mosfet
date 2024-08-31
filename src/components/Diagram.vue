@@ -24,12 +24,9 @@
 import { ref, onMounted, shallowRef } from 'vue'
 import { Visibility } from '../types'
 import { modulo, between } from '../functions/extraMath'
-import { getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize, preciseSliderTickRange } from '../constants'
-import { drawMosfet, drawSchematic, drawVoltageSource } from '../functions/drawMosfet'
-import { Matrix } from 'ts-matrix'
 import { getDotSpeedFromCurrent } from '../functions/nonLinearMappingFunctions'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
@@ -37,7 +34,7 @@ const ctx = ref<null | CanvasRenderingContext2D>(null)
 let previousTime = 0
 
 type DefinedCircuits = keyof typeof circuits
-const currentCircuit = ref<DefinedCircuits>('nMosSingle')
+const currentCircuit = ref<DefinedCircuits>('nMos5TransistorOpAmp')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
@@ -49,9 +46,9 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 
 const updateSlidersBasedOnNodeVoltages = () => {
   Object.values(circuit.value.devices.mosfets).forEach((mosfet) => {
-    mosfet.current = getMosfetCurrent(mosfet)
-    mosfet.saturationLevel = getMosfetSaturationLevel(mosfet)
-    mosfet.forwardCurrent = getMosfetForwardCurrent(mosfet)
+    mosfet.current = mosfet.getMosfetCurrent()
+    mosfet.saturationLevel = mosfet.getMosfetSaturationLevel()
+    mosfet.forwardCurrent = mosfet.getMosfetForwardCurrent()
 
     mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
     mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
@@ -112,14 +109,15 @@ const getMousePos = (event: MouseEvent) => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
-    const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
-    const transformedMouseX = transformedMousePos.at(0, 0)
-    const transformedMouseY = transformedMousePos.at(1, 0)
+    // const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
+    const transformedMousePos = slider.transformationMatrix.inverse().transformPoint({x: mouseX, y: mouseY}) // multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
+    // const transformedMouseX = transformedMousePos.at(0, 0)
+    // const transformedMouseY = transformedMousePos.at(1, 0)
 
     if (slider.visibility == Visibility.Visible) {
-        const mouseRadiusSquared = (transformedMouseX) ** 2 + (transformedMouseY) ** 2
-        const mouseDistanceFromDraggableSliderSquared = (transformedMouseX - slider.location.x) ** 2 + (transformedMouseY - slider.location.y) ** 2
-        const mouseTheta = Math.atan2(transformedMouseY, transformedMouseX)
+        const mouseRadiusSquared = (transformedMousePos.x) ** 2 + (transformedMousePos.y) ** 2
+        const mouseDistanceFromDraggableSliderSquared = (transformedMousePos.x - slider.location.x) ** 2 + (transformedMousePos.y - slider.location.y) ** 2
+        const mouseTheta = Math.atan2(transformedMousePos.y, transformedMousePos.x)
         const sliderValue = mouseTheta / slider.endAngle
       if (
         (mouseDistanceFromDraggableSliderSquared <= 10 ** 2) || // mouse hovering over slider knob
@@ -163,10 +161,11 @@ const drag = (event: MouseEvent) => {
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
     if (slider.dragging) {
-      const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
-      const transformedMouseX = transformedMousePos.at(0, 0)
-      const transformedMouseY = transformedMousePos.at(1, 0)
-      const mouseAngle = Math.atan2(transformedMouseY, transformedMouseX)
+      // const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
+      const transformedMousePos = slider.transformationMatrix.inverse().transformPoint({x: mouseX, y: mouseY})
+      // const transformedMouseX = transformedMousePos.at(0, 0)
+      // const transformedMouseY = transformedMousePos.at(1, 0)
+      const mouseAngle = Math.atan2(transformedMousePos.y, transformedMousePos.x)
 
       const percentValue = between(0, 1, mouseAngle / slider.endAngle)
       slider.value = percentValue * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
@@ -228,14 +227,7 @@ const draw = () => {
   ctx.value.resetTransform()
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
   updateSlidersBasedOnNodeVoltages()
-  Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-    drawMosfet(ctx.value as CanvasRenderingContext2D, mosfet)
-  })
-  Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
-    drawVoltageSource(ctx.value as CanvasRenderingContext2D, voltageSource)
-  })
-
-  drawSchematic(ctx.value as CanvasRenderingContext2D, circuit.value)
+  circuit.value.draw(ctx.value as CanvasRenderingContext2D)
 }
 
 const animate = (timestamp: number) => {

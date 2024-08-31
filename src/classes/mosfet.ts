@@ -96,7 +96,7 @@ export class Mosfet extends CtxArtist{
 
         this.gradientSize = this.getGradientSizeFromSaturationLevel()
         const gradientOrigin: Point = {x: 0, y: -60 * (this.mosfetType == 'nmos' ? 1 : -1)}
-        const gradient = makeStandardGradient(ctx, gradientOrigin, this.gradientSize, 'rgba(200, 200, 200, 1')
+        const gradient = makeStandardGradient(ctx, gradientOrigin, this.gradientSize, 'rgba(200, 200, 200, 1)')
 
         const forwardCurrentScaled = this.getForwardCurrentScaled()
         const gateColor = this.getGateColorFromForwardCurrent()

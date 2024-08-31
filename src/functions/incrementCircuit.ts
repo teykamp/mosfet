@@ -1,6 +1,6 @@
 import { type Ref } from "vue"
-import { Circuit, Node } from "../types"
-import { getMosfetCurrent } from "../functions/makeMosfet"
+import { Circuit } from "../classes/circuit"
+import { Node } from "../classes/node"
 import { gndNodeId, gndVoltage, vddNodeId, vddVoltage } from "../constants"
 
 export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
@@ -15,7 +15,7 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
         const mosfet = circuit.devices.mosfets[mosfetId]
 
         // get the current flowing through the mosfet
-        const mosfetCurrent = getMosfetCurrent(mosfet)
+        const mosfetCurrent = mosfet.getMosfetCurrent()
 
         if(mosfet.mosfetType == 'nmos') {
             mosfet.Vd.value.netCurrent -= mosfetCurrent

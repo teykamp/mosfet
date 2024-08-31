@@ -1,6 +1,6 @@
 import { Matrix } from 'ts-matrix'
 import { Point, Line } from '../types'
-import { assert } from 'console'
+// import { assert } from 'console'
 
 export class TransformationMatrix {
     // [
@@ -23,7 +23,7 @@ export class TransformationMatrix {
     }
 
     get relativeScale(): number {
-        return Math.abs(Math.sqrt(this.matrix.determinant()))
+        return Math.sqrt(Math.abs(this.matrix.determinant()))
     }
 
     get rotation(): number {
@@ -42,19 +42,19 @@ export class TransformationMatrix {
     }
 
     set scaleX(x: number) {
-        assert(x != 0)
+        // assert(x != 0)
         this.scale(1 / this.scaleX, 1, true)
         this.scale(x, 1, true)
     }
 
     set scaleY(y: number) {
-        assert(y != 0)
+        // assert(y != 0)
         this.scale(1, 1 / this.scaleY, true)
         this.scale(1, y, true)
     }
 
     set relativeScale(scale: number) {
-        assert(scale != 0)
+        // assert(scale != 0)
         this.scale(1 / this.relativeScale, 1 / this.relativeScale, true)
         this.scale(scale, scale, true)
     }
@@ -116,13 +116,13 @@ export class TransformationMatrix {
         const result = new TransformationMatrix()
         Object.assign(result, this)
 
-        const xMirror = x ? 1 : -1
-        const yMirror = y ? 1 : -1
+        const xMirror = x ? -1 : 1
+        const yMirror = y ? -1 : 1
 
         result.matrix = this.matrix.multiply(
             new Matrix(3, 3, [
-                [xMirror, yMirror, 0],
-                [xMirror, yMirror, 0],
+                [xMirror, 0, 0],
+                [0, yMirror, 0],
                 [0, 0,       1]
             ])
         )
@@ -141,8 +141,8 @@ export class TransformationMatrix {
 
         result.matrix = this.matrix.multiply(
             new Matrix(3, 3, [
-                [x, y, 0],
-                [x, y, 0],
+                [x, 0, 0],
+                [0, y, 0],
                 [0, 0, 1]
             ])
         )

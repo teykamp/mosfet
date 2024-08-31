@@ -10,7 +10,7 @@ import { Mosfet } from '../classes/mosfet'
 import { VoltageSource } from '../classes/voltageSource'
 
 const useNmos5TransistorOpAmp = (): Circuit => {
-    const circuit: Circuit = new Circuit(schematicOrigin, schematicScale * 0.75)
+    const circuit: Circuit = new Circuit(schematicOrigin, 1)
 
     //////////////////////////////
     ///          NODES         ///
