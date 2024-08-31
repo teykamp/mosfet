@@ -1,9 +1,9 @@
 import { type Ref } from "vue"
-import { Circuit, Node } from "../types"
-import { getMosfetCurrent } from "../functions/makeMosfet"
+import { Circuit } from "../classes/circuit"
+import { Node } from "../classes/node"
 import { gndNodeId, gndVoltage, vddNodeId, vddVoltage } from "../constants"
 
-export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
+export const incrementCircuit = (circuit: Circuit, deltaT: number = 10) => {
     // first, set all the currents in the circuit to zero
     for (let nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId]
@@ -15,7 +15,7 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
         const mosfet = circuit.devices.mosfets[mosfetId]
 
         // get the current flowing through the mosfet
-        const mosfetCurrent = getMosfetCurrent(mosfet)
+        const mosfetCurrent = mosfet.getMosfetCurrent()
 
         if(mosfet.mosfetType == 'nmos') {
             mosfet.Vd.value.netCurrent -= mosfetCurrent
@@ -31,13 +31,13 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
     for (let voltageSourceId in circuit.devices.voltageSources) {
         const voltageSource = circuit.devices.voltageSources[voltageSourceId]
         // assuming the negative side is tied to GND
-        if (voltageSource.vminus.value.fixed) {
+        if (voltageSource.fixedAt == 'gnd') {
             voltageSource.current = voltageSource.vplus.value.netCurrent
             voltageSource.vminus.value.netCurrent += voltageSource.current
             voltageSource.vplus.value.netCurrent = 0
         }
         // assuming the positive side is tied to VDD
-        else if (voltageSource.vminus.value.fixed) {
+        else if (voltageSource.fixedAt == 'vdd') {
             voltageSource.current = -voltageSource.vminus.value.netCurrent
             voltageSource.vplus.value.netCurrent += voltageSource.current
             voltageSource.vminus.value.netCurrent = 0
@@ -65,7 +65,7 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
 
         checkNodeBounceAndAdjustCapacitance(node)
 
-        let deltaV = node.value.netCurrent / node.value.capacitance * deltaT
+        let deltaV = node.value.netCurrent / node.value.capacitance * (deltaT / 1000) * 0.5
         // place an upper and lower bound on how quickly the voltage is allowed to change, since the net current may vary on several orders of magnitude
         if (deltaV > 0.1) {
             deltaV = 0.1
