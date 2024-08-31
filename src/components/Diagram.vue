@@ -23,15 +23,13 @@
 <script setup lang="ts">
 import { ref, onMounted, shallowRef } from 'vue'
 import { Visibility } from '../types'
-import { modulo, between } from '../functions/extraMath'
+import { between } from '../functions/extraMath'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize, preciseSliderTickRange } from '../constants'
-import { getDotSpeedFromCurrent } from '../functions/nonLinearMappingFunctions'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
-let previousTime = 0
 
 type DefinedCircuits = keyof typeof circuits
 const currentCircuit = ref<DefinedCircuits>('nMos5TransistorOpAmp')
@@ -109,10 +107,7 @@ const getMousePos = (event: MouseEvent) => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
-    // const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
     const transformedMousePos = slider.transformationMatrix.inverse().transformPoint({x: mouseX, y: mouseY}) // multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
-    // const transformedMouseX = transformedMousePos.at(0, 0)
-    // const transformedMouseY = transformedMousePos.at(1, 0)
 
     if (slider.visibility == Visibility.Visible) {
         const mouseRadiusSquared = (transformedMousePos.x) ** 2 + (transformedMousePos.y) ** 2
@@ -161,10 +156,7 @@ const drag = (event: MouseEvent) => {
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
     if (slider.dragging) {
-      // const transformedMousePos = slider.transformationMatrix.inverse().multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
       const transformedMousePos = slider.transformationMatrix.inverse().transformPoint({x: mouseX, y: mouseY})
-      // const transformedMouseX = transformedMousePos.at(0, 0)
-      // const transformedMouseY = transformedMousePos.at(1, 0)
       const mouseAngle = Math.atan2(transformedMousePos.y, transformedMousePos.x)
 
       const percentValue = between(0, 1, mouseAngle / slider.endAngle)
@@ -231,9 +223,6 @@ const draw = () => {
 }
 
 const animate = (timestamp: number) => {
-  const timeDifference = timestamp - previousTime
-  previousTime = timestamp
-
   circuit.value.allSliders.forEach((slider) => {
     if (slider.dragging && slider.preciseDragging) {
       if ((slider.value >= slider.maxValue) || (slider.temporaryMaxValue > slider.maxValue)) {
@@ -260,14 +249,11 @@ const animate = (timestamp: number) => {
   incrementCircuit(circuit.value)
 
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-    const dotSpeed = getDotSpeedFromCurrent(mosfet.current)
-    mosfet.dotPercentage = modulo(mosfet.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
+    mosfet.currentDots.updateDotPositionBasedOnTimestamp(timestamp, mosfet.current)
   })
   Object.values(circuit.value.schematic.parasiticCapacitors).forEach(capacitor => {
-    const dotSpeed = getDotSpeedFromCurrent(capacitor.node.value.netCurrent)
-    capacitor.dotPercentage = modulo(capacitor.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
+    capacitor.currentDots.updateDotPositionBasedOnTimestamp(timestamp, capacitor.node.value.netCurrent)
   })
-
 
   draw()
   requestAnimationFrame(animate)
@@ -276,7 +262,6 @@ const animate = (timestamp: number) => {
 onMounted(() => {
   if (canvas.value) {
     ctx.value = canvas.value.getContext('2d')
-    // if (ctx.value) ctx.value.scale(0.8, 0.8)
 
     draw()
     requestAnimationFrame(animate)

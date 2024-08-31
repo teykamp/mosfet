@@ -9,7 +9,7 @@ import { Mosfet } from "./mosfet"
 import { Node } from "./node"
 import { schematicScale } from "../constants"
 
-export class Circuit extends CtxArtist{
+export class Circuit extends CtxArtist {
     schematic: Schematic // how to draw the circuit
     devices: {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices

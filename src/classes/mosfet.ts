@@ -7,14 +7,15 @@ import { unit, Unit } from "mathjs"
 import { ekvNmos, ekvPmos } from "../functions/ekvModel"
 import { between, toRadians } from "../functions/extraMath"
 import { toSiPrefix } from "../functions/toSiPrefix"
-import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient, drawCurrentDots } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } from "../functions/drawFuncs"
 import { interpolateInferno } from "d3"
 import { Node } from "./node"
+import { CurrentDots } from "./currentDots"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
     mirror: boolean // obsolete
-    dotPercentage: number
+    currentDots: CurrentDots
     gradientSize: number
     schematicEffects: {[name: string]: SchematicEffect}
     vgs: AngleSlider
@@ -52,7 +53,7 @@ export class Mosfet extends CtxArtist{
                 gradientSize: 100,
             },
         },
-        this.dotPercentage = 0
+        this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         this.Vg = Vg
         this.Vs = Vs
         this.Vd = Vd
@@ -111,11 +112,7 @@ export class Mosfet extends CtxArtist{
         this.schematicEffects["gate"].gradientSize = forwardCurrentScaled * 3.5
         this.schematicEffects["gate"].color = gateColor
 
-        const dotPath: Line[] = [{
-            start: {x: -15, y: -60},
-            end: {x: -15, y: 60},
-        }]
-        drawCurrentDots(ctx, dotPath, this.dotPercentage, 8, 20, 60)
+        this.currentDots.draw(ctx)
 
         // display current read-out, separating quantity and unit on separate lines
         const currentToDisplay = toSiPrefix(this.current, "A")
