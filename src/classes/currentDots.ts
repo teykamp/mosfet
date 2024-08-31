@@ -5,7 +5,6 @@ import { Circle, Line, Point } from "../types";
 export class CurrentDots {
     dotPath: Line[]
     dotPercentage: number
-    previousTimestamp: number
     dotSize: number
     dotSpacing: number
     gradientSize: number
@@ -13,7 +12,6 @@ export class CurrentDots {
     constructor(dotPath: Line[] = []) {
         this.dotPath = dotPath
         this.dotPercentage = 0
-        this.previousTimestamp = 0
         this.dotSize = 8
         this.dotSpacing = 20
         if (dotPath.length == 0) {
@@ -33,9 +31,7 @@ export class CurrentDots {
         drawCirclesFillWithGradient(ctx, dots, this.dotSize / 2, currentGradient)
     }
 
-    updateDotPositionBasedOnTimestamp(timestamp: number, current: number) {
-        const timeDifference = timestamp - this.previousTimestamp
-        this.previousTimestamp = timestamp
+    updateDotPositionBasedOnTimestamp(current: number, timeDifference: number = 10) {
         const dotSpeed = this.getDotSpeedFromCurrent(current)
         this.dotPercentage = modulo(this.dotPercentage + dotSpeed * (timeDifference / 1000), 1)
     }

@@ -183,7 +183,7 @@ export class AngleSlider extends CtxArtist{
         this.toNode.value.fixed = false
     }
 
-    adjustPreciseSlider() {
+    adjustPreciseSlider(timeDifference: number = 10) {
         if (this.dragging && this.preciseDragging) {
             if ((this.value >= this.maxValue) || (this.temporaryMaxValue > this.maxValue)) {
                 this.value = this.maxValue
@@ -198,9 +198,9 @@ export class AngleSlider extends CtxArtist{
                 this.valueRateOfChange = 0
             }
             else {
-                this.temporaryMinValue += this.valueRateOfChange
-                this.temporaryMaxValue += this.valueRateOfChange
-                this.value += this.valueRateOfChange
+                this.temporaryMinValue += this.valueRateOfChange * (timeDifference / 1000) * 70
+                this.temporaryMaxValue += this.valueRateOfChange * (timeDifference / 1000) * 70
+                this.value += this.valueRateOfChange * (timeDifference / 1000) * 70
             }
         }
     }

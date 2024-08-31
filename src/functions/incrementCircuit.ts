@@ -3,7 +3,7 @@ import { Circuit } from "../classes/circuit"
 import { Node } from "../classes/node"
 import { gndNodeId, gndVoltage, vddNodeId, vddVoltage } from "../constants"
 
-export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
+export const incrementCircuit = (circuit: Circuit, deltaT: number = 10) => {
     // first, set all the currents in the circuit to zero
     for (let nodeId in circuit.nodes) {
         const node = circuit.nodes[nodeId]
@@ -65,7 +65,7 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
 
         checkNodeBounceAndAdjustCapacitance(node)
 
-        let deltaV = node.value.netCurrent / node.value.capacitance * deltaT
+        let deltaV = node.value.netCurrent / node.value.capacitance * (deltaT / 1000)
         // place an upper and lower bound on how quickly the voltage is allowed to change, since the net current may vary on several orders of magnitude
         if (deltaV > 0.1) {
             deltaV = 0.1

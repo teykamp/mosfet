@@ -29,6 +29,7 @@ import { AngleSlider } from '../classes/angleSlider'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
+let previousTimestamp = 0
 
 type DefinedCircuits = keyof typeof circuits
 const currentCircuit = ref<DefinedCircuits>('nMos5TransistorOpAmp')
@@ -108,18 +109,21 @@ const draw = () => {
 }
 
 const animate = (timestamp: number) => {
+  const timeDifference = timestamp - previousTimestamp
+  previousTimestamp = timestamp
+
   circuit.value.allSliders.forEach((slider) => {
-    slider.adjustPreciseSlider()
+    slider.adjustPreciseSlider(timeDifference)
     updateNodeVoltagesBasedOnSliders()
   })
 
-  incrementCircuit(circuit.value)
+  incrementCircuit(circuit.value, timeDifference)
 
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-    mosfet.currentDots.updateDotPositionBasedOnTimestamp(timestamp, mosfet.current)
+    mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
   })
   Object.values(circuit.value.schematic.parasiticCapacitors).forEach(capacitor => {
-    capacitor.currentDots.updateDotPositionBasedOnTimestamp(timestamp, capacitor.node.value.netCurrent)
+    capacitor.currentDots.updateDotPositionBasedOnTimestamp(capacitor.node.value.netCurrent, timeDifference)
   })
 
   draw()
