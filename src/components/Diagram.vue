@@ -27,6 +27,7 @@ import { between } from '../functions/extraMath'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize, preciseSliderTickRange } from '../constants'
+import { AngleSlider } from '../classes/angleSlider'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -43,56 +44,15 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 }
 
 const updateSlidersBasedOnNodeVoltages = () => {
-  Object.values(circuit.value.devices.mosfets).forEach((mosfet) => {
-    mosfet.current = mosfet.getMosfetCurrent()
-    mosfet.saturationLevel = mosfet.getMosfetSaturationLevel()
-    mosfet.forwardCurrent = mosfet.getMosfetForwardCurrent()
-
-    mosfet.vgs.value = mosfet.Vg.value.voltage - mosfet.Vs.value.voltage
-    mosfet.vds.value = mosfet.Vd.value.voltage - mosfet.Vs.value.voltage
-  })
-  Object.values(circuit.value.devices.voltageSources).forEach((voltageSource) => {
-    voltageSource.voltageDrop.value = voltageSource.vplus.value.voltage - voltageSource.vminus.value.voltage
-  })
-
-  // const sliders = [mosfet.vgs, mosfet.vds] // for some reason, we can't put this definition inline on the next line
-  circuit.value.allSliders.forEach((slider) => {
-    slider.value = between(slider.temporaryMinValue, slider.temporaryMaxValue, slider.value)
-
-    const normalizedSliderValue = (slider.value - slider.temporaryMinValue) / (slider.temporaryMaxValue - slider.temporaryMinValue)
-      const sliderAngle = normalizedSliderValue * (slider.endAngle)
-      slider.location = {
-        x: slider.radius * Math.cos(sliderAngle),
-        y: slider.radius * Math.sin(sliderAngle),
-      }
+  circuit.value.allSliders.forEach((slider: AngleSlider) => {
+    slider.updateSliderBasedOnNodeVoltages()
   })
 }
 
 const updateNodeVoltagesBasedOnSliders = () => {
-  // evaluate mosfet sliders
-  Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-      if (mosfet.vgs.dragging) {
-        mosfet.Vg.value.fixed = true
-        mosfet.Vg.value.voltage = mosfet.Vs.value.voltage + mosfet.vgs.value
-      }
-      if (mosfet.vds.dragging) {
-        mosfet.Vd.value.fixed = true
-        mosfet.Vd.value.voltage = mosfet.Vs.value.voltage + mosfet.vds.value
-      }
-    })
-    // evaluate voltageSource sliders
-    Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
-      if (voltageSource.voltageDrop.dragging) {
-        if (voltageSource.fixedAt == 'gnd') {
-          voltageSource.vplus.value.fixed = true
-          voltageSource.vplus.value.voltage = voltageSource.vminus.value.voltage + voltageSource.voltageDrop.value
-        }
-        else if (voltageSource.fixedAt == 'vdd') {
-          voltageSource.vminus.value.fixed = true
-          voltageSource.vminus.value.voltage = voltageSource.vplus.value.voltage - voltageSource.voltageDrop.value
-        }
-      }
-    })
+  circuit.value.allSliders.forEach((slider: AngleSlider) => {
+    slider.updateNodeVoltagesBasedOnSlider()
+  })
 }
 
 const getMousePos = (event: MouseEvent) => {

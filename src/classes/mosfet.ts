@@ -24,9 +24,9 @@ export class Mosfet extends CtxArtist{
     Vs: Ref<Node>
     Vd: Ref<Node>
     Vb: Ref<Node>
-    current: number // in Amps
-    saturationLevel: number // as a fraction of total saturation (0 to 1)
-    forwardCurrent: number // in Amps
+    // current: number // in Amps
+    // saturationLevel: number // as a fraction of total saturation (0 to 1)
+    // forwardCurrent: number // in Amps
 
     constructor(parentTransformationMatrix: TransformationMatrix, mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
         super(parentTransformationMatrix.translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
@@ -58,17 +58,17 @@ export class Mosfet extends CtxArtist{
         this.Vs = Vs
         this.Vd = Vd
         this.Vb = Vb
-        this.current = this.getMosfetCurrent()
-        this.saturationLevel = this.getMosfetSaturationLevel()
-        this.forwardCurrent = this.getMosfetForwardCurrent()
+        // this.current = this.getMosfetCurrent()
+        // this.saturationLevel = this.getMosfetSaturationLevel()
+        // this.forwardCurrent = this.getMosfetForwardCurrent()
 
         if (this.mosfetType == 'nmos') {
-            this.vgs = new AngleSlider(this.transformationMatrix, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
-            this.vds = new AngleSlider(this.transformationMatrix, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+            this.vgs = new AngleSlider(this.transformationMatrix, Vs, Vg, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
+            this.vds = new AngleSlider(this.transformationMatrix, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
         }
         else {
-            this.vgs = new AngleSlider(this.transformationMatrix, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
-            this.vds = new AngleSlider(this.transformationMatrix, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
+            this.vgs = new AngleSlider(this.transformationMatrix, Vs, Vg, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
+            this.vds = new AngleSlider(this.transformationMatrix, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
         }
     }
 
@@ -132,6 +132,16 @@ export class Mosfet extends CtxArtist{
         // draw mosfet angle sliders
         this.vgs.draw(ctx)
         this.vds.draw(ctx)
+    }
+
+    get current(): number { // in Amps
+        return this.getMosfetCurrent()
+    }
+    get saturationLevel(): number { // as a fraction of total saturation (0 to 1)
+        return this.getMosfetSaturationLevel()
+    }
+    get forwardCurrent(): number { // in Amps
+        return this.getMosfetForwardCurrent()
     }
 
 

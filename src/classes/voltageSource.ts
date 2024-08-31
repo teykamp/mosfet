@@ -17,11 +17,15 @@ export class VoltageSource extends CtxArtist{
 
     constructor(parentTransformationMatrix: TransformationMatrix, origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false) {
         super(parentTransformationMatrix.translate(origin).mirror(mirror, false).scale(1/30))
-        this.vplus = vplus,
-        this.vminus = vminus,
-        this.fixedAt = fixedAt,
-        this.voltageDrop = new AngleSlider(this.transformationMatrix.mirror(false, fixedAt == 'vdd'), 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
-        this.schematicEffects = {},
+        this.vplus = vplus
+        this.vminus = vminus
+        this.fixedAt = fixedAt
+        if (fixedAt == 'gnd') {
+            this.voltageDrop = new AngleSlider(this.transformationMatrix.mirror(false, false), vminus, vplus, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
+        } else {
+            this.voltageDrop = new AngleSlider(this.transformationMatrix.mirror(false, true), vminus, vplus, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
+        }
+        this.schematicEffects = {}
         this.current = 0 // Amps
     }
 

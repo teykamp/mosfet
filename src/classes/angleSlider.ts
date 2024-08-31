@@ -2,7 +2,9 @@ import { Point, RelativeDirection, Visibility } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toSiPrefix } from "../functions/toSiPrefix"
-import { toRadians } from "../functions/extraMath"
+import { between, toRadians } from "../functions/extraMath"
+import { Node } from "./node"
+import { Ref } from "vue"
 
 export class AngleSlider extends CtxArtist{
     dragging: boolean
@@ -22,8 +24,10 @@ export class AngleSlider extends CtxArtist{
     temporaryMaxValue: number
     previousValue: number
     valueRateOfChange: number
+    fromNode: Ref<Node>
+    toNode: Ref<Node>
 
-    constructor(parentTransformationMatrix: TransformationMatrix, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
+    constructor(parentTransformationMatrix: TransformationMatrix, fromNode: Ref<Node>, toNode: Ref<Node>, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
         super(parentTransformationMatrix.translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW))
 
         this.dragging = false
@@ -43,6 +47,8 @@ export class AngleSlider extends CtxArtist{
         this.temporaryMaxValue = maxValue
         this.previousValue = minValue
         this.valueRateOfChange = 0
+        this.fromNode = fromNode
+        this.toNode = toNode
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -121,4 +127,23 @@ export class AngleSlider extends CtxArtist{
     getSliderPercentValue(): number {
         return (this.value - this.minValue) / (this.maxValue - this.minValue)
     }
-  }
+
+    updateSliderBasedOnNodeVoltages() {
+        this.value = this.toNode.value.voltage - this.fromNode.value.voltage
+        this.value = between(this.temporaryMinValue, this.temporaryMaxValue, this.value)
+
+        const normalizedSliderValue = (this.value - this.temporaryMinValue) / (this.temporaryMaxValue - this.temporaryMinValue)
+        const sliderAngle = normalizedSliderValue * (this.endAngle)
+        this.location = {
+            x: this.radius * Math.cos(sliderAngle),
+            y: this.radius * Math.sin(sliderAngle),
+        }
+    }
+
+    updateNodeVoltagesBasedOnSlider() {
+        if (this.dragging) {
+            this.toNode.value.fixed = true
+            this.toNode.value.voltage = this.fromNode.value.voltage + this.value
+        }
+    }
+}
