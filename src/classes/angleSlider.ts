@@ -204,4 +204,34 @@ export class AngleSlider extends CtxArtist{
             }
         }
     }
+
+    checkDrag(mousePosition: Point, isPreciseDragging: boolean) {
+        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
+
+        if (this.visibility == Visibility.Visible) {
+            const mouseRadiusSquared = (transformedMousePos.x) ** 2 + (transformedMousePos.y) ** 2
+            const mouseDistanceFromDraggableSliderSquared = (transformedMousePos.x - this.location.x) ** 2 + (transformedMousePos.y - this.location.y) ** 2
+            const mouseTheta = Math.atan2(transformedMousePos.y, transformedMousePos.x)
+            const sliderValue = mouseTheta / this.endAngle
+            if (
+                (mouseDistanceFromDraggableSliderSquared <= 10 ** 2) || // mouse hovering over slider knob
+                (((this.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (this.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
+            ) {
+                this.dragging = true
+                if (isPreciseDragging) {
+                    this.preciseDragging = true
+                    this.radius = this.originalRadius + 10
+
+                    // set the temporary min and max slider values
+                    const percentValue = (this.value - this.minValue) / (this.maxValue - this.minValue)
+                    this.temporaryMinValue = this.value - preciseSliderTickRange * percentValue
+                    this.temporaryMaxValue = this.value + preciseSliderTickRange * (1 - percentValue)
+                }
+                else {
+                    this.temporaryMinValue = this.minValue
+                    this.temporaryMaxValue = this.maxValue
+                }
+            }
+        }
+    }
 }

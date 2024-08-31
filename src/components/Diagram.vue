@@ -22,10 +22,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, shallowRef } from 'vue'
-import { Visibility } from '../types'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { canvasSize, preciseSliderTickRange } from '../constants'
+import { canvasSize } from '../constants'
 import { AngleSlider } from '../classes/angleSlider'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
@@ -62,43 +61,13 @@ const getMousePos = (event: MouseEvent) => {
   return { mouseX, mouseY }
 }
 
-
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-  circuit.value.allSliders.forEach(slider => {
-    const transformedMousePos = slider.transformationMatrix.inverse().transformPoint({x: mouseX, y: mouseY}) // multiply(new Matrix(3, 1, [[mouseX], [mouseY], [1]]))
-
-    if (slider.visibility == Visibility.Visible) {
-        const mouseRadiusSquared = (transformedMousePos.x) ** 2 + (transformedMousePos.y) ** 2
-        const mouseDistanceFromDraggableSliderSquared = (transformedMousePos.x - slider.location.x) ** 2 + (transformedMousePos.y - slider.location.y) ** 2
-        const mouseTheta = Math.atan2(transformedMousePos.y, transformedMousePos.x)
-        const sliderValue = mouseTheta / slider.endAngle
-      if (
-        (mouseDistanceFromDraggableSliderSquared <= 10 ** 2) || // mouse hovering over slider knob
-        (((slider.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (slider.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
-      ) {
-        slider.dragging = true
-        if (event.button == 1) {
-          slider.preciseDragging = true
-        }
-        if (slider.preciseDragging) {
-          slider.radius = slider.originalRadius + 10
-        }
-        // set the temporary min and max slider values
-        if (slider.preciseDragging) {
-          const percentValue = (slider.value - slider.minValue) / (slider.maxValue - slider.minValue)
-          slider.temporaryMinValue = slider.value - preciseSliderTickRange * percentValue
-          slider.temporaryMaxValue = slider.value + preciseSliderTickRange * (1 - percentValue)
-        }
-        else {
-          slider.temporaryMinValue = slider.minValue
-          slider.temporaryMaxValue = slider.maxValue
-        }
-
-        drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
-      }
-    }
+    circuit.value.allSliders.forEach(slider => {
+      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
   })
+
+  drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
   document.addEventListener('mousemove', drag)
   document.addEventListener('mouseup', mouseUp)
 }
