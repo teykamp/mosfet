@@ -146,4 +146,39 @@ export class AngleSlider extends CtxArtist{
             this.toNode.value.voltage = this.fromNode.value.voltage + this.value
         }
     }
+
+    dragSlider(mousePosition: Point) {
+        if (this.dragging) {
+            const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
+            const mouseAngle = Math.atan2(transformedMousePos.y, transformedMousePos.x)
+
+            const percentValue = between(0, 1, mouseAngle / this.endAngle)
+            this.value = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
+
+            this.location = {
+              x: Math.cos(mouseAngle) * this.radius,
+              y: Math.sin(mouseAngle) * this.radius
+            }
+
+            if ((percentValue < 0.05) && (this.value <= this.previousValue)) {
+                this.valueRateOfChange = -0.01
+            }
+            else if ((percentValue > 0.95) && (this.value >= this.previousValue)) {
+                this.valueRateOfChange = 0.01
+            }
+            else {
+                this.valueRateOfChange = 0
+            }
+            this.previousValue = this.value
+        }
+    }
+
+    releaseSlider() {
+        this.temporaryMinValue = this.minValue
+        this.temporaryMaxValue = this.maxValue
+        this.radius = this.originalRadius
+        this.preciseDragging = false
+        this.dragging = false
+        this.toNode.value.fixed = false
+    }
 }

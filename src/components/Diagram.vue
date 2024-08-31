@@ -23,7 +23,6 @@
 <script setup lang="ts">
 import { ref, onMounted, shallowRef } from 'vue'
 import { Visibility } from '../types'
-import { between } from '../functions/extraMath'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize, preciseSliderTickRange } from '../constants'
@@ -115,58 +114,15 @@ const drag = (event: MouseEvent) => {
 
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
-    if (slider.dragging) {
-      const transformedMousePos = slider.transformationMatrix.inverse().transformPoint({x: mouseX, y: mouseY})
-      const mouseAngle = Math.atan2(transformedMousePos.y, transformedMousePos.x)
-
-      const percentValue = between(0, 1, mouseAngle / slider.endAngle)
-      slider.value = percentValue * (slider.temporaryMaxValue - slider.temporaryMinValue) + slider.temporaryMinValue
-
-      slider.location = {
-        x: Math.cos(mouseAngle) * slider.radius,
-        y: Math.sin(mouseAngle) * slider.radius
-      }
-
-      if ((percentValue < 0.05) && (slider.value <= slider.previousValue)) {
-        slider.valueRateOfChange = -0.01
-
-      }
-      else if ((percentValue > 0.95) && (slider.value >= slider.previousValue)) {
-        slider.valueRateOfChange = 0.01
-      }
-      else {
-        slider.valueRateOfChange = 0
-      }
-      slider.previousValue = slider.value
-    }
+    slider.dragSlider({x: mouseX, y: mouseY})
   })
+
   updateNodeVoltagesBasedOnSliders()
 }
 
 const mouseUp = () => {
   circuit.value.allSliders.forEach((slider) => {
-    slider.temporaryMinValue = slider.minValue
-    slider.temporaryMaxValue = slider.maxValue
-    slider.radius = slider.originalRadius
-    slider.preciseDragging = false
-  })
-
-  Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-    mosfet.vgs.dragging = false
-    mosfet.vds.dragging = false
-    mosfet.Vg.value.fixed = false
-    mosfet.Vd.value.fixed = false
-  })
-  Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
-    voltageSource.voltageDrop.dragging = false
-    if (voltageSource.fixedAt == 'gnd') {
-      voltageSource.vminus.value.fixed = true
-      voltageSource.vplus.value.fixed = false
-    }
-    else if (voltageSource.fixedAt == 'vdd') {
-      voltageSource.vminus.value.fixed = false
-      voltageSource.vplus.value.fixed = true
-    }
+    slider.releaseSlider()
   })
 
   document.removeEventListener('mousemove', drag)
