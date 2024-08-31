@@ -31,13 +31,13 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 0.01) => {
     for (let voltageSourceId in circuit.devices.voltageSources) {
         const voltageSource = circuit.devices.voltageSources[voltageSourceId]
         // assuming the negative side is tied to GND
-        if (voltageSource.vminus.value.fixed) {
+        if (voltageSource.fixedAt == 'gnd') {
             voltageSource.current = voltageSource.vplus.value.netCurrent
             voltageSource.vminus.value.netCurrent += voltageSource.current
             voltageSource.vplus.value.netCurrent = 0
         }
         // assuming the positive side is tied to VDD
-        else if (voltageSource.vminus.value.fixed) {
+        else if (voltageSource.fixedAt == 'vdd') {
             voltageSource.current = -voltageSource.vminus.value.netCurrent
             voltageSource.vplus.value.netCurrent += voltageSource.current
             voltageSource.vminus.value.netCurrent = 0

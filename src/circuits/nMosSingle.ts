@@ -53,8 +53,8 @@ const useNmosSingle = () => {
         "Vd": new VoltageSource(
             circuit.transformationMatrix,
             {x: 0, y: -6},
-            circuit.nodes[gndNodeId],
             circuit.nodes["M1_drain"],
+            circuit.nodes[vddNodeId],
             "Vdd-Vd",
             'vdd',
             true
