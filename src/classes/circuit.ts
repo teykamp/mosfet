@@ -9,6 +9,7 @@ import { Mosfet } from "./mosfet"
 import { Node } from "./node"
 import { canvasSize, drawGrid, schematicScale } from "../constants"
 import { modulo } from "../functions/extraMath"
+import { drawCirclesFillSolid } from "../functions/drawFuncs"
 
 export class Circuit extends CtxArtist {
     width: number
@@ -25,7 +26,9 @@ export class Circuit extends CtxArtist {
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(new TransformationMatrix(), [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
-        super((new TransformationMatrix()).scale(scale).translate({x: -(origin.x) + width / 2, y: -(origin.y) + height / 2}))
+        const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
+        console.log(extraShift)
+        super((new TransformationMatrix()).scale(scale).translate({x: -(origin.x) + width / 2, y: -(origin.y) + height / 2}).translate(extraShift))
 
         this.width = width
         this.height = height
@@ -73,7 +76,7 @@ export class Circuit extends CtxArtist {
         return allSliders
     }
 
-    drawGrid(ctx: CanvasRenderingContext2D, width: number = 40, height: number = 20) {
+    drawGrid(ctx: CanvasRenderingContext2D) {
         CtxArtist.circuitTransformationMatrix.transformCanvas(ctx)
         const topLeftCornerOfCanvasInLocalReferenceFrame = CtxArtist.circuitTransformationMatrix.inverse().transformPoint({x: 0, y: 0})
         const bottomRightCornerOfCanvasInLocalReferenceFrame = CtxArtist.circuitTransformationMatrix.inverse().transformPoint(canvasSize)
@@ -96,9 +99,10 @@ export class Circuit extends CtxArtist {
         ctx.strokeStyle = "brown"
         ctx.lineWidth = 0.2
         ctx.strokeRect(this.relativeOrigin.x - this.width / 2, this.relativeOrigin.y - this.height / 2, this.width, this.height)
-        ctx.beginPath()
-        ctx.moveTo(0, 0)
-        ctx.lineTo(this.relativeOrigin.x, this.relativeOrigin.y)
-        ctx.stroke()
+        drawCirclesFillSolid(ctx, [
+            {center: this.relativeOrigin, outerDiameter: 3},
+            {center: this.relativeOrigin, outerDiameter: 2},
+            {center: this.relativeOrigin, outerDiameter: 1},
+        ], 0.2, "purple")
     }
 }

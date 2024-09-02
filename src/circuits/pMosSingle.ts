@@ -1,6 +1,5 @@
 // import { Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
-import { schematicOrigin } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
 import { ref } from 'vue'
@@ -10,7 +9,7 @@ import { Mosfet } from '../classes/mosfet'
 import { VoltageSource } from '../classes/voltageSource'
 
 const usePmosSingle = () => {
-    const circuit: Circuit = new Circuit(schematicOrigin, 1)
+    const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
 
     //////////////////////////////
     ///          NODES         ///

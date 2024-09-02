@@ -1,6 +1,6 @@
 import { Point } from './types'
 
-export const drawGrid = true // normally false
+export const drawGrid = false // normally false
 
 export const canvasSize = {x: window.innerWidth - 100, y: window.innerHeight - 100}
 export const lineDrawRepetitions = 4
