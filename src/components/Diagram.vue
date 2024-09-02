@@ -9,7 +9,7 @@
   </div>
 
   <Transition>
-    <div 
+    <div
       v-show="showSideBar"
       ref="sideBar"
       style="display: flex; flex-direction: column; width: 250px; height: 100vh; padding: 10px; background-color: whitesmoke; position: absolute;">
@@ -29,9 +29,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
-import { Visibility } from '../types'
-import { modulo, between } from '../functions/extraMath'
-import { getMosfetCurrent, getMosfetSaturationLevel, getMosfetForwardCurrent } from '../functions/makeMosfet'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasSize } from '../constants'
@@ -49,7 +46,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 type DefinedCircuits = keyof typeof circuits
-const currentCircuit = ref<DefinedCircuits>('nMos5TransistorOpAmp')
+const currentCircuit = ref<DefinedCircuits>('nMos9TransistorOpAmp')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])

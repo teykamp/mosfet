@@ -10,7 +10,7 @@ import { VoltageSource } from '../classes/voltageSource'
 
 
 const useNmos9TransistorOpAmp = () => {
-    const circuit: Circuit = new Circuit({x: 200, y: 300}, 0.6)
+    const circuit: Circuit = new Circuit({x: 10, y: -2}, 50, 30)
 
     //////////////////////////////
     ///          NODES         ///
