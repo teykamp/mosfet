@@ -71,15 +71,15 @@ const updateNodeVoltagesBasedOnSliders = () => {
 const getMousePos = (event: MouseEvent) => {
   if (!canvas.value) return { mouseX: 0, mouseY: 0 }
   const rect = canvas.value.getBoundingClientRect()
-  const mouseX = event.clientX - rect.left
-  const mouseY = event.clientY - rect.top
+  const mouseX = (event.clientX - rect.left) * canvasDpi
+  const mouseY = (event.clientY - rect.top) * canvasDpi
   return { mouseX, mouseY }
 }
 
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
     circuit.value.allSliders.forEach(slider => {
-      slider.checkDrag({x: mouseX * canvasDpi, y: mouseY * canvasDpi}, event.button == 1)
+      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
   })
 
   drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
@@ -98,7 +98,7 @@ const drag = (event: MouseEvent) => {
 
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
-    slider.dragSlider({x: mouseX * canvasDpi, y: mouseY * canvasDpi})
+    slider.dragSlider({x: mouseX, y: mouseY})
   })
 
   updateNodeVoltagesBasedOnSliders()
