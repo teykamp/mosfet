@@ -67,7 +67,7 @@ const useNmosDiffPair = () => {
 
     circuit.devices.mosfets = {
         "Mb": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             0,
             6,
@@ -82,7 +82,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked
         ),
         "M1": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             -4,
             0,
@@ -97,7 +97,7 @@ const useNmosDiffPair = () => {
             Visibility.Locked,
         ),
         "M2": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             4,
             0,
@@ -119,7 +119,7 @@ const useNmosDiffPair = () => {
 
     circuit.devices.voltageSources = {
         "V1": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: -8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
@@ -128,7 +128,7 @@ const useNmosDiffPair = () => {
             true
         ),
         "V2": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
@@ -136,7 +136,7 @@ const useNmosDiffPair = () => {
             'gnd'
         ),
         "Vb": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 4, y: 9},
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],
@@ -150,7 +150,7 @@ const useNmosDiffPair = () => {
     //////////////////////////////
 
     circuit.schematic = new Schematic(
-        circuit.transformationMatrix,
+        circuit.transformations,
         [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
         [{x: -4, y: -3}, {x: 4, y: -3}],
         [],

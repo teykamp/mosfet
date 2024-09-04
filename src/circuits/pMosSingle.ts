@@ -2,11 +2,13 @@
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
-import { ref } from 'vue'
+import { Ref, ref } from 'vue'
 // import { ParasiticCapacitor } from '../classes/parasiticCapacitor'
 import { Schematic } from '../classes/schematic'
 import { Mosfet } from '../classes/mosfet'
 import { VoltageSource } from '../classes/voltageSource'
+import { foldl } from '../functions/extraMath'
+import { TransformationMatrix } from '../classes/transformationMatrix'
 
 const usePmosSingle = () => {
     const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
@@ -32,7 +34,7 @@ const usePmosSingle = () => {
 
     circuit.devices.mosfets = {
         "M1": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             0,
             0,
@@ -49,7 +51,7 @@ const usePmosSingle = () => {
 
     circuit.devices.voltageSources = {
         "Vd": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 0, y: 6},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_drain"],
@@ -64,13 +66,23 @@ const usePmosSingle = () => {
     //////////////////////////////
 
     circuit.schematic = new Schematic(
-        circuit.transformationMatrix,
+        circuit.transformations,
         [{x: 0, y: 8}],
-        [{x: 0, y: -2}],
+        [circuit.devices.mosfets["M1"].getAnchorPoint("Vg")],
+        // [{x: 0, y: -2}],
         [],
         Object.values(circuit.devices.mosfets),
         Object.values(circuit.nodes)
     )
+
+    //////////////////////////////
+    ///        FUNCTIONS       ///
+    //////////////////////////////
+
+    circuit.updateDevicePositions = (_circuit: Circuit) => {
+        _circuit.devices.mosfets["M1"].moveTo(_circuit.devices.mosfets["M1"].transformationMatrix.inverse().multiply(_circuit.transformationMatrix).transformPoint({x: 0, y: _circuit.devices.mosfets["M1"].Vd.value.voltage * -1}))
+        _circuit.devices.mosfets["M1"]._transformationMatrix = ref(foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(),  _circuit.devices.mosfets["M1"].transformations)) as Ref<TransformationMatrix>
+    }
 
     return circuit
 }

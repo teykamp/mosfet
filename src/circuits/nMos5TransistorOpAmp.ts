@@ -81,7 +81,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
 
     circuit.devices.mosfets = {
         "Mb": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             0,
             6,
@@ -96,7 +96,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             Visibility.Locked
         ),
         "M1": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             -4,
             0,
@@ -111,7 +111,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             Visibility.Locked,
         ),
         "M2": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             4,
             0,
@@ -126,7 +126,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             Visibility.Locked,
         ),
         "M3": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             -4,
             -9,
@@ -141,7 +141,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             Visibility.Locked,
         ),
         "M4": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             4,
             -9,
@@ -163,7 +163,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
 
     circuit.devices.voltageSources = {
         "V1": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: -8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
@@ -172,7 +172,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             true
         ),
         "V2": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
@@ -180,7 +180,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             'gnd'
         ),
         "Vb": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 4, y: 9},
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],
@@ -194,11 +194,11 @@ const useNmos5TransistorOpAmp = (): Circuit => {
     //////////////////////////////
 
     circuit.schematic = new Schematic(
-        circuit.transformationMatrix,
+        circuit.transformations,
         [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}],
         [{x: -4, y: -12}, {x: 4, y: -12}],
         [new ParasiticCapacitor(
-            circuit.transformationMatrix,
+            circuit.transformations,
             circuit.nodes["Vout"],
             {x: 6, y: -4},
             [

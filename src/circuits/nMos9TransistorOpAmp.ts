@@ -102,7 +102,7 @@ const useNmos9TransistorOpAmp = () => {
 
     circuit.devices.mosfets = {
         "Mb": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             0,
             6,
@@ -117,7 +117,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked
         ),
         "M1": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             -4,
             0,
@@ -132,7 +132,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M2": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             4,
             0,
@@ -147,7 +147,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M3": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             -4,
             -12,
@@ -162,7 +162,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M4": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             24,
             -12,
@@ -177,7 +177,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M5": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             4,
             -7,
@@ -192,7 +192,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M6": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             16,
             -7,
@@ -207,7 +207,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M7": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             16,
             6,
@@ -222,7 +222,7 @@ const useNmos9TransistorOpAmp = () => {
             Visibility.Locked,
         ),
         "M8": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             24,
             6,
@@ -244,7 +244,7 @@ const useNmos9TransistorOpAmp = () => {
 
     circuit.devices.voltageSources = {
         "V1": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: -8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
@@ -253,7 +253,7 @@ const useNmos9TransistorOpAmp = () => {
             true
         ),
         "V2": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 8, y: 3},
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
@@ -261,7 +261,7 @@ const useNmos9TransistorOpAmp = () => {
             'gnd'
         ),
         "Vb": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 4, y: 9},
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],
@@ -275,7 +275,7 @@ const useNmos9TransistorOpAmp = () => {
     //////////////////////////////
 
     circuit.schematic = new Schematic(
-        circuit.transformationMatrix,
+        circuit.transformations,
         [{x: 0, y: 9}, {x: 4, y: 11}, {x: -8, y: 5}, {x: 8, y: 5}, {x: 24, y: 9}, {x: 16, y: 9}],
         [{x: -4, y: -15}, {x: 4, y: -10}, {x: 16, y: -10}, {x: 24, y: -15}],
         [],

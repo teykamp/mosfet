@@ -14,9 +14,9 @@ import { CurrentDots } from "./currentDots"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
-    mirror: boolean // obsolete
-    currentDots: CurrentDots
-    gradientSize: number
+    // mirror: boolean
+    currentDots: CurrentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
+    gradientSize: number = 100
     schematicEffects: {[name: string]: SchematicEffect}
     vgs: AngleSlider
     vds: AngleSlider
@@ -24,15 +24,11 @@ export class Mosfet extends CtxArtist{
     Vs: Ref<Node>
     Vd: Ref<Node>
     Vb: Ref<Node>
-    // current: number // in Amps
-    // saturationLevel: number // as a fraction of total saturation (0 to 1)
-    // forwardCurrent: number // in Amps
 
-    constructor(parentTransformationMatrix: TransformationMatrix, mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
-        super(parentTransformationMatrix.translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
         this.mosfetType = mosfetType
-        this.mirror = mirror
-        this.gradientSize = 100
+        // this.mirror = mirror
         this.schematicEffects = {
             "gate": {
                 node: Vg,
@@ -53,22 +49,24 @@ export class Mosfet extends CtxArtist{
                 gradientSize: 100,
             },
         },
-        this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         this.Vg = Vg
         this.Vs = Vs
         this.Vd = Vd
         this.Vb = Vb
-        // this.current = this.getMosfetCurrent()
-        // this.saturationLevel = this.getMosfetSaturationLevel()
-        // this.forwardCurrent = this.getMosfetForwardCurrent()
 
         if (this.mosfetType == 'nmos') {
-            this.vgs = new AngleSlider(this.transformationMatrix, Vs, Vg, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
-            this.vds = new AngleSlider(this.transformationMatrix, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
+            this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
         }
         else {
-            this.vgs = new AngleSlider(this.transformationMatrix, Vs, Vg, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
-            this.vds = new AngleSlider(this.transformationMatrix, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
+            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
+            this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
+        }
+        this.anchorPoints = {
+            "Vg": {x: 30, y: 0},
+            "Vs": {x: 0, y: 60},
+            "Vd": {x: 0, y: -60},
+            "Vb": {x: 0, y: 0},
         }
     }
 

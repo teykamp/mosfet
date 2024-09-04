@@ -15,8 +15,8 @@ export class Schematic extends CtxArtist{
     mosfets: Mosfet[]
     nodes: Ref<Node>[]
 
-    constructor(parentTransformationMatrix: TransformationMatrix, gndLocations: Point[], vddLocations: Point[], parasiticCapacitors: ParasiticCapacitor[], mosfets: Mosfet[], nodes: Ref<Node>[]) {
-        super(parentTransformationMatrix)
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], gndLocations: Point[], vddLocations: Point[], parasiticCapacitors: ParasiticCapacitor[], mosfets: Mosfet[], nodes: Ref<Node>[]) {
+        super(parentTransformations, new TransformationMatrix())
         this.vddLocations = vddLocations
         this.gndLocations = gndLocations
         this.parasiticCapacitors = parasiticCapacitors

@@ -7,7 +7,7 @@ import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
-import { canvasDpi, canvasSize, drawGrid, schematicScale } from "../constants"
+import { canvasDpi, canvasSize, drawGrid, moveNodesInResponseToCircuitState, schematicScale } from "../constants"
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 
@@ -22,11 +22,12 @@ export class Circuit extends CtxArtist {
     }
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
+    updateDevicePositions: (circuit: Circuit) => void
 
-    constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(new TransformationMatrix(), [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
+    constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic([], [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix(), updateDevicePositions: () => void = () => {}) {
         const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
         const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
-        super((new TransformationMatrix()).scale(scale * canvasDpi).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}).translate(extraShift))
+        super([], (new TransformationMatrix()).scale(scale * canvasDpi).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}).translate(extraShift))
 
         this.width = width
         this.height = height
@@ -38,6 +39,7 @@ export class Circuit extends CtxArtist {
         }
         this.nodes = nodes
         this.textTransformationMatrix = textTransformationMatrix.translate(origin).scale(scale / schematicScale)
+        this.updateDevicePositions = updateDevicePositions
     }
 
     get allSliders(): AngleSlider[] {
@@ -53,6 +55,18 @@ export class Circuit extends CtxArtist {
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
 
+        if (moveNodesInResponseToCircuitState) {
+            let slidersDragging = false
+            this.allSliders.forEach((slider: AngleSlider) => {
+                if (slider.dragging) {
+                    slidersDragging = true
+                }
+            })
+            if (!slidersDragging) {
+                this.updateDevicePositions(this)
+            }
+        }
+
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {mosfet.draw(ctx)})
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {voltageSource.draw(ctx)})
@@ -62,22 +76,6 @@ export class Circuit extends CtxArtist {
         }
 
         ctx.restore()
-    }
-
-    resetPosition() {
-        this.transformationMatrix = this.originalTransformationMatrix
-    }
-
-    moveToX(newX: number) {
-        this.moveTo({x: newX, y: this.transformationMatrix.translation.y})
-    }
-
-    moveToY(newY: number) {
-        this.moveTo({x: this.transformationMatrix.translation.x, y: newY})
-    }
-
-    moveTo(newLocationInCircuitReferenceFrame: Point) {
-        this.transformationMatrix.translation = newLocationInCircuitReferenceFrame
     }
 
     makeListOfSliders(): AngleSlider[] {

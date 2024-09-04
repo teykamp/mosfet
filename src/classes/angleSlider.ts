@@ -28,8 +28,8 @@ export class AngleSlider extends CtxArtist{
     fromNode: Ref<Node>
     toNode: Ref<Node>
 
-    constructor(parentTransformationMatrix: TransformationMatrix, fromNode: Ref<Node>, toNode: Ref<Node>, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
-        super(parentTransformationMatrix.translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW))
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW))
 
         this.dragging = false
         this.preciseDragging = false

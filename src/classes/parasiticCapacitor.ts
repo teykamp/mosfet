@@ -14,8 +14,8 @@ export class ParasiticCapacitor extends CtxArtist{
     currentDots: CurrentDots
     static displayCurrent: boolean = false
 
-    constructor(parentTransformationMatrix: TransformationMatrix, node: Ref<Node>, center: Point, extraNodeLines: Line[]) {
-        super(parentTransformationMatrix.translate(center).scale(1/30))
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], node: Ref<Node>, center: Point, extraNodeLines: Line[]) {
+        super(parentTransformations, (new TransformationMatrix()).translate(center).scale(1/30))
         this.node = node
         this.extraNodeLines = extraNodeLines
         this.currentDots = new CurrentDots([{start: {x: 10, y: -60}, end: {x: 10, y: 60}}])

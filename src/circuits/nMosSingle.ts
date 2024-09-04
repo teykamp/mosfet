@@ -33,7 +33,7 @@ const useNmosSingle = () => {
 
     circuit.devices.mosfets = {
         "M1": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'nmos',
             0,
             0,
@@ -50,7 +50,7 @@ const useNmosSingle = () => {
 
     circuit.devices.voltageSources = {
         "Vd": new VoltageSource(
-            circuit.transformationMatrix,
+            circuit.transformations,
             {x: 0, y: -6},
             circuit.nodes["M1_drain"],
             circuit.nodes[vddNodeId],
@@ -65,7 +65,7 @@ const useNmosSingle = () => {
     //////////////////////////////
 
     circuit.schematic = new Schematic(
-        circuit.transformationMatrix,
+        circuit.transformations,
         [{x: 0, y: 2}],
         [{x: 0, y: -8}],
         [],

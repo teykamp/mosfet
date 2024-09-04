@@ -1,17 +1,55 @@
 import { Point } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { GLOBAL_LINE_THICKNESS } from "../constants"
+import { ref, Ref } from "vue"
+import { foldl } from "../functions/extraMath"
 
 export class CtxArtist {
-    transformationMatrix: TransformationMatrix
-    originalTransformationMatrix: TransformationMatrix
+    transformations: Ref<TransformationMatrix>[] = []
+    globalTransformationMatrix: TransformationMatrix = new TransformationMatrix()
+    originalLocalTransformationMatrix: TransformationMatrix
+    anchorPoints: {[name: string]: Point} = {}
+    _transformationMatrix: Ref<TransformationMatrix>
+
     static textTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static circuitTransformationMatrix: TransformationMatrix = new TransformationMatrix()
+    static allCtxArtists: CtxArtist[] = []
 
-    constructor (transformationMatrix: TransformationMatrix = new TransformationMatrix()) {
-        this.transformationMatrix = transformationMatrix
-        this.originalTransformationMatrix = transformationMatrix
+    constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix()) {
+        parentTransformations.forEach(transformation => {this.transformations.push(transformation)}) // make a shallow copy of the array
+        this.transformations.push(ref(localTransformationMatrix) as Ref<TransformationMatrix>) // then append the local transformation matrix
+        // this.updateTransformationMatrix()
+        this.originalLocalTransformationMatrix = localTransformationMatrix
+        this._transformationMatrix = ref(foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(), this.transformations)) as Ref<TransformationMatrix>
+
+        CtxArtist.allCtxArtists.push(this)
     }
+
+    get transformationMatrix(): TransformationMatrix {
+        return this._transformationMatrix.value
+    }
+
+    getAnchorPoint(name: string): Point {
+        return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.anchorPoints[name])
+    }
+
+    moveTo(destination: Point) {
+        this.transformations[this.transformations.length - 1].value.translation = destination
+        // CtxArtist.updateAllCtxArtistTransformationMatrices()
+    }
+
+    // updateTransformationMatrix() {
+    //     this.globalTransformationMatrix = new TransformationMatrix()
+    //     this.transformations.forEach((transformation: Ref<TransformationMatrix>) => {
+    //         this.globalTransformationMatrix.multiply(transformation.value, true)
+    //     })
+    // }
+
+    // static updateAllCtxArtistTransformationMatrices() {
+    //     CtxArtist.allCtxArtists.forEach((artist: CtxArtist) => {
+    //         artist.updateTransformationMatrix()
+    //     })
+    // }
 
     get localLineThickness(): number {
         return this.getLocalLineThickness()

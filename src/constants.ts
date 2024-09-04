@@ -1,5 +1,6 @@
 import { Point } from './types'
 
+export const moveNodesInResponseToCircuitState = true
 export const drawGrid = false // normally false
 export const canvasDpi = 2
 
