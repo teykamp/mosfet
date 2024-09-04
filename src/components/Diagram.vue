@@ -31,7 +31,7 @@
 import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { canvasSize } from '../constants'
+import { canvasDpi, canvasSize } from '../constants'
 import { AngleSlider } from '../classes/angleSlider'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
@@ -79,7 +79,7 @@ const getMousePos = (event: MouseEvent) => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
     circuit.value.allSliders.forEach(slider => {
-      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+      slider.checkDrag({x: mouseX * canvasDpi, y: mouseY * canvasDpi}, event.button == 1)
   })
 
   drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
@@ -98,7 +98,7 @@ const drag = (event: MouseEvent) => {
 
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
-    slider.dragSlider({x: mouseX, y: mouseY})
+    slider.dragSlider({x: mouseX * canvasDpi, y: mouseY * canvasDpi})
   })
 
   updateNodeVoltagesBasedOnSliders()
@@ -115,6 +115,12 @@ const mouseUp = () => {
 
 const draw = () => {
   if (!ctx.value || !canvas.value) return
+
+  const dpi = canvasDpi
+  canvas.value.width = canvasSize.x * dpi
+  canvas.value.height = canvasSize.y * dpi
+  canvas.value.style.width = `${canvasSize.x}px`
+  canvas.value.style.height = `${canvasSize.y}px`
 
   ctx.value.resetTransform()
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)

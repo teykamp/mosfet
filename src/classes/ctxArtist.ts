@@ -4,11 +4,13 @@ import { GLOBAL_LINE_THICKNESS } from "../constants"
 
 export class CtxArtist {
     transformationMatrix: TransformationMatrix
+    originalTransformationMatrix: TransformationMatrix
     static textTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static circuitTransformationMatrix: TransformationMatrix = new TransformationMatrix()
 
     constructor (transformationMatrix: TransformationMatrix = new TransformationMatrix()) {
         this.transformationMatrix = transformationMatrix
+        this.originalTransformationMatrix = transformationMatrix
     }
 
     get localLineThickness(): number {

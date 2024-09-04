@@ -7,7 +7,7 @@ import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
-import { canvasSize, drawGrid, schematicScale } from "../constants"
+import { canvasDpi, canvasSize, drawGrid, schematicScale } from "../constants"
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 
@@ -20,15 +20,13 @@ export class Circuit extends CtxArtist {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
       voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
     }
-    // allSliders: AngleSlider[] // a list of all the AngleSliders belonging to all of the devices, to make it easier to loop over them
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(new TransformationMatrix(), [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
         const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
-        console.log(extraShift)
-        super((new TransformationMatrix()).scale(scale).translate({x: -(origin.x) + width / 2, y: -(origin.y) + height / 2}).translate(extraShift))
+        super((new TransformationMatrix()).scale(scale * canvasDpi).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}).translate(extraShift))
 
         this.width = width
         this.height = height
@@ -47,6 +45,8 @@ export class Circuit extends CtxArtist {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
+        ctx.save()
+
         this.transformationMatrix.transformCanvas(ctx)
 
         // set static transformation matrices for the circuit
@@ -60,6 +60,24 @@ export class Circuit extends CtxArtist {
         if (drawGrid) {
             this.drawGrid(ctx)
         }
+
+        ctx.restore()
+    }
+
+    resetPosition() {
+        this.transformationMatrix = this.originalTransformationMatrix
+    }
+
+    moveToX(newX: number) {
+        this.moveTo({x: newX, y: this.transformationMatrix.translation.y})
+    }
+
+    moveToY(newY: number) {
+        this.moveTo({x: this.transformationMatrix.translation.x, y: newY})
+    }
+
+    moveTo(newLocationInCircuitReferenceFrame: Point) {
+        this.transformationMatrix.translation = newLocationInCircuitReferenceFrame
     }
 
     makeListOfSliders(): AngleSlider[] {
