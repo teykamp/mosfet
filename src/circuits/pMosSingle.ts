@@ -90,8 +90,6 @@ const usePmosSingle = () => {
     //////////////////////////////
 
     circuit.updateDevicePositions = (_circuit: Circuit) => {
-        // _circuit.devices.mosfets["M1"].moveTo(_circuit.devices.mosfets["M1"].transformationMatrix.inverse().multiply(_circuit.transformationMatrix).transformPoint({x: 0, y: _circuit.devices.mosfets["M1"].Vd.value.voltage * -1}))
-        // // _circuit.devices.mosfets["M1"]._transformationMatrix = ref(foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(),  _circuit.devices.mosfets["M1"].transformations)) as Ref<TransformationMatrix>
         tectonicPlate.moveTowardDesiredLocation()
     }
 

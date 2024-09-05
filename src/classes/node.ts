@@ -2,6 +2,7 @@ import { Line, Point } from "../types"
 import { Queue } from "./queue"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 import { TectonicLine } from "./tectonicPlate"
+import { markRaw } from "vue"
 // import { ref, Ref } from "vue"
 
 export class Node {
@@ -26,7 +27,7 @@ export class Node {
         this.originalCapacitance = capacitance
         this.fixed = isPowerSupply ? true : false // GND and VDD nodes are fixed, as are nodes that are being dragged
         this.historicVoltages = historicVoltages
-        this._lines = lines
+        this._lines = markRaw(lines) // https://stackoverflow.com/a/73940781
         this.voltageDisplayLabel = voltageDisplayLabel
         this.voltageDisplayLocations = voltageDisplayLocations
     }
