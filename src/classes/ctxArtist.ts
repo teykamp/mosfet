@@ -1,7 +1,7 @@
 import { Point } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { GLOBAL_LINE_THICKNESS } from "../constants"
-import { ref, Ref } from "vue"
+import { computed, ComputedRef, ref, Ref } from "vue"
 import { foldl } from "../functions/extraMath"
 
 export class CtxArtist {
@@ -9,7 +9,7 @@ export class CtxArtist {
     globalTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     originalLocalTransformationMatrix: TransformationMatrix
     anchorPoints: {[name: string]: Point} = {}
-    _transformationMatrix: Ref<TransformationMatrix>
+    _transformationMatrix: ComputedRef<TransformationMatrix>
 
     static textTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static circuitTransformationMatrix: TransformationMatrix = new TransformationMatrix()
@@ -20,7 +20,7 @@ export class CtxArtist {
         this.transformations.push(ref(localTransformationMatrix) as Ref<TransformationMatrix>) // then append the local transformation matrix
         // this.updateTransformationMatrix()
         this.originalLocalTransformationMatrix = localTransformationMatrix
-        this._transformationMatrix = ref(foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(), this.transformations)) as Ref<TransformationMatrix>
+        this._transformationMatrix = computed(() => { return foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(), this.transformations) })
 
         CtxArtist.allCtxArtists.push(this)
     }
