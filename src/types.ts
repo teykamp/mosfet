@@ -1,5 +1,6 @@
 import { Ref } from 'vue'
 import { Node } from './classes/node'
+import { TectonicPoint } from './classes/tectonicPlate';
 
 export type PublicInterface<T> = Pick<T, keyof T>;
 
@@ -54,4 +55,9 @@ export type Line = {
 export type Circle = {
   center: Point,
   outerDiameter: number,
+}
+
+export type TectonicLine = {
+  start: TectonicPoint,
+  end: TectonicPoint,
 }

@@ -11,6 +11,8 @@ import { between, foldl } from '../functions/extraMath'
 import { TransformationMatrix } from '../classes/transformationMatrix'
 import { TectonicPlate } from '../classes/tectonicPlate'
 import { getPointAlongPath } from '../functions/drawFuncs'
+import { GndSymbol } from '../classes/powerSymbols'
+import { VddSymbol } from '../classes/powerSymbols'
 
 const usePmosSingle = () => {
     const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
@@ -75,8 +77,8 @@ const usePmosSingle = () => {
 
     circuit.schematic = new Schematic(
         circuit.transformations,
-        [{x: 0, y: 8}],
-        [circuit.devices.mosfets["M1"].getAnchorPoint("Vg")],
+        [new GndSymbol(circuit.transformations, {x: 0, y: 8})],
+        [new VddSymbol(tectonicPlate.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vd"))],
         // [{x: 0, y: -2}],
         [],
         Object.values(circuit.devices.mosfets),

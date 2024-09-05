@@ -4,12 +4,13 @@ import { TransformationMatrix } from "./transformationMatrix"
 import { computed, ComputedRef, Ref } from 'vue'
 import { getLineLength, getPointAlongLine } from "../functions/drawFuncs"
 
-export class TectonicPlate extends CtxArtist{
+export class TectonicPlate extends CtxArtist {
     currentLocation: Point = {x: 0, y: 0}
     desiredLocation: ComputedRef<Point>
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], desiredLocation: ComputedRef<Point> = computed(() => {return {x: 0, y: 0}})) {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], desiredLocation: ComputedRef<Point> = computed(() => {return {x: 0, y: 0}}), anchorPoints: {[name: string]: Point} = {}) {
         super(parentTransformations, new TransformationMatrix())
         this.desiredLocation = desiredLocation
+        this.anchorPoints = anchorPoints
     }
 
     moveTowardDesiredLocation() {
@@ -27,5 +28,13 @@ export class TectonicPlate extends CtxArtist{
         }
         this.moveTo(newLocation)
         this.currentLocation = newLocation
+    }
+}
+
+export class TectonicPoint extends CtxArtist {
+    point: Point
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], point: Point = {x: 0, y: 0}) {
+        super(parentTransformations, new TransformationMatrix())
+        this.point = point
     }
 }

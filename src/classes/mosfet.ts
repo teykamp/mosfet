@@ -33,8 +33,8 @@ export class Mosfet extends CtxArtist{
             "gate": {
                 node: Vg,
                 origin: {
-                x: 30,
-                y: 0,
+                    x: 30,
+                    y: 0,
                 },
                 color: 'red',
                 gradientSize: 2,
@@ -42,8 +42,8 @@ export class Mosfet extends CtxArtist{
             "saturation": {
                 node: Vd,
                 origin: {
-                x: 0,
-                y: 30 * (mosfetType == 'nmos' ? -1 : 1),
+                    x: 0,
+                    y: 30 * (mosfetType == 'nmos' ? -1 : 1),
                 },
                 color: 'red',
                 gradientSize: 100,

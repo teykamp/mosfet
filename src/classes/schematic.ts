@@ -7,18 +7,19 @@ import { drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } f
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
 import { toSiPrefix } from "../functions/toSiPrefix"
+import { GndSymbol, VddSymbol } from "./powerSymbols"
 
 export class Schematic extends CtxArtist{
-    vddLocations: Point[] // a list of locations to draw vdd symbols
-    gndLocations: Point[] // a list of locations to draw gnd symbols
+    gndSymbols: GndSymbol[] // a list of locations to draw gnd symbols
+    vddSymbols: VddSymbol[] // a list of locations to draw vdd symbols
     parasiticCapacitors: ParasiticCapacitor[]
     mosfets: Mosfet[]
     nodes: Ref<Node>[]
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], gndLocations: Point[], vddLocations: Point[], parasiticCapacitors: ParasiticCapacitor[], mosfets: Mosfet[], nodes: Ref<Node>[]) {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], gndSymbols: GndSymbol[], vddSymbols: VddSymbol[], parasiticCapacitors: ParasiticCapacitor[], mosfets: Mosfet[], nodes: Ref<Node>[]) {
         super(parentTransformations, new TransformationMatrix())
-        this.vddLocations = vddLocations
-        this.gndLocations = gndLocations
+        this.gndSymbols = gndSymbols
+        this.vddSymbols = vddSymbols
         this.parasiticCapacitors = parasiticCapacitors
         this.mosfets = mosfets
         this.nodes = nodes
@@ -28,11 +29,11 @@ export class Schematic extends CtxArtist{
         this.transformationMatrix.transformCanvas(ctx)
 
         // draw vdd and gnd symbols
-        this.gndLocations.forEach((gndLocation) => {
-            Schematic.drawGnd(ctx, gndLocation, this.localLineThickness, 0.8)
+        this.gndSymbols.forEach((symbol) => {
+            symbol.draw(ctx)
         })
-        this.vddLocations.forEach((vddLocation) => {
-            Schematic.drawVdd(ctx, vddLocation, this.localLineThickness, 0.8)
+        this.vddSymbols.forEach((symbol) => {
+            symbol.draw(ctx)
         })
         this.parasiticCapacitors.forEach((capacitor) => {
             capacitor.draw(ctx)
@@ -63,26 +64,5 @@ export class Schematic extends CtxArtist{
                 this.fillTextGlobalReferenceFrame(ctx, labelLocation, node.value.voltageDisplayLabel + " = " + toSiPrefix(node.value.voltage, "V"), false)
             })
         })
-    }
-
-    static drawGnd(ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number, symbolSize: number) {
-        ctx.strokeStyle = 'black'
-        ctx.lineWidth = lineThickness
-        ctx.beginPath()
-        ctx.moveTo(origin.x, origin.y)
-        ctx.lineTo(origin.x + symbolSize / 2, origin.y)
-        ctx.lineTo(origin.x, origin.y + symbolSize / 2)
-        ctx.lineTo(origin.x - symbolSize / 2, origin.y)
-        ctx.lineTo(origin.x, origin.y)
-        ctx.stroke()
-    }
-
-    static drawVdd(ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number, symbolSize: number) {
-        ctx.strokeStyle = 'black'
-        ctx.lineWidth = lineThickness
-        ctx.beginPath()
-        ctx.moveTo(origin.x - symbolSize / 2, origin.y)
-        ctx.lineTo(origin.x + symbolSize / 2, origin.y)
-        ctx.stroke()
     }
 }
