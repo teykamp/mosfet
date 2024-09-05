@@ -16,6 +16,8 @@ export class CtxArtist {
     static allCtxArtists: CtxArtist[] = []
 
     constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix()) {
+        // this.transformations: [ ref(topLevelTM), ref(circuitTM), ref(mosfetTM), ref(angleSliderTM), ref(thisTM) ]
+        // if you change the last element of this.transformations[this.transformations.length - 1], it will propagate down to all children
         parentTransformations.forEach(transformation => {this.transformations.push(transformation)}) // make a shallow copy of the array
         this.transformations.push(ref(localTransformationMatrix) as Ref<TransformationMatrix>) // then append the local transformation matrix
         // this.updateTransformationMatrix()
@@ -35,21 +37,7 @@ export class CtxArtist {
 
     moveTo(destination: Point) {
         this.transformations[this.transformations.length - 1].value.translation = destination
-        // CtxArtist.updateAllCtxArtistTransformationMatrices()
     }
-
-    // updateTransformationMatrix() {
-    //     this.globalTransformationMatrix = new TransformationMatrix()
-    //     this.transformations.forEach((transformation: Ref<TransformationMatrix>) => {
-    //         this.globalTransformationMatrix.multiply(transformation.value, true)
-    //     })
-    // }
-
-    // static updateAllCtxArtistTransformationMatrices() {
-    //     CtxArtist.allCtxArtists.forEach((artist: CtxArtist) => {
-    //         artist.updateTransformationMatrix()
-    //     })
-    // }
 
     get localLineThickness(): number {
         return this.getLocalLineThickness()
