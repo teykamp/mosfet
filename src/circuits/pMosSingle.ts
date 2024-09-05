@@ -2,13 +2,12 @@
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
-import { computed, Ref, ref } from 'vue'
+import { computed, ref } from 'vue'
 // import { ParasiticCapacitor } from '../classes/parasiticCapacitor'
 import { Schematic } from '../classes/schematic'
 import { Mosfet } from '../classes/mosfet'
 import { VoltageSource } from '../classes/voltageSource'
-import { between, foldl } from '../functions/extraMath'
-import { TransformationMatrix } from '../classes/transformationMatrix'
+import { between } from '../functions/extraMath'
 import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicPlate'
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { GndSymbol } from '../classes/powerSymbols'
@@ -24,11 +23,7 @@ const usePmosSingle = () => {
     circuit.nodes = {
         [gndNodeId]: ref(new Node(gndVoltage, true)),
         [vddNodeId]: ref(new Node(vddVoltage, true)),
-        "M1_drain": ref(new Node(5, false,
-            [
-                new TectonicLine(circuit.transformations, {x: 0, y: 2}, circuit.transformations, {x: 0, y: 4}),
-            ]
-        )),
+        "M1_drain": ref(new Node(5, false)),
         "M1_gate": ref(new Node(1, false)),
     }
 
@@ -79,19 +74,20 @@ const usePmosSingle = () => {
         circuit.transformations,
         [new GndSymbol(circuit.transformations, {x: 0, y: 8})],
         [new VddSymbol(tectonicPlate.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vd"))],
-        // [{x: 0, y: -2}],
         [],
         Object.values(circuit.devices.mosfets),
-        Object.values(circuit.nodes)
+        Object.values(circuit.nodes),
+        [
+            {
+                node: circuit.nodes["M1_drain"],
+                lines: [
+                    new TectonicLine(circuit.transformations, {x: 0, y: 2}, circuit.transformations, {x: 0, y: 4}),
+                ],
+                voltageDisplayLabel: "Drain",
+                voltageDisplayLocations: [new TectonicPoint(circuit.transformations, {x: 0, y: 3})]
+            }
+        ]
     )
-
-    //////////////////////////////
-    ///        FUNCTIONS       ///
-    //////////////////////////////
-
-    circuit.updateDevicePositions = (_circuit: Circuit) => {
-        tectonicPlate.moveTowardDesiredLocation()
-    }
 
     return circuit
 }

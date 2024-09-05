@@ -1,5 +1,6 @@
 import { Ref } from 'vue'
 import { Node } from './classes/node'
+import { TectonicLine, TectonicPoint } from './classes/tectonicPlate';
 
 export type PublicInterface<T> = Pick<T, keyof T>;
 
@@ -33,7 +34,6 @@ export type Chart = {
 }
 
 export type SchematicEffect = {
-  node: Ref<Node>,
   origin: Point,
   color: string,
   gradientSize: number,
@@ -41,9 +41,9 @@ export type SchematicEffect = {
 
 export type Wire = {
   node: Ref<Node>,
-  lines: Line[],
-  label: string,
-  locations: Point[],
+  lines: TectonicLine[],
+  voltageDisplayLabel: string,
+  voltageDisplayLocations: TectonicPoint[],
 }
 
 export type Line = {

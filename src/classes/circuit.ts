@@ -10,6 +10,7 @@ import { Node } from "./node"
 import { canvasDpi, canvasSize, drawGrid, moveNodesInResponseToCircuitState, schematicScale } from "../constants"
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
+import { TectonicPlate } from "./tectonicPlate"
 
 export class Circuit extends CtxArtist {
     width: number
@@ -22,9 +23,8 @@ export class Circuit extends CtxArtist {
     }
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
-    updateDevicePositions: (circuit: Circuit) => void
 
-    constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic([], [], [], [], [], []), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix(), updateDevicePositions: () => void = () => {}) {
+    constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
         const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
         super([], (new TransformationMatrix()).scale(scale * canvasDpi).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}).translate(extraShift))
@@ -39,7 +39,6 @@ export class Circuit extends CtxArtist {
         }
         this.nodes = nodes
         this.textTransformationMatrix = textTransformationMatrix.translate(origin).scale(scale / schematicScale)
-        this.updateDevicePositions = updateDevicePositions
     }
 
     get allSliders(): AngleSlider[] {
@@ -63,7 +62,7 @@ export class Circuit extends CtxArtist {
                 }
             })
             if (!slidersDragging) {
-                this.updateDevicePositions(this)
+                TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
             }
         }
 
@@ -96,7 +95,6 @@ export class Circuit extends CtxArtist {
         CtxArtist.circuitTransformationMatrix.transformCanvas(ctx)
         const topLeftCornerOfCanvasInLocalReferenceFrame = CtxArtist.circuitTransformationMatrix.inverse().transformPoint({x: 0, y: 0})
         const bottomRightCornerOfCanvasInLocalReferenceFrame = CtxArtist.circuitTransformationMatrix.inverse().transformPoint(canvasSize)
-        console.log(topLeftCornerOfCanvasInLocalReferenceFrame.x, topLeftCornerOfCanvasInLocalReferenceFrame.y)
         for (let xPosition = Math.floor(topLeftCornerOfCanvasInLocalReferenceFrame.x); xPosition <= Math.ceil(bottomRightCornerOfCanvasInLocalReferenceFrame.x); xPosition += 1) {
             for (let yPosition = Math.floor(topLeftCornerOfCanvasInLocalReferenceFrame.y); yPosition <= Math.ceil(bottomRightCornerOfCanvasInLocalReferenceFrame.y); yPosition += 1) {
                 let dotRadius = 0.1
