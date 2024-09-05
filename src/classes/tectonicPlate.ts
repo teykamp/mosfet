@@ -37,4 +37,22 @@ export class TectonicPoint extends CtxArtist {
         super(parentTransformations, new TransformationMatrix())
         this.point = point
     }
+
+    toPoint(): Point {
+        return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.point)
+    }
 }
+
+export class TectonicLine {
+    start: TectonicPoint
+    end: TectonicPoint
+
+    constructor(startParentTransformations: Ref<TransformationMatrix>[], startPoint: Point, endParentTransformations: Ref<TransformationMatrix>[], endPoint: Point) {
+        this.start = new TectonicPoint(startParentTransformations, startPoint)
+        this.end = new TectonicPoint(endParentTransformations, endPoint)
+    }
+
+    toLine(): Line {
+        return {start: this.start.toPoint(), end: this.end.toPoint()}
+    }
+  }

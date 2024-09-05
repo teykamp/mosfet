@@ -9,7 +9,7 @@ import { Mosfet } from '../classes/mosfet'
 import { VoltageSource } from '../classes/voltageSource'
 import { between, foldl } from '../functions/extraMath'
 import { TransformationMatrix } from '../classes/transformationMatrix'
-import { TectonicPlate } from '../classes/tectonicPlate'
+import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicPlate'
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { GndSymbol } from '../classes/powerSymbols'
 import { VddSymbol } from '../classes/powerSymbols'
@@ -26,7 +26,7 @@ const usePmosSingle = () => {
         [vddNodeId]: ref(new Node(vddVoltage, true)),
         "M1_drain": ref(new Node(5, false,
             [
-                {start: {x: 0, y: 2}, end: {x: 0, y: 4}}
+                new TectonicLine(circuit.transformations, {x: 0, y: 2}, circuit.transformations, {x: 0, y: 4}),
             ]
         )),
         "M1_gate": ref(new Node(1, false)),

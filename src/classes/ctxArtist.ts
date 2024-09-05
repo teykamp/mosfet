@@ -6,8 +6,6 @@ import { foldl } from "../functions/extraMath"
 
 export class CtxArtist {
     transformations: Ref<TransformationMatrix>[] = []
-    globalTransformationMatrix: TransformationMatrix = new TransformationMatrix()
-    originalLocalTransformationMatrix: TransformationMatrix
     anchorPoints: {[name: string]: Point} = {}
     _transformationMatrix: ComputedRef<TransformationMatrix>
 
@@ -20,7 +18,6 @@ export class CtxArtist {
         // if you change the last element of this.transformations[this.transformations.length - 1], it will propagate down to all children
         parentTransformations.forEach(transformation => {this.transformations.push(transformation)}) // make a shallow copy of the array
         this.transformations.push(ref(localTransformationMatrix) as Ref<TransformationMatrix>) // then append the local transformation matrix
-        this.originalLocalTransformationMatrix = localTransformationMatrix
         this._transformationMatrix = computed(() => { return foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(), this.transformations) })
 
         CtxArtist.allCtxArtists.push(this)
