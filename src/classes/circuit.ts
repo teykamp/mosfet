@@ -39,6 +39,10 @@ export class Circuit extends CtxArtist {
         }
         this.nodes = nodes
         this.textTransformationMatrix = textTransformationMatrix.translate(origin).scale(scale / schematicScale)
+
+        // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
+        CtxArtist.circuitTransformationMatrix = this.transformationMatrix
+        CtxArtist.textTransformationMatrix = this.textTransformationMatrix
     }
 
     get allSliders(): AngleSlider[] {

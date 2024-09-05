@@ -70,6 +70,9 @@ const usePmosSingle = () => {
     ///        SCHEMATIC       ///
     //////////////////////////////
 
+    console.log("tectonicPlate.transformations", tectonicPlate.transformationMatrix.translation)
+    console.log("circuit.transformations", circuit.transformationMatrix.translation)
+    console.log("circuit.devices.mosfets['M1'].getAnchorPoint('Vd'))", circuit.devices.mosfets["M1"].getAnchorPoint("Vd"))
     circuit.schematic = new Schematic(
         circuit.transformations,
         [new GndSymbol(circuit.transformations, {x: 0, y: 8})],

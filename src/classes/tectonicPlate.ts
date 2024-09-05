@@ -16,8 +16,6 @@ export class TectonicPlate extends CtxArtist {
     }
 
     moveTowardDesiredLocation() {
-        console.log(this.transformationMatrix.translation)
-
         const currentLocation = this.currentLocation
         const desiredLocation = this.desiredLocation.value
         const lineToTravel: Line = {start: currentLocation, end: desiredLocation}

@@ -31,6 +31,7 @@ export class VddSymbol extends CtxArtist{
     }
 
     draw(ctx: CanvasRenderingContext2D) {
+        console.log(this.transformationMatrix.translation)
         this.transformationMatrix.transformCanvas(ctx)
         const symbolSize = 0.8
 
