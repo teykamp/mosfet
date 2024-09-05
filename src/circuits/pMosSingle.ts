@@ -81,7 +81,7 @@ const usePmosSingle = () => {
             {
                 node: circuit.nodes["M1_drain"],
                 lines: [
-                    new TectonicLine(circuit.transformations, {x: 0, y: 2}, circuit.transformations, {x: 0, y: 4}),
+                    new TectonicLine(tectonicPlate.transformations, {x: 0, y: 2}, circuit.transformations, {x: 0, y: 4}),
                 ],
                 voltageDisplayLabel: "Drain",
                 voltageDisplayLocations: [new TectonicPoint(circuit.transformations, {x: 0, y: 3})]
