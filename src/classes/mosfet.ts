@@ -60,12 +60,15 @@ export class Mosfet extends CtxArtist{
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
 
             this.anchorPoints = {
-                "Vg": {x: 30, y: 0},
+                "Vg": {x: 60, y: 0},
                 "Vs": {x: 0, y: 60},
                 "Vd": {x: 0, y: -60},
                 "Vb": {x: 0, y: 0},
                 "Gnd": {x: 0, y: 90},
                 "Vdd": {x: 0, y: -90},
+                "Vg_mirror_gate": {x: 90, y: 0},
+                "Vg_mirror_corner": {x: 90, y: 90},
+                "Vg_mirror_drain": {x: 0, y: 90},
             }
         }
         else {
@@ -73,12 +76,15 @@ export class Mosfet extends CtxArtist{
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
 
             this.anchorPoints = {
-                "Vg": {x: 30, y: 0},
+                "Vg": {x: 60, y: 0},
                 "Vs": {x: 0, y: -60},
                 "Vd": {x: 0, y: 60},
                 "Vb": {x: 0, y: 0},
                 "Gnd": {x: 0, y: 90},
                 "Vdd": {x: 0, y: -90},
+                "Vg_mirror_gate": {x: 90, y: 0},
+                "Vg_mirror_corner": {x: 90, y: 90},
+                "Vg_mirror_drain": {x: 0, y: 90},
             }
         }
     }

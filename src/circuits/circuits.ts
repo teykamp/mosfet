@@ -8,6 +8,6 @@ export const circuits = {
     'nMosSingle': nMosSingle(),
     'nMosDiffPair': nMosDiffPair(),
     'pMosSingle': pMosSingle(),
-    // 'nMos5TransistorOpAmp': nMos5TransistorOpAmp(),
+    'nMos5TransistorOpAmp': nMos5TransistorOpAmp(),
     // 'nMos9TransistorOpAmp': nMos9TransistorOpAmp(),
 }
