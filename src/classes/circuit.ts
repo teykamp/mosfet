@@ -1,7 +1,7 @@
-import { Point } from "../types"
+import { BoundingBox, Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
-import { Ref } from 'vue'
+import { ref, Ref } from 'vue'
 import { AngleSlider } from "./angleSlider"
 import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
@@ -10,12 +10,13 @@ import { Node } from "./node"
 import { canvasDpi, canvasSize, drawGrid, moveNodesInResponseToCircuitState, schematicScale } from "../constants"
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
-import { TectonicPlate } from "./tectonicPlate"
+import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 
 export class Circuit extends CtxArtist {
     width: number
     height: number
     relativeOrigin: Point
+    boundingBox: BoundingBox
     schematic: Schematic // how to draw the circuit
     devices: {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
@@ -27,11 +28,19 @@ export class Circuit extends CtxArtist {
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
         const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
-        super([], (new TransformationMatrix()).scale(scale * canvasDpi).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}).translate(extraShift))
+        super([ref((new TransformationMatrix()).scale(canvasDpi * scale).translate(extraShift)) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
 
         this.width = width
         this.height = height
         this.relativeOrigin = origin
+
+        this.boundingBox = {
+            topLeft: new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
+            topRight: new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y - height / 2}),
+            bottomLeft: new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y + height / 2}),
+            bottomRight: new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y + height / 2}),
+        }
+
         this.schematic = schematic
         this.devices = {
             mosfets: mosfets,
@@ -52,6 +61,7 @@ export class Circuit extends CtxArtist {
     draw(ctx: CanvasRenderingContext2D) {
         ctx.save()
 
+        this.setScaleBasedOnBoundingBox()
         this.transformationMatrix.transformCanvas(ctx)
 
         // set static transformation matrices for the circuit
@@ -97,8 +107,8 @@ export class Circuit extends CtxArtist {
 
     drawGrid(ctx: CanvasRenderingContext2D) {
         CtxArtist.circuitTransformationMatrix.transformCanvas(ctx)
-        const topLeftCornerOfCanvasInLocalReferenceFrame = CtxArtist.circuitTransformationMatrix.inverse().transformPoint({x: 0, y: 0})
-        const bottomRightCornerOfCanvasInLocalReferenceFrame = CtxArtist.circuitTransformationMatrix.inverse().transformPoint(canvasSize)
+        const topLeftCornerOfCanvasInLocalReferenceFrame = this.transformationMatrix.inverse().transformPoint({x: 0, y: 0})
+        const bottomRightCornerOfCanvasInLocalReferenceFrame = this.transformationMatrix.inverse().transformPoint({x: canvasSize.x * canvasDpi, y: canvasSize.y * canvasDpi})
         for (let xPosition = Math.floor(topLeftCornerOfCanvasInLocalReferenceFrame.x); xPosition <= Math.ceil(bottomRightCornerOfCanvasInLocalReferenceFrame.x); xPosition += 1) {
             for (let yPosition = Math.floor(topLeftCornerOfCanvasInLocalReferenceFrame.y); yPosition <= Math.ceil(bottomRightCornerOfCanvasInLocalReferenceFrame.y); yPosition += 1) {
                 let dotRadius = 0.1
@@ -122,5 +132,26 @@ export class Circuit extends CtxArtist {
             {center: this.relativeOrigin, outerDiameter: 2},
             {center: this.relativeOrigin, outerDiameter: 1},
         ], 0.2, "purple")
+        drawCirclesFillSolid(ctx, [
+            {center: this.boundingBox.topLeft.toPoint(), outerDiameter: 2},
+            {center: this.boundingBox.topRight.toPoint(), outerDiameter: 2},
+            {center: this.boundingBox.bottomRight.toPoint(), outerDiameter: 10},
+            {center: this.boundingBox.bottomLeft.toPoint(), outerDiameter: 10},
+        ], 0.2, "purple")
+    }
+
+    setScaleBasedOnBoundingBox() {
+        const left =   Math.min(this.boundingBox.topLeft.toPoint().x, this.boundingBox.topRight.toPoint().x, this.boundingBox.bottomRight.toPoint().x, this.boundingBox.bottomLeft.toPoint().x)
+        const right =  Math.max(this.boundingBox.topLeft.toPoint().x, this.boundingBox.topRight.toPoint().x, this.boundingBox.bottomRight.toPoint().x, this.boundingBox.bottomLeft.toPoint().x)
+        const top =    Math.min(this.boundingBox.topLeft.toPoint().y, this.boundingBox.topRight.toPoint().y, this.boundingBox.bottomRight.toPoint().y, this.boundingBox.bottomLeft.toPoint().y)
+        const bottom = Math.max(this.boundingBox.topLeft.toPoint().y, this.boundingBox.topRight.toPoint().y, this.boundingBox.bottomRight.toPoint().y, this.boundingBox.bottomLeft.toPoint().y)
+
+        const height = Math.abs(top - bottom)
+        const width = Math.abs(right - left)
+        const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
+        const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
+        console.log("width", width, "height", height)
+        this.transformations[0].value = (new TransformationMatrix()).scale(canvasDpi * scale).translate(extraShift)
+        this.transformations[1].value = (new TransformationMatrix()).translate({x: -this.relativeOrigin.x + width / 2, y: -this.relativeOrigin.y + height / 2})
     }
 }

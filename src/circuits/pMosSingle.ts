@@ -27,8 +27,12 @@ const usePmosSingle = () => {
         "M1_gate": ref(new Node(1, false)),
     }
 
+    //////////////////////////////
+    ///    TECTONIC PLATES     ///
+    //////////////////////////////
+
     const tectonicPlate: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 3, y: 6}}],
+        return getPointAlongPath([{start: {x: 0, y: 6}, end: {x: 0, y: 0}}],
             between(gndVoltage, vddVoltage, circuit.nodes["M1_drain"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 
@@ -39,7 +43,7 @@ const usePmosSingle = () => {
     circuit.devices.mosfets = {
         "M1": new Mosfet(
             // circuit.transformations,
-            tectonicPlate.transformations,
+            circuit.transformations,
             'pmos',
             0,
             0,
@@ -56,7 +60,7 @@ const usePmosSingle = () => {
 
     circuit.devices.voltageSources = {
         "Vd": new VoltageSource(
-            circuit.transformations,
+            tectonicPlate.transformations,
             {x: 0, y: 6},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_drain"],
@@ -72,8 +76,8 @@ const usePmosSingle = () => {
 
     circuit.schematic = new Schematic(
         circuit.transformations,
-        [new GndSymbol(circuit.transformations, {x: 0, y: 8})],
-        [new VddSymbol(tectonicPlate.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vd"))],
+        [new GndSymbol(tectonicPlate.transformations, {x: 0, y: 8})],
+        [new VddSymbol(circuit.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vd"))],
         [],
         Object.values(circuit.devices.mosfets),
         Object.values(circuit.nodes),
@@ -81,13 +85,20 @@ const usePmosSingle = () => {
             {
                 node: circuit.nodes["M1_drain"],
                 lines: [
-                    new TectonicLine(tectonicPlate.transformations, {x: 0, y: 2}, circuit.transformations, {x: 0, y: 4}),
+                    new TectonicLine(circuit.transformations, {x: 0, y: 2}, tectonicPlate.transformations, {x: 0, y: 4}),
                 ],
                 voltageDisplayLabel: "Drain",
                 voltageDisplayLocations: [new TectonicPoint(tectonicPlate.transformations, {x: 0, y: 3})]
             }
         ]
     )
+
+    circuit.boundingBox = {
+        topLeft: new TectonicPoint(circuit.transformations, {x: -5, y: -4}),
+        topRight: new TectonicPoint(circuit.transformations, {x: 5, y: -4}),
+        bottomLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: 16}),
+        bottomRight: new TectonicPoint(tectonicPlate.transformations, {x: 5, y: 16}),
+    }
 
     return circuit
 }

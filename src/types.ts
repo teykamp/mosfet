@@ -33,12 +33,18 @@ export type Chart = {
   cornerToCornerGraph?: boolean
 }
 
+export type BoundingBox = {
+  topLeft: TectonicPoint
+  topRight: TectonicPoint
+  bottomRight: TectonicPoint
+  bottomLeft: TectonicPoint
+}
+
 export type SchematicEffect = {
   node: Ref<Node>,
   origin: TectonicPoint,
   color: string,
   gradientSize: number,
-
 }
 
 export type FlattenedSchematicEffect = {
