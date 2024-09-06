@@ -34,6 +34,14 @@ export type Chart = {
 }
 
 export type SchematicEffect = {
+  node: Ref<Node>,
+  origin: TectonicPoint,
+  color: string,
+  gradientSize: number,
+
+}
+
+export type FlattenedSchematicEffect = {
   origin: Point,
   color: string,
   gradientSize: number,

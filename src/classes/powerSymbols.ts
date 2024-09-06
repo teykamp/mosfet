@@ -21,7 +21,6 @@ export class GndSymbol extends CtxArtist{
         ctx.lineTo(-symbolSize / 2, 0)
         ctx.lineTo(0, 0)
         ctx.stroke()
-
     }
 }
 
@@ -31,7 +30,6 @@ export class VddSymbol extends CtxArtist{
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        console.log(this.transformationMatrix.translation)
         this.transformationMatrix.transformCanvas(ctx)
         const symbolSize = 0.8
 

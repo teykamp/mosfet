@@ -1,4 +1,4 @@
-import { SchematicEffect } from "../types"
+import { FlattenedSchematicEffect } from "../types"
 import { Queue } from "./queue"
 import { defaultNodeCapacitance, powerSupplyCapacitance } from "../constants"
 
@@ -9,7 +9,7 @@ export class Node {
     originalCapacitance: number // in
     fixed: boolean // GND and VDD nodes are fixed, as are nodes that are being dragged
     historicVoltages: Queue<number>
-    schematicEffects: SchematicEffect[] = []
+    schematicEffects: FlattenedSchematicEffect[] = []
 
     constructor(initialVoltage: number, isPowerSupply: boolean) {
         const historicVoltages: Queue<number> = new Queue<number>()

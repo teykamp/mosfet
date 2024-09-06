@@ -11,13 +11,14 @@ import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, ma
 import { interpolateInferno } from "d3"
 import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
+import { TectonicPoint } from "./tectonicPlate"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
     // mirror: boolean
     currentDots: CurrentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
     gradientSize: number = 100
-    schematicEffects: { [name: string]: {node: Ref<Node>, effect: SchematicEffect} }
+    schematicEffects: {[name: string]: SchematicEffect}
     vgs: AngleSlider
     vds: AngleSlider
     Vg: Ref<Node>
@@ -32,25 +33,21 @@ export class Mosfet extends CtxArtist{
         this.schematicEffects = {
             "gate": {
                 node: Vg,
-                effect: {
-                    origin: {
-                        x: 30,
-                        y: 0,
-                    },
-                    color: 'red',
-                    gradientSize: 2,
-                }
+                origin: new TectonicPoint(this.transformations, {
+                    x: 30,
+                    y: 0,
+                }),
+                color: 'red',
+                gradientSize: 2,
             },
             "saturation": {
                 node: Vd,
-                effect: {
-                    origin: {
-                        x: 0,
-                        y: 30 * (mosfetType == 'nmos' ? -1 : 1),
-                    },
-                    color: 'red',
-                    gradientSize: 100,
-                }
+                origin: new TectonicPoint(this.transformations, {
+                    x: 0,
+                    y: 30 * (mosfetType == 'nmos' ? -1 : 1),
+                }),
+                color: 'red',
+                gradientSize: 100,
             },
         },
         this.Vg = Vg
@@ -109,10 +106,10 @@ export class Mosfet extends CtxArtist{
         drawCirclesFillSolid(ctx, gateCircles, this.localLineThickness, gateColor)
         drawLinesFillWithGradient(ctx, bodyLines, this.localLineThickness, gradient)
 
-        this.schematicEffects["saturation"].effect.gradientSize = this.gradientSize / 30 * 3.5
-        this.schematicEffects["saturation"].effect.color = 'rgba(200, 200, 200, 1)'
-        this.schematicEffects["gate"].effect.gradientSize = forwardCurrentScaled * 3.5
-        this.schematicEffects["gate"].effect.color = gateColor
+        this.schematicEffects["saturation"].gradientSize = this.gradientSize / 30 * 3.5
+        this.schematicEffects["saturation"].color = 'rgba(200, 200, 200, 1)'
+        this.schematicEffects["gate"].gradientSize = forwardCurrentScaled * 3.5
+        this.schematicEffects["gate"].color = gateColor
 
         this.currentDots.draw(ctx)
 

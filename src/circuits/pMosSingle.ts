@@ -70,9 +70,6 @@ const usePmosSingle = () => {
     ///        SCHEMATIC       ///
     //////////////////////////////
 
-    console.log("tectonicPlate.transformations", tectonicPlate.transformationMatrix.translation)
-    console.log("circuit.transformations", circuit.transformationMatrix.translation)
-    console.log("circuit.devices.mosfets['M1'].getAnchorPoint('Vd'))", circuit.devices.mosfets["M1"].getAnchorPoint("Vd"))
     circuit.schematic = new Schematic(
         circuit.transformations,
         [new GndSymbol(circuit.transformations, {x: 0, y: 8})],
@@ -87,7 +84,7 @@ const usePmosSingle = () => {
                     new TectonicLine(tectonicPlate.transformations, {x: 0, y: 2}, circuit.transformations, {x: 0, y: 4}),
                 ],
                 voltageDisplayLabel: "Drain",
-                voltageDisplayLocations: [new TectonicPoint(circuit.transformations, {x: 0, y: 3})]
+                voltageDisplayLocations: [new TectonicPoint(tectonicPlate.transformations, {x: 0, y: 3})]
             }
         ]
     )
