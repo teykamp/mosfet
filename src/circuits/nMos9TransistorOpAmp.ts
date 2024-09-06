@@ -70,10 +70,10 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     circuit.boundingBox = {
-        topLeft: new TectonicPoint(tectonicPlatePmos.transformations, {x: -5, y: -18}),
-        topRight: new TectonicPoint(tectonicPlatePmosOutput.transformations, {x: 25, y: -18}),
-        bottomLeft: new TectonicPoint(circuit.transformations, {x: -5, y: 14}),
-        bottomRight: new TectonicPoint(tectonicPlateOutput.transformations, {x: 25, y: 14}),
+        topLeft: new TectonicPoint(tectonicPlatePmos.transformations, {x: -12, y: -18}),
+        topRight: new TectonicPoint(tectonicPlatePmosOutput.transformations, {x: 33, y: -18}),
+        bottomLeft: new TectonicPoint(circuit.transformations, {x: -12, y: 14}),
+        bottomRight: new TectonicPoint(tectonicPlateOutput.transformations, {x: 33, y: 14}),
     }
 
     //////////////////////////////
