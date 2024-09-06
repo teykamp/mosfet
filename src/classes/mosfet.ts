@@ -58,16 +58,24 @@ export class Mosfet extends CtxArtist{
         if (this.mosfetType == 'nmos') {
             this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+
+            this.anchorPoints = {
+                "Vg": {x: 30, y: 0},
+                "Vs": {x: 0, y: 60},
+                "Vd": {x: 0, y: -60},
+                "Vb": {x: 0, y: 0},
+            }
         }
         else {
             this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
-        }
-        this.anchorPoints = {
-            "Vg": {x: 30, y: 0},
-            "Vs": {x: 0, y: 60},
-            "Vd": {x: 0, y: -60},
-            "Vb": {x: 0, y: 0},
+
+            this.anchorPoints = {
+                "Vg": {x: 30, y: 0},
+                "Vs": {x: 0, y: -60},
+                "Vd": {x: 0, y: 60},
+                "Vb": {x: 0, y: 0},
+            }
         }
     }
 

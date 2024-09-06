@@ -70,9 +70,9 @@ export class Circuit extends CtxArtist {
                     slidersDragging = true
                 }
             })
-            if (!slidersDragging) {
+            // if (!slidersDragging) {
                 TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
-            }
+            // }
         }
 
         this.schematic.draw(ctx)

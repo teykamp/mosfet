@@ -27,6 +27,11 @@ export class VoltageSource extends CtxArtist{
         }
         this.schematicEffects = {}
         this.current = 0 // Amps
+
+        this.anchorPoints = {
+            "Vplus": {x: 0, y: -60},
+            "Vminus": {x: 0, y: 60},
+        }
     }
 
     draw(ctx: CanvasRenderingContext2D) {

@@ -21,10 +21,10 @@ export class TectonicPlate extends CtxArtist {
         const lineToTravel: Line = {start: currentLocation, end: desiredLocation}
 
         let newLocation: Point = {x: 0, y: 0}
-        if (getLineLength(CtxArtist.textTransformationMatrix.transformLine(lineToTravel)) < 0.5) {
+        if (getLineLength(CtxArtist.textTransformationMatrix.transformLine(lineToTravel)) < 0.1) {
             newLocation = desiredLocation
         } else {
-            newLocation = getPointAlongLine(lineToTravel, 0.3)
+            newLocation = getPointAlongLine(lineToTravel, 0.1) // 0.3
         }
         this.moveTo(newLocation)
         this.currentLocation = newLocation
