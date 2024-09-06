@@ -64,6 +64,8 @@ export class Mosfet extends CtxArtist{
                 "Vs": {x: 0, y: 60},
                 "Vd": {x: 0, y: -60},
                 "Vb": {x: 0, y: 0},
+                "Gnd": {x: 0, y: 90},
+                "Vdd": {x: 0, y: -90},
             }
         }
         else {
@@ -75,6 +77,8 @@ export class Mosfet extends CtxArtist{
                 "Vs": {x: 0, y: -60},
                 "Vd": {x: 0, y: 60},
                 "Vb": {x: 0, y: 0},
+                "Gnd": {x: 0, y: 90},
+                "Vdd": {x: 0, y: -90},
             }
         }
     }

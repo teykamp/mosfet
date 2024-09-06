@@ -6,7 +6,7 @@ import pMosSingle from "./pMosSingle"
 
 export const circuits = {
     'nMosSingle': nMosSingle(),
-    // 'nMosDiffPair': nMosDiffPair(),
+    'nMosDiffPair': nMosDiffPair(),
     'pMosSingle': pMosSingle(),
     // 'nMos5TransistorOpAmp': nMos5TransistorOpAmp(),
     // 'nMos9TransistorOpAmp': nMos9TransistorOpAmp(),
