@@ -13,9 +13,6 @@ import { drawCirclesFillSolid } from "../functions/drawFuncs"
 import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 
 export class Circuit extends CtxArtist {
-    width: number
-    height: number
-    relativeOrigin: Point
     boundingBox: BoundingBox
     schematic: Schematic // how to draw the circuit
     devices: {
@@ -24,15 +21,12 @@ export class Circuit extends CtxArtist {
     }
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
+    originalTextTransformationMatrix: TransformationMatrix
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
         const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
         super([ref((new TransformationMatrix()).scale(canvasDpi * scale).translate(extraShift)) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
-
-        this.width = width
-        this.height = height
-        this.relativeOrigin = origin
 
         this.boundingBox = {
             topLeft: new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
@@ -47,7 +41,8 @@ export class Circuit extends CtxArtist {
             voltageSources: voltageSources,
         }
         this.nodes = nodes
-        this.textTransformationMatrix = textTransformationMatrix.translate(origin).scale(scale / schematicScale)
+        this.originalTextTransformationMatrix = textTransformationMatrix
+        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale / canvasDpi).multiply(this.originalTextTransformationMatrix)
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
@@ -124,19 +119,12 @@ export class Circuit extends CtxArtist {
                 ctx.fill()
             }
         }
-        ctx.strokeStyle = "brown"
-        ctx.lineWidth = 0.2
-        ctx.strokeRect(this.relativeOrigin.x - this.width / 2, this.relativeOrigin.y - this.height / 2, this.width, this.height)
-        drawCirclesFillSolid(ctx, [
-            {center: this.relativeOrigin, outerDiameter: 3},
-            {center: this.relativeOrigin, outerDiameter: 2},
-            {center: this.relativeOrigin, outerDiameter: 1},
-        ], 0.2, "purple")
+
         drawCirclesFillSolid(ctx, [
             {center: this.boundingBox.topLeft.toPoint(), outerDiameter: 2},
             {center: this.boundingBox.topRight.toPoint(), outerDiameter: 2},
-            {center: this.boundingBox.bottomRight.toPoint(), outerDiameter: 10},
-            {center: this.boundingBox.bottomLeft.toPoint(), outerDiameter: 10},
+            {center: this.boundingBox.bottomRight.toPoint(), outerDiameter: 2},
+            {center: this.boundingBox.bottomLeft.toPoint(), outerDiameter: 2},
         ], 0.2, "purple")
     }
 
@@ -148,10 +136,13 @@ export class Circuit extends CtxArtist {
 
         const height = Math.abs(top - bottom)
         const width = Math.abs(right - left)
+        const origin = {x: left + width / 2, y: top + height / 2}
+
         const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
         const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
-        console.log("width", width, "height", height)
+
         this.transformations[0].value = (new TransformationMatrix()).scale(canvasDpi * scale).translate(extraShift)
-        this.transformations[1].value = (new TransformationMatrix()).translate({x: -this.relativeOrigin.x + width / 2, y: -this.relativeOrigin.y + height / 2})
+        this.transformations[1].value = (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2})
+        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale / canvasDpi).multiply(this.originalTextTransformationMatrix)
     }
 }

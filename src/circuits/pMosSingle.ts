@@ -12,6 +12,7 @@ import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicP
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { GndSymbol } from '../classes/powerSymbols'
 import { VddSymbol } from '../classes/powerSymbols'
+import { TransformationMatrix } from '../classes/transformationMatrix'
 
 const usePmosSingle = () => {
     const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
@@ -94,10 +95,10 @@ const usePmosSingle = () => {
     )
 
     circuit.boundingBox = {
-        topLeft: new TectonicPoint(circuit.transformations, {x: -5, y: -4}),
-        topRight: new TectonicPoint(circuit.transformations, {x: 5, y: -4}),
-        bottomLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: 16}),
-        bottomRight: new TectonicPoint(tectonicPlate.transformations, {x: 5, y: 16}),
+        topLeft: new TectonicPoint(circuit.transformations, {x: -5, y: -6}),
+        topRight: new TectonicPoint(circuit.transformations, {x: 5, y: -6}),
+        bottomLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: 12}),
+        bottomRight: new TectonicPoint(tectonicPlate.transformations, {x: 5, y: 12}),
     }
 
     return circuit
