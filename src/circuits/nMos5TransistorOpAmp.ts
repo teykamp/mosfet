@@ -30,7 +30,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
         "Vnode": ref(new Node(1, false)),
     }
 
-        //////////////////////////////
+    //////////////////////////////
     ///    TECTONIC PLATES     ///
     //////////////////////////////
 
