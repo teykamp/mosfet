@@ -7,7 +7,7 @@ import { unit, Unit } from "mathjs"
 import { ekvNmos, ekvPmos } from "../functions/ekvModel"
 import { between, toRadians } from "../functions/extraMath"
 import { toSiPrefix } from "../functions/toSiPrefix"
-import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, getLineLength, makeStandardGradient } from "../functions/drawFuncs"
 import { interpolateInferno } from "d3"
 import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
@@ -25,6 +25,9 @@ export class Mosfet extends CtxArtist{
     Vs: Ref<Node>
     Vd: Ref<Node>
     Vb: Ref<Node>
+    mouseDownInsideSelectionArea = false
+    selected = false
+    chartVisibility: Visibility = Visibility.Hidden
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
@@ -96,6 +99,16 @@ export class Mosfet extends CtxArtist{
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
 
+        if (this.selected) {
+            console.log("I'm selected!")
+            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
+            backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 1)')
+            backgroundGradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
+            ctx.fillStyle = backgroundGradient
+            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
+            ctx.fill()
+        }
+
         const bodyLines: Line[] = [
             {start: {x: 0, y: 20}, end: {x: 0, y: 59}},
             {start: {x: 0, y: 20}, end: {x: 26, y: 20}},
@@ -165,6 +178,12 @@ export class Mosfet extends CtxArtist{
         return this.getMosfetForwardCurrent()
     }
 
+    checkSelectionArea(mousePosition: Point): boolean {
+        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
+        const radius = 60
+        console.log(transformedMousePos)
+        return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
+    }
 
     getMosfetEkvResult(): { I: Unit, saturationLevel: number, IF: Unit } {
         if (this.mosfetType == 'pmos') {

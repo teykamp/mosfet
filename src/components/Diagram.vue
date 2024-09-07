@@ -33,6 +33,7 @@ import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasDpi, canvasSize } from '../constants'
 import { AngleSlider } from '../classes/angleSlider'
+import { Visibility } from '../types'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -78,9 +79,19 @@ const getMousePos = (event: MouseEvent) => {
 
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
+  let anySlidersDragging = false
     circuit.value.allSliders.forEach(slider => {
       slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+      if (slider.dragging) {
+        anySlidersDragging = true
+      }
   })
+
+  if (!anySlidersDragging) {
+    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+      mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
+    })
+  }
 
   drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
   document.addEventListener('mousemove', drag)
@@ -104,10 +115,29 @@ const drag = (event: MouseEvent) => {
   updateNodeVoltagesBasedOnSliders()
 }
 
-const mouseUp = () => {
+const mouseUp = (event: MouseEvent) => {
+  const { mouseX, mouseY } = getMousePos(event)
+
+  let anySlidersDragging = false
   circuit.value.allSliders.forEach((slider) => {
+    if (slider.dragging) {
+      anySlidersDragging = true
+    }
     slider.releaseSlider()
   })
+
+  if (!anySlidersDragging) {
+    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+      if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
+        mosfet.selected = !mosfet.selected
+        mosfet.chartVisibility = Visibility.Visible
+      } else {
+        mosfet.selected = false // unselect everything when you click somewhere else
+        mosfet.chartVisibility = Visibility.Hidden
+      }
+      mosfet.mouseDownInsideSelectionArea = false
+    })
+  }
 
   document.removeEventListener('mousemove', drag)
   document.removeEventListener('mouseup', mouseUp)
