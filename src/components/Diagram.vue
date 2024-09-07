@@ -16,8 +16,14 @@
       <h3 style="text-align: center;">Circuits</h3>
       <div style="border: 1px solid grey;"></div>
       <button v-for="circuit in circuitsToChooseFrom" @click.prevent="setCircuit(circuit)"
-        :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`">{{
+      :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`">{{
         circuit }}</button>
+      <div style="border: 1px solid grey; margin-top: 20px; margin-bottom: 30px;"></div>
+      <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
+      <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
+        <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid"/>
+        <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState"/>
+      </div>
       <button
         @click="showSideBar = false"
         style="position: absolute; bottom: 40px; right: 15px;"
@@ -31,8 +37,10 @@
 import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { canvasDpi, canvasSize } from '../constants'
+import { canvasSize } from '../constants'
 import { AngleSlider } from '../classes/angleSlider'
+import Switch from './Switch.vue'
+import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi } from '../globalState'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -71,8 +79,8 @@ const updateNodeVoltagesBasedOnSliders = () => {
 const getMousePos = (event: MouseEvent) => {
   if (!canvas.value) return { mouseX: 0, mouseY: 0 }
   const rect = canvas.value.getBoundingClientRect()
-  const mouseX = (event.clientX - rect.left) * canvasDpi
-  const mouseY = (event.clientY - rect.top) * canvasDpi
+  const mouseX = (event.clientX - rect.left) * canvasDpi.value
+  const mouseY = (event.clientY - rect.top) * canvasDpi.value
   return { mouseX, mouseY }
 }
 
@@ -116,7 +124,7 @@ const mouseUp = () => {
 const draw = () => {
   if (!ctx.value || !canvas.value) return
 
-  const dpi = canvasDpi
+  const dpi = canvasDpi.value
   canvas.value.width = canvasSize.x * dpi
   canvas.value.height = canvasSize.y * dpi
   canvas.value.style.width = `${canvasSize.x}px`
