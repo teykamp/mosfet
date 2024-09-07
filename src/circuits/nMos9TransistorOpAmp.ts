@@ -48,7 +48,7 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlatePmos: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return {x: 0, y: -4}
+        return {x: 0, y: -6}
     }))
 
     const tectonicPlateOutput: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
@@ -60,7 +60,7 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlateVnode: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -6}}],
+        return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -8}}],
             between(gndVoltage, vddVoltage, circuit.nodes["Vnode"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 

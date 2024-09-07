@@ -43,7 +43,7 @@ const useNmosDiffPair = () => {
     }))
 
     const tectonicPlateVnode: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -6}}],
+        return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -8}}],
             between(gndVoltage, vddVoltage, circuit.nodes["Vnode"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 
