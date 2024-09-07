@@ -75,6 +75,8 @@ export class TransformationMatrix {
     set translation(newLocation: Point) {
         this.translate({x: -this.translation.x, y: -this.translation.y}, true)
         this.translate(newLocation, true)
+        // this.matrix.values[0][2] = newLocation.x
+        // this.matrix.values[1][2] = newLocation.y
     }
 
     rotate(angle: number, inPlace: boolean = false): TransformationMatrix {

@@ -2,11 +2,15 @@
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 // import { ParasiticCapacitor } from '../classes/parasiticCapacitor'
 import { Schematic } from '../classes/schematic'
 import { Mosfet } from '../classes/mosfet'
 import { VoltageSource } from '../classes/voltageSource'
+import { between } from '../functions/extraMath'
+import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicPlate'
+import { getPointAlongPath } from '../functions/drawFuncs'
+import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 
 const usePmosSingle = () => {
     const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
@@ -18,12 +22,24 @@ const usePmosSingle = () => {
     circuit.nodes = {
         [gndNodeId]: ref(new Node(gndVoltage, true)),
         [vddNodeId]: ref(new Node(vddVoltage, true)),
-        "M1_drain": ref(new Node(5, false,
-            [
-                {start: {x: 0, y: 2}, end: {x: 0, y: 4}}
-            ]
-        )),
+        "M1_drain": ref(new Node(5, false)),
         "M1_gate": ref(new Node(1, false)),
+    }
+
+    //////////////////////////////
+    ///    TECTONIC PLATES     ///
+    //////////////////////////////
+
+    const tectonicPlate: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
+        return getPointAlongPath([{start: {x: 0, y: 6}, end: {x: 0, y: 0}}],
+            between(gndVoltage, vddVoltage, circuit.nodes["M1_drain"].value.voltage) / (vddVoltage - gndVoltage))
+    }))
+
+    circuit.boundingBox = {
+        topLeft: new TectonicPoint(circuit.transformations, {x: -5, y: -6}),
+        topRight: new TectonicPoint(circuit.transformations, {x: 5, y: -6}),
+        bottomLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: 12}),
+        bottomRight: new TectonicPoint(tectonicPlate.transformations, {x: 5, y: 12}),
     }
 
     //////////////////////////////
@@ -32,7 +48,7 @@ const usePmosSingle = () => {
 
     circuit.devices.mosfets = {
         "M1": new Mosfet(
-            circuit.transformationMatrix,
+            circuit.transformations,
             'pmos',
             0,
             0,
@@ -49,7 +65,7 @@ const usePmosSingle = () => {
 
     circuit.devices.voltageSources = {
         "Vd": new VoltageSource(
-            circuit.transformationMatrix,
+            tectonicPlate.transformations,
             {x: 0, y: 6},
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_drain"],
@@ -64,12 +80,22 @@ const usePmosSingle = () => {
     //////////////////////////////
 
     circuit.schematic = new Schematic(
-        circuit.transformationMatrix,
-        [{x: 0, y: 8}],
-        [{x: 0, y: -2}],
+        circuit.transformations,
+        [new GndSymbol(...circuit.devices.voltageSources["Vd"].getAnchorPointWithTransformations("Vminus"))],
+        [new VddSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vs"))],
         [],
         Object.values(circuit.devices.mosfets),
-        Object.values(circuit.nodes)
+        Object.values(circuit.nodes),
+        [
+            {
+                node: circuit.nodes["M1_drain"],
+                lines: [
+                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.voltageSources["Vd"].getAnchorPointWithTransformations("Vplus")),
+                ],
+                voltageDisplayLabel: "Drain",
+                voltageDisplayLocations: [new TectonicPoint(tectonicPlate.transformations, {x: 0.5, y: 3})]
+            },
+        ]
     )
 
     return circuit

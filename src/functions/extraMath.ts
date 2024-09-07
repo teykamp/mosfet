@@ -1,3 +1,6 @@
+export const foldr = <A, B>(f: (x: A, acc: B) => B, acc: B, [h, ...t]: A[]): B => h === undefined ? acc : f(h, foldr(f, acc, t)) // https://dev.to/omkarpatil/folds-in-typescript-3ml2
+export const foldl = <A, B>(f: (x: A, acc: B) => B, acc: B, [h, ...t]: A[]): B => h === undefined ? acc : foldl(f, f(h, acc), t) // https://dev.to/omkarpatil/folds-in-typescript-3ml2
+
 export const toDegrees = (theta: number): number => {
   return theta * 180 / Math.PI
 }

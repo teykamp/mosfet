@@ -1,4 +1,4 @@
-import { Point, SchematicEffect } from "../types"
+import { FlattenedSchematicEffect, Point, SchematicEffect, Wire } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ParasiticCapacitor } from "./parasiticCapacitor"
@@ -7,32 +7,36 @@ import { drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } f
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
 import { toSiPrefix } from "../functions/toSiPrefix"
+import { GndSymbol, VddSymbol } from "./powerSymbols"
+import { TectonicLine, TectonicPoint } from "./tectonicPlate"
 
 export class Schematic extends CtxArtist{
-    vddLocations: Point[] // a list of locations to draw vdd symbols
-    gndLocations: Point[] // a list of locations to draw gnd symbols
+    gndSymbols: GndSymbol[] // a list of locations to draw gnd symbols
+    vddSymbols: VddSymbol[] // a list of locations to draw vdd symbols
     parasiticCapacitors: ParasiticCapacitor[]
     mosfets: Mosfet[]
     nodes: Ref<Node>[]
+    wires: Wire[]
 
-    constructor(parentTransformationMatrix: TransformationMatrix, gndLocations: Point[], vddLocations: Point[], parasiticCapacitors: ParasiticCapacitor[], mosfets: Mosfet[], nodes: Ref<Node>[]) {
-        super(parentTransformationMatrix)
-        this.vddLocations = vddLocations
-        this.gndLocations = gndLocations
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], gndSymbols: GndSymbol[] = [], vddSymbols: VddSymbol[] = [], parasiticCapacitors: ParasiticCapacitor[] = [], mosfets: Mosfet[] = [], nodes: Ref<Node>[] = [], wires: Wire[] = []) {
+        super(parentTransformations, new TransformationMatrix())
+        this.gndSymbols = gndSymbols
+        this.vddSymbols = vddSymbols
         this.parasiticCapacitors = parasiticCapacitors
         this.mosfets = mosfets
         this.nodes = nodes
+        this.wires = wires
     }
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
 
         // draw vdd and gnd symbols
-        this.gndLocations.forEach((gndLocation) => {
-            Schematic.drawGnd(ctx, gndLocation, this.localLineThickness, 0.8)
+        this.gndSymbols.forEach((symbol) => {
+            symbol.draw(ctx)
         })
-        this.vddLocations.forEach((vddLocation) => {
-            Schematic.drawVdd(ctx, vddLocation, this.localLineThickness, 0.8)
+        this.vddSymbols.forEach((symbol) => {
+            symbol.draw(ctx)
         })
         this.parasiticCapacitors.forEach((capacitor) => {
             capacitor.draw(ctx)
@@ -41,48 +45,68 @@ export class Schematic extends CtxArtist{
         // reset transformation matrix after drawing parasitic capacitor
         this.transformationMatrix.transformCanvas(ctx)
 
-        // draw all the lines in black
+        // reset gradient regions at each node
         this.nodes.forEach((node: Ref<Node>) => {
-            drawLinesFillSolid(ctx, node.value.lines, this.localLineThickness, 'black')
+            node.value.schematicEffects = []
         })
 
         // add gradient regions from each of the mosfets
         this.mosfets.forEach((mosfet: Mosfet) => {
             Object.values(mosfet.schematicEffects).forEach((schematicEffect: SchematicEffect) => {
-                const gradientOrigin: Point = this.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).transformPoint(schematicEffect.origin)
-                const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
-                drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, this.localLineThickness, gradient)
+                const flattenedSchematicEffect: FlattenedSchematicEffect = Schematic.flattenSchematicEffect(schematicEffect)
+                schematicEffect.node.value.schematicEffects.push(flattenedSchematicEffect)
             })
         })
 
-        // draw node voltage labels
-        this.nodes.forEach((node: Ref<Node>) => {
-            node.value.voltageDisplayLocations.forEach((labelLocation: Point) => {
+        this.wires.forEach((wire: Wire) => {
+            // draw all the lines in black,
+            drawLinesFillSolid(ctx, wire.lines.map((line: TectonicLine) => line.toLine()), this.localLineThickness, 'black')
+
+            // then draw the gradient regions
+            wire.node.value.schematicEffects.forEach((schematicEffect: FlattenedSchematicEffect) => {
+                const gradientOrigin: Point = schematicEffect.origin // this.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).transformPoint(schematicEffect.origin)
+                const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
+
+                drawLinesFillWithGradient(ctx, wire.lines.map((line: TectonicLine) => line.toLine()), this.localLineThickness, gradient)
+            })
+
+            // draw the node voltage labels
+            wire.voltageDisplayLocations.forEach((labelLocation: TectonicPoint) => {
                 ctx.fillStyle = 'black'
                 ctx.font = '18px sans-serif'
-                this.fillTextGlobalReferenceFrame(ctx, labelLocation, node.value.voltageDisplayLabel + " = " + toSiPrefix(node.value.voltage, "V"), false)
+                this.fillTextGlobalReferenceFrame(ctx, labelLocation.toPoint(), wire.voltageDisplayLabel + " = " + toSiPrefix(wire.node.value.voltage, "V"), false)
             })
         })
+
+        // this.nodes.forEach((node: Ref<Node>) => {
+            //     drawLinesFillSolid(ctx, node.value.lines, this.localLineThickness, 'black')
+        // })
+
+        // add gradient regions from each of the mosfets
+        // this.mosfets.forEach((mosfet: Mosfet) => {
+            //     Object.values(mosfet.schematicEffects).forEach((schematicEffect: SchematicEffect) => {
+        //         const gradientOrigin: Point = this.transformationMatrix.inverse().multiply(mosfet.transformationMatrix).transformPoint(schematicEffect.origin)
+        //         const gradient = makeStandardGradient(ctx, gradientOrigin, schematicEffect.gradientSize, schematicEffect.color)
+
+        //         drawLinesFillWithGradient(ctx, schematicEffect.node.value.lines, this.localLineThickness, gradient)
+        //     })
+        // })
+
+        // // draw node voltage labels
+        // this.nodes.forEach((node: Ref<Node>) => {
+            //     node.value.voltageDisplayLocations.forEach((labelLocation: Point) => {
+        //         ctx.fillStyle = 'black'
+        //         ctx.font = '18px sans-serif'
+        //         this.fillTextGlobalReferenceFrame(ctx, labelLocation, node.value.voltageDisplayLabel + " = " + toSiPrefix(node.value.voltage, "V"), false)
+        //     })
+        // })
     }
 
-    static drawGnd(ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number, symbolSize: number) {
-        ctx.strokeStyle = 'black'
-        ctx.lineWidth = lineThickness
-        ctx.beginPath()
-        ctx.moveTo(origin.x, origin.y)
-        ctx.lineTo(origin.x + symbolSize / 2, origin.y)
-        ctx.lineTo(origin.x, origin.y + symbolSize / 2)
-        ctx.lineTo(origin.x - symbolSize / 2, origin.y)
-        ctx.lineTo(origin.x, origin.y)
-        ctx.stroke()
-    }
-
-    static drawVdd(ctx: CanvasRenderingContext2D, origin: Point, lineThickness: number, symbolSize: number) {
-        ctx.strokeStyle = 'black'
-        ctx.lineWidth = lineThickness
-        ctx.beginPath()
-        ctx.moveTo(origin.x - symbolSize / 2, origin.y)
-        ctx.lineTo(origin.x + symbolSize / 2, origin.y)
-        ctx.stroke()
+    static flattenSchematicEffect(schematicEffect: SchematicEffect): FlattenedSchematicEffect {
+        return {
+            origin: schematicEffect.origin.toPoint(),
+            color: schematicEffect.color,
+            gradientSize: schematicEffect.gradientSize,
+        }
     }
 }

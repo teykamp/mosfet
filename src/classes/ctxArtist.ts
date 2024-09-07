@@ -1,16 +1,49 @@
 import { Point } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { GLOBAL_LINE_THICKNESS } from "../constants"
+import { computed, ComputedRef, ref, Ref } from "vue"
+import { foldl } from "../functions/extraMath"
 
 export class CtxArtist {
-    transformationMatrix: TransformationMatrix
-    originalTransformationMatrix: TransformationMatrix
+    transformations: Ref<TransformationMatrix>[] = []
+    anchorPoints: {[name: string]: Point} = {}
+    _transformationMatrix: ComputedRef<TransformationMatrix>
+
     static textTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static circuitTransformationMatrix: TransformationMatrix = new TransformationMatrix()
+    static allCtxArtists: CtxArtist[] = []
 
-    constructor (transformationMatrix: TransformationMatrix = new TransformationMatrix()) {
-        this.transformationMatrix = transformationMatrix
-        this.originalTransformationMatrix = transformationMatrix
+    constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix()) {
+        // this.transformations: [ ref(topLevelTM), ref(circuitTM), ref(mosfetTM), ref(angleSliderTM), ref(thisTM) ]
+        // if you change the last element of this.transformations[this.transformations.length - 1], it will propagate down to all children
+        parentTransformations.forEach(transformation => {this.transformations.push(transformation)}) // make a shallow copy of the array
+        this.transformations.push(ref(localTransformationMatrix) as Ref<TransformationMatrix>) // then append the local transformation matrix
+        this._transformationMatrix = computed(() => { return foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(), this.transformations) })
+
+        CtxArtist.allCtxArtists.push(this)
+    }
+
+    get transformationMatrix(): TransformationMatrix {
+        return this._transformationMatrix.value
+    }
+
+    get localTransformationMatrix(): TransformationMatrix {
+        return this.transformations[this.transformations.length - 1].value
+    }
+
+    getAnchorPoint(name: string): Point {
+        if (this.anchorPoints[name] == undefined) {
+            console.log("Cannot find anchor point", name, "on CtxArtist")
+        }
+        return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.anchorPoints[name])
+    }
+
+    getAnchorPointWithTransformations(name: string): [Ref<TransformationMatrix>[], Point] {
+        return [this.transformations.slice(0, -1), this.getAnchorPoint(name)]
+    }
+
+    moveTo(destination: Point) {
+        this.transformations[this.transformations.length - 1].value.translation = destination
     }
 
     get localLineThickness(): number {
