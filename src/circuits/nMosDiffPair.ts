@@ -147,14 +147,14 @@ const useNmosDiffPair = () => {
     circuit.schematic = new Schematic(
         circuit.transformations,
         [
-            new GndSymbol(circuit.transformations, circuit.devices.voltageSources["Vb"].getAnchorPoint("Vminus")),
-            new GndSymbol(circuit.transformations, circuit.devices.mosfets["Mb"].getAnchorPoint("Gnd")),
-            new GndSymbol(tectonicPlateM1.transformations, circuit.devices.voltageSources["V1"].getAnchorPoint("Vminus")),
-            new GndSymbol(tectonicPlateM2.transformations, circuit.devices.voltageSources["V2"].getAnchorPoint("Vminus")),
+            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
+            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
+            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
         ],
         [
-            new VddSymbol(tectonicPlateM1.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vdd")),
-            new VddSymbol(tectonicPlateM2.transformations, circuit.devices.mosfets["M2"].getAnchorPoint("Vdd")),
+            new VddSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vdd")),
+            new VddSymbol(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vdd")),
         ],
         [],
         Object.values(circuit.devices.mosfets),
@@ -171,8 +171,8 @@ const useNmosDiffPair = () => {
             {
                 node: circuit.nodes[vddNodeId],
                 lines: [
-                    new TectonicLine(tectonicPlateM1.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vd"), tectonicPlateM1.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vdd")),
-                    new TectonicLine(tectonicPlateM2.transformations, circuit.devices.mosfets["M2"].getAnchorPoint("Vd"), tectonicPlateM2.transformations, circuit.devices.mosfets["M2"].getAnchorPoint("Vdd")),
+                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vdd")),
+                    new TectonicLine(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vdd")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -207,10 +207,10 @@ const useNmosDiffPair = () => {
             {
                 node: circuit.nodes["Vnode"],
                 lines: [
-                    new TectonicLine(tectonicPlateVnode.transformations, {x: -4, y: 3}, tectonicPlateM1.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vs")),
-                    new TectonicLine(tectonicPlateVnode.transformations, {x:  4, y: 3}, tectonicPlateM2.transformations, circuit.devices.mosfets["M2"].getAnchorPoint("Vs")),
+                    new TectonicLine(tectonicPlateVnode.transformations, {x: -4, y: 3}, ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vs")),
+                    new TectonicLine(tectonicPlateVnode.transformations, {x:  4, y: 3}, ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vs")),
                     new TectonicLine(tectonicPlateVnode.transformations, {x: -4, y: 3}, tectonicPlateVnode.transformations, {x:  4, y: 3}),
-                    new TectonicLine(circuit.transformations, circuit.devices.mosfets["Mb"].getAnchorPoint("Vd"), tectonicPlateVnode.transformations, {x:  0, y: 3}),
+                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vd"), tectonicPlateVnode.transformations, {x:  0, y: 3}),
                 ],
                 voltageDisplayLabel: "V",
                 voltageDisplayLocations: [new TectonicPoint(tectonicPlateVnode.transformations, {x: -1, y: 2.5})]

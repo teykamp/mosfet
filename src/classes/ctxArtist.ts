@@ -32,7 +32,14 @@ export class CtxArtist {
     }
 
     getAnchorPoint(name: string): Point {
+        if (this.anchorPoints[name] == undefined) {
+            console.log("Cannot find anchor point", name, "on CtxArtist")
+        }
         return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.anchorPoints[name])
+    }
+
+    getAnchorPointWithTransformations(name: string): [Ref<TransformationMatrix>[], Point] {
+        return [this.transformations.slice(0, -1), this.getAnchorPoint(name)]
     }
 
     moveTo(destination: Point) {

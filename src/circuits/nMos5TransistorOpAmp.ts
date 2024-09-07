@@ -187,14 +187,14 @@ const useNmos5TransistorOpAmp = (): Circuit => {
     circuit.schematic = new Schematic(
         circuit.transformations,
         [
-            new GndSymbol(circuit.transformations, circuit.devices.voltageSources["Vb"].getAnchorPoint("Vminus")),
-            new GndSymbol(circuit.transformations, circuit.devices.mosfets["Mb"].getAnchorPoint("Gnd")),
-            new GndSymbol(tectonicPlateM1.transformations, circuit.devices.voltageSources["V1"].getAnchorPoint("Vminus")),
-            new GndSymbol(tectonicPlateM2.transformations, circuit.devices.voltageSources["V2"].getAnchorPoint("Vminus")),
+            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
+            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
+            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
         ],
         [
-            new VddSymbol(tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vdd")),
-            new VddSymbol(tectonicPlatePmos.transformations, circuit.devices.mosfets["M4"].getAnchorPoint("Vdd")),
+            new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vdd")),
+            new VddSymbol(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vdd")),
         ],
         [],
         // [new ParasiticCapacitor(
@@ -211,7 +211,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             {
                 node: circuit.nodes[gndNodeId],
                 lines: [
-                    new TectonicLine(circuit.transformations, circuit.devices.mosfets["Mb"].getAnchorPoint("Vs"), circuit.transformations, circuit.devices.mosfets["Mb"].getAnchorPoint("Gnd")),
+                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -219,8 +219,8 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             {
                 node: circuit.nodes[vddNodeId],
                 lines: [
-                    new TectonicLine(tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vs"), tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vdd")),
-                    new TectonicLine(tectonicPlatePmos.transformations, circuit.devices.mosfets["M4"].getAnchorPoint("Vs"), tectonicPlatePmos.transformations, circuit.devices.mosfets["M4"].getAnchorPoint("Vdd")),
+                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vdd")),
+                    new TectonicLine(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vdd")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -255,10 +255,10 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             {
                 node: circuit.nodes["Vnode"],
                 lines: [
-                    new TectonicLine(tectonicPlateVnode.transformations, {x: -4, y: 3}, tectonicPlateM1.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vs")),
-                    new TectonicLine(tectonicPlateVnode.transformations, {x:  4, y: 3}, tectonicPlateM2.transformations, circuit.devices.mosfets["M2"].getAnchorPoint("Vs")),
+                    new TectonicLine(tectonicPlateVnode.transformations, {x: -4, y: 3}, ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vs")),
+                    new TectonicLine(tectonicPlateVnode.transformations, {x:  4, y: 3}, ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vs")),
                     new TectonicLine(tectonicPlateVnode.transformations, {x: -4, y: 3}, tectonicPlateVnode.transformations, {x:  4, y: 3}),
-                    new TectonicLine(circuit.transformations, circuit.devices.mosfets["Mb"].getAnchorPoint("Vd"), tectonicPlateVnode.transformations, {x:  0, y: 3}),
+                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vd"), tectonicPlateVnode.transformations, {x:  0, y: 3}),
                 ],
                 voltageDisplayLabel: "V",
                 voltageDisplayLocations: [new TectonicPoint(tectonicPlateVnode.transformations, {x: -1, y: 2.5})]
@@ -266,17 +266,17 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             {
             node: circuit.nodes["M1_drain"],
             lines: [
-                    new TectonicLine(tectonicPlateM1.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vd"), tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vd")),
-                    new TectonicLine(tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vg_mirror_gate"), tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vg_mirror_corner")),
-                    new TectonicLine(tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vg_mirror_drain"), tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vg_mirror_corner")),
-                    new TectonicLine(tectonicPlatePmos.transformations, circuit.devices.mosfets["M3"].getAnchorPoint("Vg"), tectonicPlatePmos.transformations, circuit.devices.mosfets["M4"].getAnchorPoint("Vg")),
+                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vd")),
+                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vg_mirror_gate"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vg_mirror_corner")),
+                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vg_mirror_drain"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vg_mirror_corner")),
+                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vg"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vg")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
             }, {
             node: circuit.nodes["Vout"],
             lines: [
-                    new TectonicLine(tectonicPlateM2.transformations, circuit.devices.mosfets["M2"].getAnchorPoint("Vd"), tectonicPlatePmos.transformations, circuit.devices.mosfets["M4"].getAnchorPoint("Vd")),
+                    new TectonicLine(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vd")),
                     new TectonicLine(tectonicPlateVout.transformations, {x: 4, y: -5}, tectonicPlateVout.transformations, {x: 6, y: -5}),
                 ],
                 voltageDisplayLabel: "Vout",

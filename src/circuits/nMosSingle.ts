@@ -81,8 +81,8 @@ const useNmosSingle = () => {
 
     circuit.schematic = new Schematic(
         circuit.transformations,
-        [new GndSymbol(circuit.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vs"))],
-        [new VddSymbol(tectonicPlate.transformations, circuit.devices.voltageSources["Vd"].getAnchorPoint("Vplus"))],
+        [new GndSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vs"))],
+        [new VddSymbol(...circuit.devices.voltageSources["Vd"].getAnchorPointWithTransformations("Vplus"))],
         [],
         Object.values(circuit.devices.mosfets),
         Object.values(circuit.nodes),
@@ -90,7 +90,7 @@ const useNmosSingle = () => {
             {
                 node: circuit.nodes["M1_drain"],
                 lines: [
-                    new TectonicLine(circuit.transformations, circuit.devices.mosfets["M1"].getAnchorPoint("Vd"), tectonicPlate.transformations, circuit.devices.voltageSources["Vd"].getAnchorPoint("Vminus")),
+                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.voltageSources["Vd"].getAnchorPointWithTransformations("Vminus")),
                 ],
                 voltageDisplayLabel: "Drain",
                 voltageDisplayLocations: [new TectonicPoint(tectonicPlate.transformations, {x: 0, y: 3})]
