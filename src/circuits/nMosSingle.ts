@@ -93,7 +93,7 @@ const useNmosSingle = () => {
                     new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.voltageSources["Vd"].getAnchorPointWithTransformations("Vminus")),
                 ],
                 voltageDisplayLabel: "Drain",
-                voltageDisplayLocations: [new TectonicPoint(tectonicPlate.transformations, {x: 0, y: 3})]
+                voltageDisplayLocations: [new TectonicPoint(tectonicPlate.transformations, {x: 0.5, y: -3})]
             },
         ]
     )

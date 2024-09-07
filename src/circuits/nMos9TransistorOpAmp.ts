@@ -224,8 +224,7 @@ const useNmos9TransistorOpAmp = () => {
 
     circuit.devices.voltageSources = {
         "V1": new VoltageSource(
-            tectonicPlateM1.transformations,
-            {x: -8, y: 3},
+            ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vg_drive_Vsource"),
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_gate"],
             "V1",
@@ -233,16 +232,14 @@ const useNmos9TransistorOpAmp = () => {
             true
         ),
         "V2": new VoltageSource(
-            tectonicPlateM2.transformations,
-            {x: 8, y: 3},
+            ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vg_drive_Vsource"),
             circuit.nodes[gndNodeId],
             circuit.nodes["M2_gate"],
             "V2",
             'gnd'
         ),
         "Vb": new VoltageSource(
-            circuit.transformations,
-            {x: 4, y: 9},
+            ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vg_drive_Vsource"),
             circuit.nodes[gndNodeId],
             circuit.nodes["Mb_gate"],
             "Vb",
@@ -298,8 +295,8 @@ const useNmos9TransistorOpAmp = () => {
             {
                 node: circuit.nodes["M1_gate"],
                 lines: [
-                    new TectonicLine(tectonicPlateM1.transformations, {x: -8, y: 1}, tectonicPlateM1.transformations, {x: -8, y: 0}),
-                    new TectonicLine(tectonicPlateM1.transformations, {x: -8, y: 0}, tectonicPlateM1.transformations, {x: -6, y: 0}),
+                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vg"), ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vg_drive_gate")),
+                    new TectonicLine(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vplus"), ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vg_drive_gate")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -307,8 +304,8 @@ const useNmos9TransistorOpAmp = () => {
             {
                 node: circuit.nodes["M2_gate"],
                 lines: [
-                    new TectonicLine(tectonicPlateM2.transformations, {x: 8, y: 1}, tectonicPlateM2.transformations, {x: 8, y: 0}),
-                    new TectonicLine(tectonicPlateM2.transformations, {x: 8, y: 0}, tectonicPlateM2.transformations, {x: 6, y: 0}),
+                    new TectonicLine(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vg"), ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vg_drive_gate")),
+                    new TectonicLine(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vplus"), ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vg_drive_gate")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -316,8 +313,8 @@ const useNmos9TransistorOpAmp = () => {
             {
                 node: circuit.nodes["Mb_gate"],
                 lines: [
-                    new TectonicLine(circuit.transformations, {x: 4, y: 7}, circuit.transformations, {x: 4, y: 6}),
-                    new TectonicLine(circuit.transformations, {x: 4, y: 6}, circuit.transformations, {x: 2, y: 6}),
+                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vg"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vg_drive_gate")),
+                    new TectonicLine(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vplus"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vg_drive_gate")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []

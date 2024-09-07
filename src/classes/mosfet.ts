@@ -69,6 +69,8 @@ export class Mosfet extends CtxArtist{
                 "Vg_mirror_gate": {x: 90, y: 0},
                 "Vg_mirror_corner": {x: 90, y: -90},
                 "Vg_mirror_drain": {x: 0, y: -90},
+                "Vg_drive_gate": {x: 120, y: 0},
+                "Vg_drive_Vsource": {x: 120, y: 90},
             }
         }
         else {
@@ -85,6 +87,8 @@ export class Mosfet extends CtxArtist{
                 "Vg_mirror_gate": {x: 90, y: 0},
                 "Vg_mirror_corner": {x: 90, y: 90},
                 "Vg_mirror_drain": {x: 0, y: 90},
+                "Vg_drive_gate": {x: 120, y: 0},
+                "Vg_drive_Vsource": {x: 120, y: 90},
             }
         }
     }
