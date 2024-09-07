@@ -193,15 +193,14 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vdd")),
             new VddSymbol(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vdd")),
         ],
-        [],
-        // [new ParasiticCapacitor(
-        //     tectonicPlateVout.transformations,
-        //     circuit.nodes["Vout"],
-        //     {x: 6, y: -4},
-        //     [
-        //         {start: {x: 6, y: -5}, end: {x: 6, y: -4}},
-        //     ],
-        // )],
+        [new ParasiticCapacitor(
+            tectonicPlateVout.transformations,
+            circuit.nodes["Vout"],
+            {x: 6, y: -4},
+            [
+                {start: {x: 6, y: -5}, end: {x: 6, y: -4}},
+            ],
+        )],
         Object.values(circuit.devices.mosfets),
         Object.values(circuit.nodes),
         [
