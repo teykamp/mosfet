@@ -1,5 +1,5 @@
 import { Point, Line, Circle } from '../types'
-import { canvasSize, lineDrawRepetitions } from '../constants'
+import { lineDrawRepetitions } from '../constants'
 import { between } from './extraMath'
 
 export const getLineLength = (line: Line): number => {
@@ -93,7 +93,7 @@ export const makeCtxGradientFunc = (ctx: CanvasRenderingContext2D, gradient: Can
         ctx.fillStyle = gradient
         ctx.fill()
         ctx.resetTransform()
-        ctx.fillRect(0, 0, canvasSize.x, canvasSize.y)
+        ctx.fillRect(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight)
         ctx.restore()
         ctx.beginPath()
     }
