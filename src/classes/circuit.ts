@@ -43,7 +43,7 @@ export class Circuit extends CtxArtist {
         }
         this.nodes = nodes
         this.originalTextTransformationMatrix = textTransformationMatrix
-        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale / canvasDpi.value).multiply(this.originalTextTransformationMatrix)
+        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
@@ -146,6 +146,6 @@ export class Circuit extends CtxArtist {
 
         this.transformations[0].value = (new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift)
         this.transformations[1].value = (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2})
-        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale / canvasDpi.value).multiply(this.originalTextTransformationMatrix)
+        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
     }
 }
