@@ -12,6 +12,7 @@ import { interpolateInferno } from "d3"
 import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
+import { Chart } from "./chart"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
@@ -28,6 +29,7 @@ export class Mosfet extends CtxArtist{
     mouseDownInsideSelectionArea = false
     selected = false
     chartVisibility: Visibility = Visibility.Hidden
+    charts: Chart[] = []
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
@@ -166,6 +168,8 @@ export class Mosfet extends CtxArtist{
         // draw mosfet angle sliders
         this.vgs.draw(ctx)
         this.vds.draw(ctx)
+
+        this.charts.forEach((chart: Chart) => chart.draw(ctx))
     }
 
     get current(): number { // in Amps
