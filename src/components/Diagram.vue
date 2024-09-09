@@ -38,7 +38,7 @@
     <button 
       v-if="xs"
       @click="showGraphBar = !showGraphBar" 
-      style="position: absolute; bottom: 0; font-size: xx-large; padding: 5px; width: 100px; right: 49%;"
+      style="position: absolute; bottom: 0; font-size: xx-large; padding: 5px; width: 100px; right: calc(50% - 50px);"
     > {{ showGraphBar ? 'V' : '^' }} </button>
     <button
       v-else
