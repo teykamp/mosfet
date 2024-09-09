@@ -25,26 +25,40 @@
       <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
     </div>
   </Transition>
-  <div style="display: flex; justify-content: center;">
+
+  <div :style="{
+    display: xs ? undefined : 'flex',
+    justifyContent: 'center',
+  }">
     <canvas ref="canvas" :style="{
-      width: showGraphBar ? '82vw' : '100vw',
-      maxHeight: '100vh',
-      flexGrow: 1,
+      width: computeCanvasWidth,
+      height: computeCanvasHeight,
+      flexGrow: xs ? undefined : 1,
     }" @mousedown="checkDrag"></canvas>
     <button 
+      v-if="xs"
       @click="showGraphBar = !showGraphBar" 
-      style="position: absolute; right: 0; font-size: xx-large; padding: 5px; height: 100px; top: calc(50vh - 50px); transition: ease-in-out;"
+      style="position: absolute; bottom: 0; font-size: xx-large; padding: 5px; width: 100px; right: 49%;"
+    > {{ showGraphBar ? 'V' : '^' }} </button>
+    <button
+      v-else
+      @click="showGraphBar = !showGraphBar" 
+      style="position: absolute; right: 0; font-size: xx-large; padding: 5px; height: 100px; top: calc(50vh - 50px);"
     > {{ showGraphBar ? '>' : '<' }} </button>
-    <div style="flex-direction: column; width: 18vw;" v-show="showGraphBar">
-      <canvas style="background-color: yellow;" :height="(1/2 * screenHeight - 17)" :width="(1 / 6 * screenWidth)"></canvas>
-      <canvas style=" background-color: green" :height="(1/2 * screenHeight - 17)" :width="(1 / 6 * screenWidth)"></canvas>
+    <div 
+      v-show="showGraphBar"
+      :style="computeSmallCanvasStyles"
+    >
+      <canvas style="background-color: yellow;" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
+      <canvas style=" background-color: green" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
     </div>
-  </div>
 
+  </div>
+  
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
+import { ref, onMounted, shallowRef, onBeforeUnmount, computed } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { AngleSlider } from '../classes/angleSlider'
@@ -52,8 +66,31 @@ import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 
-const { screenHeight, screenWidth } = useBreakpoints()
+const { screenHeight, screenWidth, xs } = useBreakpoints()
 
+const computeCanvasWidth = computed(() => {
+  if (xs.value) {
+    return '100vw'
+  } else {
+    return showGraphBar.value ? '82vw' : '100vw'
+  }
+})
+const computeCanvasHeight = computed(() => {
+  if (xs.value) {
+    return showGraphBar.value ? '80vh' : '100vh'
+  } else {
+    return '100vh'
+  }
+})
+
+const computeSmallCanvasStyles = computed(() => {
+  if (xs.value) {
+    return 'display: flex; height: 20vh; justify-content: center'
+  } else {
+    return 'flex-direction: column; width: 18vw'
+    
+  }
+})
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -61,7 +98,7 @@ let previousTimestamp = 0
 
 const sideBar = ref<HTMLElement | null>(null)
 const showSideBar = ref(false)
-const showGraphBar = ref(true)
+const showGraphBar = ref(false)
 
 const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
