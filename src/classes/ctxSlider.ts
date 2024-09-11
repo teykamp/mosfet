@@ -57,7 +57,7 @@ export class CtxSlider extends CtxArtist{
         throw new Error("mouseDownIntiatesDrag is a virtual function on the CtxSlider class. (Received" + localMousePosition + ")")
     }
 
-    updateSliderBasedOnNodeVoltages() {
+    updateValueBasedOnNodeVoltages() {
         this.value = between(this.temporaryMinValue, this.temporaryMaxValue, this.toNode.value.voltage - this.fromNode.value.voltage)
         this.updateLocationBasedOnValue()
     }

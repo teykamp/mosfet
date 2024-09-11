@@ -1,55 +1,28 @@
 import { Point, RelativeDirection, Visibility } from "../types"
-import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toSiPrefix } from "../functions/toSiPrefix"
 import { between, toRadians } from "../functions/extraMath"
 import { Node } from "./node"
 import { Ref } from "vue"
-import { preciseSliderTickRange } from "../constants"
+import { CtxSlider } from "./ctxSlider"
 
-export class AngleSlider extends CtxArtist{
-    dragging: boolean
-    preciseDragging: boolean
-    location: Point
+export class AngleSlider extends CtxSlider{
     radius: number
     originalRadius: number
     endAngle: number
     displayText: string
     displayTextLocation: RelativeDirection
-    minValue: number
-    maxValue: number
-    value: number // a number between minValue and maxValue
-    visibility: Visibility
     displayNegative: boolean
-    temporaryMinValue: number
-    temporaryMaxValue: number
-    previousValue: number
-    valueRateOfChange: number
-    fromNode: Ref<Node>
-    toNode: Ref<Node>
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW))
+        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, minValue, maxValue, visibility)
 
-        this.dragging = false
-        this.preciseDragging = false
-        this.location = {x: 0, y: 0}
         this.radius = radius
         this.originalRadius = radius
         this.endAngle = endAngle
-        this.minValue = minValue
-        this.maxValue = maxValue
-        this.value = minValue
         this.displayText = name
         this.displayTextLocation = CCW ? RelativeDirection.Right : RelativeDirection.Left
-        this.visibility = visibility
         this.displayNegative = displayNegative
-        this.temporaryMinValue = minValue
-        this.temporaryMaxValue = maxValue
-        this.previousValue = minValue
-        this.valueRateOfChange = 0
-        this.fromNode = fromNode
-        this.toNode = toNode
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -57,6 +30,12 @@ export class AngleSlider extends CtxArtist{
             return
         }
         this.transformationMatrix.transformCanvas(ctx)
+
+        if (this.dragging && this.preciseDragging) {
+            this.radius = this.originalRadius + 10
+        } else {
+            this.radius = this.originalRadius
+        }
 
         // draw slider path
         ctx.strokeStyle = this.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
@@ -125,14 +104,7 @@ export class AngleSlider extends CtxArtist{
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, toSiPrefix(this.value * (this.displayNegative ? -1 : 1), 'V', 3), true)
     }
 
-    getSliderPercentValue(): number {
-        return (this.value - this.minValue) / (this.maxValue - this.minValue)
-    }
-
-    updateSliderBasedOnNodeVoltages() {
-        this.value = this.toNode.value.voltage - this.fromNode.value.voltage
-        this.value = between(this.temporaryMinValue, this.temporaryMaxValue, this.value)
-
+    updateLocationBasedOnValue() {
         const normalizedSliderValue = (this.value - this.temporaryMinValue) / (this.temporaryMaxValue - this.temporaryMinValue)
         const sliderAngle = normalizedSliderValue * (this.endAngle)
         this.location = {
@@ -141,97 +113,30 @@ export class AngleSlider extends CtxArtist{
         }
     }
 
-    updateNodeVoltagesBasedOnSlider() {
-        if (this.dragging) {
-            this.toNode.value.fixed = true
-            this.toNode.value.voltage = this.fromNode.value.voltage + this.value
+    updateValueBasedOnMousePosition(localMousePosition: Point) {
+        const mouseAngle = Math.atan2(localMousePosition.y, localMousePosition.x)
+
+        const percentValue = between(0, 1, mouseAngle / this.endAngle)
+        this.value = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
+
+        this.location = {
+          x: Math.cos(mouseAngle) * this.radius,
+          y: Math.sin(mouseAngle) * this.radius
         }
     }
 
-    dragSlider(mousePosition: Point) {
-        if (this.dragging) {
-            const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
-            const mouseAngle = Math.atan2(transformedMousePos.y, transformedMousePos.x)
+    mouseDownIntiatesDrag(localMousePosition: Point): Boolean {
+        const mouseRadiusSquared = (localMousePosition.x) ** 2 + (localMousePosition.y) ** 2
+        const mouseDistanceFromDraggableSliderSquared = (localMousePosition.x - this.location.x) ** 2 + (localMousePosition.y - this.location.y) ** 2
+        const mouseTheta = Math.atan2(localMousePosition.y, localMousePosition.x)
+        const sliderValue = mouseTheta / this.endAngle
 
-            const percentValue = between(0, 1, mouseAngle / this.endAngle)
-            this.value = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
-
-            this.location = {
-              x: Math.cos(mouseAngle) * this.radius,
-              y: Math.sin(mouseAngle) * this.radius
-            }
-
-            if ((percentValue < 0.05) && (this.value <= this.previousValue)) {
-                this.valueRateOfChange = -0.01
-            }
-            else if ((percentValue > 0.95) && (this.value >= this.previousValue)) {
-                this.valueRateOfChange = 0.01
-            }
-            else {
-                this.valueRateOfChange = 0
-            }
-            this.previousValue = this.value
+        if (mouseDistanceFromDraggableSliderSquared <= 10 ** 2) { // mouse hovering over slider knob
+            return true
         }
-    }
-
-    releaseSlider() {
-        this.temporaryMinValue = this.minValue
-        this.temporaryMaxValue = this.maxValue
-        this.radius = this.originalRadius
-        this.preciseDragging = false
-        this.dragging = false
-        this.toNode.value.fixed = false
-    }
-
-    adjustPreciseSlider(timeDifference: number = 10) {
-        if (this.dragging && this.preciseDragging) {
-            if ((this.value >= this.maxValue) || (this.temporaryMaxValue > this.maxValue)) {
-                this.value = this.maxValue
-                this.temporaryMaxValue = this.maxValue
-                this.temporaryMinValue = this.maxValue - preciseSliderTickRange
-                this.valueRateOfChange = 0
-            }
-            else if ((this.value <= this.minValue) || (this.temporaryMinValue < this.minValue)) {
-                this.value = this.minValue
-                this.temporaryMinValue = this.minValue
-                this.temporaryMaxValue = this.minValue + preciseSliderTickRange
-                this.valueRateOfChange = 0
-            }
-            else {
-                this.temporaryMinValue += this.valueRateOfChange * (timeDifference / 1000) * 70
-                this.temporaryMaxValue += this.valueRateOfChange * (timeDifference / 1000) * 70
-                this.value += this.valueRateOfChange * (timeDifference / 1000) * 70
-            }
+        if (((this.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (this.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) { // mouse hovering over slider arc
+            return true
         }
-    }
-
-    checkDrag(mousePosition: Point, isPreciseDragging: boolean) {
-        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
-
-        if (this.visibility == Visibility.Visible) {
-            const mouseRadiusSquared = (transformedMousePos.x) ** 2 + (transformedMousePos.y) ** 2
-            const mouseDistanceFromDraggableSliderSquared = (transformedMousePos.x - this.location.x) ** 2 + (transformedMousePos.y - this.location.y) ** 2
-            const mouseTheta = Math.atan2(transformedMousePos.y, transformedMousePos.x)
-            const sliderValue = mouseTheta / this.endAngle
-            if (
-                (mouseDistanceFromDraggableSliderSquared <= 10 ** 2) || // mouse hovering over slider knob
-                (((this.radius - 20) ** 2 < mouseRadiusSquared) && (mouseRadiusSquared < (this.radius + 20) ** 2) && (0 < sliderValue && sliderValue < 1)) // mouse hovering over slider arc
-            ) {
-                this.dragging = true
-                if (isPreciseDragging) {
-                    this.preciseDragging = true
-                    this.radius = this.originalRadius + 10
-
-                    // set the temporary min and max slider values
-                    const percentValue = (this.value - this.minValue) / (this.maxValue - this.minValue)
-                    this.temporaryMinValue = this.value - preciseSliderTickRange * percentValue
-                    this.temporaryMaxValue = this.value + preciseSliderTickRange * (1 - percentValue)
-                }
-                else {
-                    this.temporaryMinValue = this.minValue
-                    this.temporaryMaxValue = this.maxValue
-                }
-            }
-        }
+        return false
     }
 }

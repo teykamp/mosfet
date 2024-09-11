@@ -59,13 +59,13 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 
 const updateSlidersBasedOnNodeVoltages = () => {
   circuit.value.allSliders.forEach((slider: AngleSlider) => {
-    slider.updateSliderBasedOnNodeVoltages()
+    slider.updateValueBasedOnNodeVoltages()
   })
 }
 
 const updateNodeVoltagesBasedOnSliders = () => {
   circuit.value.allSliders.forEach((slider: AngleSlider) => {
-    slider.updateNodeVoltagesBasedOnSlider()
+    slider.updateNodeVoltagesBasedOnValue()
   })
 }
 
