@@ -18,8 +18,11 @@ export class Chart extends CtxSlider{
     yUnit: string
     width: number
     height: number
+    axesWidth: number
+    axesHeight: number
     cornerToCornerGraph: boolean = true
     plottingValues: Point[] = []
+    current: number = 0 // Amps
 
     Vg: Ref<Node>
     Vs: Ref<Node>
@@ -31,14 +34,11 @@ export class Chart extends CtxSlider{
 
     xScaleType: 'log' | 'linear' = 'linear'
     yScaleType: 'log' | 'linear' = 'log'
-    currentPointIndex: number = 0
 
     paddingL = 40
     paddingR = 40
     paddingT = 25
     paddingB = 30
-    xValues: number[] = []
-    yValues: number[] = []
     xMin: number = 0
     xMax: number = 0
     yMin: number = 0
@@ -50,14 +50,17 @@ export class Chart extends CtxSlider{
 
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), Vs, Vg, 0, maxVgs, visibility)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).mirror(false, true), Vs, Vg, 0, maxVgs, visibility)
         this.points = []
         this.xAxisLabel = xAxisLabel
         this.yAxisLabel = yAxisLabel
         this.xUnit = xUnit
         this.yUnit = yUnit
+
         this.width = width
         this.height = height
+        this.axesWidth = width - this.paddingL - this.paddingR
+        this.axesHeight = height - this.paddingT - this.paddingB
 
         this.Vg = Vg
         this.Vs = Vs
@@ -76,65 +79,55 @@ export class Chart extends CtxSlider{
         const axisLineThickness = this.localLineThickness / 2
         const tickLineThickness = this.localLineThickness / 4
 
-        const nPoints = 100
-        const gateVoltages = linspace(0, this.maxVgs, nPoints)
-        // const drainVoltages = linspace(0, this.maxVds, nPoints)
-        this.points = gateVoltages.map((gateVoltage: number) => {
-            if (this.mosfetType == 'nmos') {
-                return {x: gateVoltage, y: ekvNmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")}
-            } else {
-                return {x: gateVoltage, y: ekvPmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")}
-            }
-        })
+        this.sweepGateVoltages()
+        this.xTicks = getTickLabelList(this.xMin, this.xMax, this.xScaleType == 'log').filter((val: number) => val >= this.xMin && val <= this.xMax)
+        this.yTicks = getTickLabelList(this.yMin, this.yMax, this.yScaleType == 'log').filter((val: number) => val >= this.yMin && val <= this.yMax)
 
         this.plottingValues = this.points.map((p: Point) => ({
-            x: this.xScaleType === 'log' ? Math.log10(p.x) : p.x,
-            y: this.yScaleType === 'log' ? Math.log10(p.y) : p.y
-        })).filter((p: Point) => p.x >= this.xMin && p.x <= this.xMax && p.y >= this.yMin && p.y <= this.yMax)
-
-        this.calculateValues()
+            x: this.xValueToLocation(p.x),
+            y: this.yValueToLocation(p.y)
+        }))
 
         ctx.clearRect(0, 0, this.width, this.height)
 
         // Draw axis
         ctx.strokeStyle = '#000'
         drawLinesFillSolid(ctx, [
-            {start: {x: this.paddingL, y: this.height - this.paddingB}, end: {x: this.width - this.paddingR, y: this.height - this.paddingB}},
-            {start: {x: this.paddingL, y: this.height - this.paddingB}, end: {x: this.paddingL, y: this.paddingT}},
-        ],
-        axisLineThickness, "black")
+            {start: {x: 0, y: 0}, end: {x: this.axesWidth, y: 0}},
+            {start: {x: 0, y: 0}, end: {x: 0, y: this.axesHeight}},
+        ], axisLineThickness, "black")
 
         // Draw axis labels
         ctx.font = '16px Arial'
-        ctx.fillText(this.xAxisLabel, this.width - this.paddingL + 5, this.height - this.paddingB + 18)
-        ctx.fillText(this.yAxisLabel, this.paddingL / 2, 20)
+        this.fillTextGlobalReferenceFrame(ctx, {x: this.axesWidth - 20, y: -18}, this.xAxisLabel)
+        this.fillTextGlobalReferenceFrame(ctx, {x: -10, y: this.axesHeight - 20}, this.yAxisLabel)
 
         // Calculate and draw ticks
         ctx.strokeStyle = '#ccc'
         ctx.font = '12px Arial'
         ctx.fillStyle = '#000'
-
+        ctx.textAlign = 'center'
 
         this.xTicks.forEach((value: number) => {
-            const x = this.paddingL + (value - this.xMin) * this.xScale
-            const displayValue = toSiPrefix(this.xScaleType === 'log' ? (10 ** value) : value, this.xUnit)
+            const x = this.xValueToLocation(value)
+            const displayValue = toSiPrefix(value, this.xUnit)
             drawLinesFillSolid(ctx,
-                [{start: {x: x, y: this.height - this.paddingB}, end: {x: x, y: this.height - this.paddingB + 5}}],
+                [{start: {x: x, y: 0}, end: {x: x, y: -5}}],
                 tickLineThickness,
                 "black"
             )
-            ctx.fillText(displayValue, x - 10, this.height - this.paddingB + 20)
+            this.fillTextGlobalReferenceFrame(ctx, {x: x, y: -18}, displayValue)
         })
 
         this.yTicks.forEach((value: number) => {
-            const y = this.height - this.paddingB - (value - this.yMin) * this.yScale
-            const displayValue = toSiPrefix(this.yScaleType === 'log' ? (10 ** value) : value, this.yUnit)
+            const y = this.yValueToLocation(value)
+            const displayValue = toSiPrefix(value, this.yUnit)
             drawLinesFillSolid(ctx,
-                [{start: {x: this.paddingL, y: y}, end: {x: this.paddingL - 5, y: y}}],
+                [{start: {x: 0, y: y}, end: {x: -5, y: y}}],
                 tickLineThickness,
                 "black"
             )
-            ctx.fillText(displayValue, this.paddingL - 35, y + 5, 30) // last parameter specifies a maximum width of the text
+            this.fillTextGlobalReferenceFrame(ctx, {x: -25, y: y - 6}, displayValue)
         })
 
         // Draw line
@@ -142,51 +135,84 @@ export class Chart extends CtxSlider{
         ctx.lineWidth = axisLineThickness
         ctx.beginPath()
         this.plottingValues.forEach((point: Point, index: number) => {
-            const x = this.paddingL + (point.x - this.xMin) * this.xScale
-            const y = this.height - this.paddingB - (point.y - this.yMin) * this.yScale
             if (index === 0) {
-            ctx.moveTo(x, y)
+            ctx.moveTo(point.x, point.y)
             } else {
-            ctx.lineTo(x, y)
+            ctx.lineTo(point.x, point.y)
             }
         })
         ctx.stroke()
 
         // Draw draggable circle
-        // const dragPoint = this.plottingValues[this.currentPointIndex]
-        // if (dragPoint) {
-        const dragX = this.paddingL + (this.location.x - this.xMin) * this.xScale
-        const dragY = this.height - this.paddingB - (this.location.y - this.yMin) * this.yScale
+        this.updateLocationBasedOnValue()
         ctx.beginPath()
-        ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI)
+        ctx.arc(this.location.x, this.location.y, 5, 0, 2 * Math.PI)
         ctx.fill()
-        ctx.moveTo(dragX, dragY)
-        ctx.lineTo(dragX, this.height - this.paddingB)
+        ctx.moveTo(this.location.x, 0)
+        ctx.lineTo(this.location.x, this.location.y)
         ctx.stroke()
-        ctx.fillText(toSiPrefix(this.yScaleType === 'log' ? 10 ** this.location.y : this.location.y, this.yUnit), dragX, dragY - 10)
-        // }
+        this.fillTextGlobalReferenceFrame(ctx, this.location, toSiPrefix(this.current, this.yUnit))
     }
 
-    calculateValues() {
-        this.xValues = this.points.map((p: Point) => this.xScaleType === 'log' ? Math.log10(p.x) : p.x)
-        this.yValues = this.points.map((p: Point) => this.yScaleType === 'log' ? Math.log10(p.y) : p.y)
+    sweepGateVoltages(nPoints: number = this.width / 5) {
+        const gateVoltages = linspace(this.Vs.value.voltage, this.maxVgs, nPoints)
+        this.points = []
+        this.xMin = this.Vs.value.voltage
+        this.xMax = this.maxVgs
+        this.yMin = Infinity
+        this.yMax = -Infinity
+        let nextPoint = {x: 0, y: 0}
+        gateVoltages.forEach((gateVoltage: number) => {
+            if (this.mosfetType == 'nmos') {
+                nextPoint = ({x: gateVoltage, y: ekvNmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")})
+            } else {
+                nextPoint = ({x: gateVoltage, y: ekvPmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")})
+            }
+            this.yMin = Math.min(this.yMin, nextPoint.y)
+            this.yMax = Math.max(this.yMax, nextPoint.y)
+            this.points.push(nextPoint)
+        })
+    }
 
-        this.xTicks = this.xScaleType === 'log' ? getTickLabelListLog(Math.min(...this.points.map((p: Point) => p.x)), Math.max(...this.points.map((p: Point) => p.x))).map(Math.log10) : getTickLabelList(Math.min(...this.points.map((p: Point) => p.x)), Math.max(...this.points.map((p: Point) => p.x)))
-        this.yTicks = this.yScaleType === 'log' ? getTickLabelListLog(Math.min(...this.points.map((p: Point) => p.y)), Math.max(...this.points.map((p: Point) => p.y))).map(Math.log10) : getTickLabelList(Math.min(...this.points.map((p: Point) => p.y)), Math.max(...this.points.map((p: Point) => p.y)))
+    sweepDrainVoltages(nPoints: number = this.width / 5) {
+        const drainVoltages = linspace(this.Vs.value.voltage, this.maxVds, nPoints)
+        this.points = []
+        this.xMin = this.Vs.value.voltage
+        this.xMax = this.maxVgs
+        this.yMin = Infinity
+        this.yMax = -Infinity
+        let nextPoint = {x: 0, y: 0}
+        drainVoltages.forEach((drainVoltage: number) => {
+            if (this.mosfetType == 'nmos') {
+                nextPoint = ({x: drainVoltage, y: ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")})
+            } else {
+                nextPoint = ({x: drainVoltage, y: ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")})
+            }
+            this.yMin = Math.min(this.yMin, nextPoint.y)
+            this.yMax = Math.max(this.yMax, nextPoint.y)
+            this.points.push(nextPoint)
+        })
+    }
 
-        this.xMin = this.cornerToCornerGraph ? Math.min(...this.xValues) : Math.min(...this.xTicks)
-        this.xMax = this.cornerToCornerGraph ? Math.max(...this.xValues) : Math.max(...this.xTicks)
-        this.yMin = this.cornerToCornerGraph ? Math.min(...this.yValues) : Math.min(...this.yTicks)
-        this.yMax = this.cornerToCornerGraph ? Math.max(...this.yValues) : Math.max(...this.yTicks)
+    xLocationToValue(xLocation: number): number {
+        if (this.xScaleType == 'linear') {
+            return xLocation / this.axesWidth * (this.temporaryMaxValue - this.temporaryMinValue)
+        } // else
+        return 10 ** (Math.log10(xLocation) / this.axesWidth * (this.temporaryMaxValue - this.temporaryMinValue))
+    }
 
-        if (this.cornerToCornerGraph) {
-            const margin = 0
-            this.xTicks = this.xTicks.filter((x) => (this.xMin - Math.abs(this.xMin) * margin <= x) && (x <= this.xMax + Math.abs(this.xMax) * margin))
-            this.yTicks = this.yTicks.filter((y) => (this.yMin - Math.abs(this.yMin) * margin <= y) && (y <= this.yMax + Math.abs(this.yMax) * margin))
-        }
+    xValueToLocation(xValue: number): number {
+        if (this.xScaleType == 'linear') {
+            return xValue / (this.temporaryMaxValue - this.temporaryMinValue) * this.axesWidth
+        } // else
+        return Math.log10(xValue) / (this.temporaryMaxValue - this.temporaryMinValue) * this.axesWidth
+    }
 
-        this.xScale = (this.width - this.paddingL - this.paddingR) / (this.xMax - this.xMin)
-        this.yScale = (this.height - this.paddingT - this.paddingB) / (this.yMax - this.yMin)
+    yValueToLocation(yValue: number): number {
+        if (this.yScaleType == 'linear') {
+            return yValue / (this.yMax - this.yMin) * this.axesHeight
+        } // else
+        return (Math.log10(yValue) - Math.log10(this.yMin)) / (Math.log10(this.yMax) - Math.log10(this.yMin)) * this.axesHeight
     }
 
     toggleYAxisLog() {
@@ -212,16 +238,15 @@ export class Chart extends CtxSlider{
 
     updateLocationBasedOnValue() {
         if (this.mosfetType == 'nmos') {
-            console.log("this.value = ", this.value)
-            this.location = {x: this.value, y: Math.log10(ekvNmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A"))}
-            console.log("this.location.y = ", this.location.y)
+            this.current = ekvNmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
         } else {
-            this.location = {x: this.value, y: Math.log10(ekvPmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A"))}
+            this.current = ekvPmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
         }
+        this.location = {x: this.xValueToLocation(this.value), y: this.yValueToLocation(this.current)}
     }
 
     updateValueBasedOnMousePosition(localMousePosition: Point) {
-        this.value = (localMousePosition.x - this.paddingL) / this.xScale
+        this.value = this.xLocationToValue(localMousePosition.x)
     }
 
     mouseDownIntiatesDrag(localMousePosition: Point): Boolean {

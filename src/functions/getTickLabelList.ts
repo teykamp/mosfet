@@ -16,7 +16,10 @@ const getNextRoundMultiple = (n: number, increment: number) => {
  * @param upperBound the upper range for the data points
  * @return a list of the tick labels to be displayed
  */
-export const getTickLabelList = (lowerBound: number, upperBound: number) => {
+export const getTickLabelList = (lowerBound: number, upperBound: number, log: boolean = false): number[] => {
+    if (log) {
+        return getTickLabelListLog(lowerBound, upperBound)
+    }
     const difference = upperBound - lowerBound
 
     let tickSpacing = 10 ** Math.floor(Math.log10(difference))
@@ -57,7 +60,7 @@ const unconvertLog = (n: number) => {
     }
 }
 
-export const getTickLabelListLog = (lowerBound: number, upperBound: number) => {
+export const getTickLabelListLog = (lowerBound: number, upperBound: number): number[] => {
     if (lowerBound <= 0) console.error(`Lower bound, ${lowerBound} <= 0. Log will return NaN`)
 
     const logLowerBound = Math.log10(lowerBound) / 3

@@ -96,7 +96,7 @@ export class Mosfet extends CtxArtist{
                 "Vg_drive_Vsource": {x: 120, y: 90},
             }
         }
-        this.vgsChart = new Chart(this.transformations, mosfetType, 100, -200, Vg, Vs, Vd, Vb, 3, 5, "Vgs", "I", "V", "A", 300, 200, Visibility.Hidden)
+        this.vgsChart = new Chart(this.transformations, mosfetType, 200, -200, Vg, Vs, Vd, Vb, 3, 5, "Vgs", "I", "V", "A", 300, 200, Visibility.Hidden)
     }
 
     draw(ctx: CanvasRenderingContext2D) {
