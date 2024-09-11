@@ -32,8 +32,8 @@ import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasDpi, canvasSize } from '../constants'
-import { AngleSlider } from '../classes/angleSlider'
 import { Visibility } from '../types'
+import { CtxSlider } from '../classes/ctxSlider'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -58,13 +58,13 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 }
 
 const updateSlidersBasedOnNodeVoltages = () => {
-  circuit.value.allSliders.forEach((slider: AngleSlider) => {
+  circuit.value.allSliders.forEach((slider: CtxSlider) => {
     slider.updateValueBasedOnNodeVoltages()
   })
 }
 
 const updateNodeVoltagesBasedOnSliders = () => {
-  circuit.value.allSliders.forEach((slider: AngleSlider) => {
+  circuit.value.allSliders.forEach((slider: CtxSlider) => {
     slider.updateNodeVoltagesBasedOnValue()
   })
 }

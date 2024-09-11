@@ -11,7 +11,6 @@ import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicP
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
-import { Chart } from '../classes/chart'
 import { Visibility } from '../types'
 
 const useNmosSingle = () => {
@@ -62,6 +61,7 @@ const useNmosSingle = () => {
     }
 
     circuit.devices.mosfets["M1"].vgsChart.visibility = Visibility.Visible
+    circuit.devices.mosfets["M1"].vdsChart.visibility = Visibility.Visible
 
 
     //////////////////////////////

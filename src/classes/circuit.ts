@@ -2,7 +2,6 @@ import { BoundingBox, Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
-import { AngleSlider } from "./angleSlider"
 import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
@@ -66,7 +65,7 @@ export class Circuit extends CtxArtist {
 
         if (moveNodesInResponseToCircuitState) {
             let slidersDragging = false
-            this.allSliders.forEach((slider: AngleSlider) => {
+            this.allSliders.forEach((slider: CtxSlider) => {
                 if (slider.dragging) {
                     slidersDragging = true
                 }
@@ -94,6 +93,7 @@ export class Circuit extends CtxArtist {
             allSliders.push(mosfet.vgs)
             allSliders.push(mosfet.vds)
             allSliders.push(mosfet.vgsChart)
+            allSliders.push(mosfet.vdsChart)
         }
         for (const voltageSourceId in this.devices.voltageSources) {
             const voltageSource = this.devices.voltageSources[voltageSourceId]

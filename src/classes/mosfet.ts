@@ -30,6 +30,7 @@ export class Mosfet extends CtxArtist{
     selected = false
     chartVisibility: Visibility = Visibility.Hidden
     vgsChart: Chart
+    vdsChart: Chart
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
@@ -96,11 +97,17 @@ export class Mosfet extends CtxArtist{
                 "Vg_drive_Vsource": {x: 120, y: 90},
             }
         }
-        this.vgsChart = new Chart(this.transformations, mosfetType, 200, -200, Vg, Vs, Vd, Vb, 3, 5, "Vgs", "I", "V", "A", 300, 200, Visibility.Hidden)
+        this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 200, -200, Vg, Vs, Vd, Vb, 3, 5, "Vgs", "I", "V", "A", 300, 200, Visibility.Hidden)
+        this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 200, -400, Vg, Vs, Vd, Vb, 3, 5, "Vds", "I", "V", "A", 300, 200, Visibility.Hidden)
     }
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
+        ctx.fillStyle = "grey"
+        ctx.fillRect(200, -200, 300, 200)
+        ctx.strokeStyle = "grey"
+        ctx.lineWidth = 5
+        ctx.strokeRect(200, -200, 300, 200)
 
         if (this.selected) {
             console.log("I'm selected!")
@@ -171,6 +178,7 @@ export class Mosfet extends CtxArtist{
         this.vds.draw(ctx)
 
         this.vgsChart.draw(ctx)
+        this.vdsChart.draw(ctx)
     }
 
     get current(): number { // in Amps
