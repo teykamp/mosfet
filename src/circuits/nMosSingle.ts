@@ -12,6 +12,7 @@ import { getPointAlongPath } from '../functions/drawFuncs'
 import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 import { Chart } from '../classes/chart'
+import { Visibility } from '../types'
 
 const useNmosSingle = () => {
     const circuit: Circuit = new Circuit({x: 0, y: -3}, 10, 20)
@@ -60,7 +61,8 @@ const useNmosSingle = () => {
         )
     }
 
-    circuit.devices.mosfets["M1"].charts = [new Chart(circuit.transformations, 'nmos', 5, -10, circuit.devices.mosfets["M1"].Vg, circuit.devices.mosfets["M1"].Vs, circuit.devices.mosfets["M1"].Vd, circuit.devices.mosfets["M1"].Vb, 3, 5, "Vgs", "Forward Current", "V", "A")]
+    circuit.devices.mosfets["M1"].vgsChart.visibility = Visibility.Visible
+
 
     //////////////////////////////
     ///     VOLTAGE SOURCES    ///

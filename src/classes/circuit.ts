@@ -11,6 +11,7 @@ import { canvasDpi, canvasSize, drawGrid, moveNodesInResponseToCircuitState, sch
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
+import { CtxSlider } from "./ctxSlider"
 
 export class Circuit extends CtxArtist {
     boundingBox: BoundingBox
@@ -49,7 +50,7 @@ export class Circuit extends CtxArtist {
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
     }
 
-    get allSliders(): AngleSlider[] {
+    get allSliders(): CtxSlider[] {
         return this.makeListOfSliders()
     }
 
@@ -86,12 +87,13 @@ export class Circuit extends CtxArtist {
         ctx.restore()
     }
 
-    makeListOfSliders(): AngleSlider[] {
-        const allSliders: AngleSlider[] = []
+    makeListOfSliders(): CtxSlider[] {
+        const allSliders: CtxSlider[] = []
         for (const mosfetId in this.devices.mosfets) {
             const mosfet = this.devices.mosfets[mosfetId]
             allSliders.push(mosfet.vgs)
             allSliders.push(mosfet.vds)
+            allSliders.push(mosfet.vgsChart)
         }
         for (const voltageSourceId in this.devices.voltageSources) {
             const voltageSource = this.devices.voltageSources[voltageSourceId]

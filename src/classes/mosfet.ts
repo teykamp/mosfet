@@ -29,7 +29,7 @@ export class Mosfet extends CtxArtist{
     mouseDownInsideSelectionArea = false
     selected = false
     chartVisibility: Visibility = Visibility.Hidden
-    charts: Chart[] = []
+    vgsChart: Chart
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
@@ -96,6 +96,7 @@ export class Mosfet extends CtxArtist{
                 "Vg_drive_Vsource": {x: 120, y: 90},
             }
         }
+        this.vgsChart = new Chart(this.transformations, mosfetType, 100, -200, Vg, Vs, Vd, Vb, 3, 5, "Vgs", "I", "V", "A", 300, 200, Visibility.Hidden)
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -169,7 +170,7 @@ export class Mosfet extends CtxArtist{
         this.vgs.draw(ctx)
         this.vds.draw(ctx)
 
-        this.charts.forEach((chart: Chart) => chart.draw(ctx))
+        this.vgsChart.draw(ctx)
     }
 
     get current(): number { // in Amps
@@ -185,7 +186,6 @@ export class Mosfet extends CtxArtist{
     checkSelectionArea(mousePosition: Point): boolean {
         const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
         const radius = 60
-        console.log(transformedMousePos)
         return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
     }
 

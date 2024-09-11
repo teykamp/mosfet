@@ -1,5 +1,4 @@
 import { Visibility, Point } from "../types"
-import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { Ref } from 'vue'
 import { toSiPrefix } from "../functions/toSiPrefix"
@@ -9,9 +8,9 @@ import { linspace } from "../functions/linspace"
 import { ekvNmos, ekvPmos } from "../functions/ekvModel"
 import { Node } from "./node"
 import { unit } from "mathjs"
+import { CtxSlider } from "./ctxSlider"
 
-export class Chart extends CtxArtist{
-    visibility: Visibility
+export class Chart extends CtxSlider{
     points: Point[]
     xAxisLabel: string
     yAxisLabel: string
@@ -32,7 +31,6 @@ export class Chart extends CtxArtist{
 
     xScaleType: 'log' | 'linear' = 'linear'
     yScaleType: 'log' | 'linear' = 'log'
-    dragging: boolean = false
     currentPointIndex: number = 0
 
     paddingL = 40
@@ -52,8 +50,7 @@ export class Chart extends CtxArtist{
 
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30))
-        this.visibility = visibility
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), Vs, Vg, 0, maxVgs, visibility)
         this.points = []
         this.xAxisLabel = xAxisLabel
         this.yAxisLabel = yAxisLabel
@@ -156,18 +153,18 @@ export class Chart extends CtxArtist{
         ctx.stroke()
 
         // Draw draggable circle
-        const dragPoint = this.plottingValues[this.currentPointIndex]
-        if (dragPoint) {
-            const dragX = this.paddingL + (dragPoint.x - this.xMin) * this.xScale
-            const dragY = this.height - this.paddingB - (dragPoint.y - this.yMin) * this.yScale
-            ctx.beginPath()
-            ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI)
-            ctx.fill()
-            ctx.moveTo(dragX, dragY)
-            ctx.lineTo(dragX, this.height - this.paddingB)
-            ctx.stroke()
-            ctx.fillText(toSiPrefix(this.yScaleType === 'log' ? 10 ** dragPoint.y : dragPoint.y, this.yUnit), dragX, dragY - 10)
-        }
+        // const dragPoint = this.plottingValues[this.currentPointIndex]
+        // if (dragPoint) {
+        const dragX = this.paddingL + (this.location.x - this.xMin) * this.xScale
+        const dragY = this.height - this.paddingB - (this.location.y - this.yMin) * this.yScale
+        ctx.beginPath()
+        ctx.arc(dragX, dragY, 5, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.moveTo(dragX, dragY)
+        ctx.lineTo(dragX, this.height - this.paddingB)
+        ctx.stroke()
+        ctx.fillText(toSiPrefix(this.yScaleType === 'log' ? 10 ** this.location.y : this.location.y, this.yUnit), dragX, dragY - 10)
+        // }
     }
 
     calculateValues() {
@@ -212,5 +209,24 @@ export class Chart extends CtxArtist{
 
         return closestIndex
     }
+
+    updateLocationBasedOnValue() {
+        if (this.mosfetType == 'nmos') {
+            console.log("this.value = ", this.value)
+            this.location = {x: this.value, y: Math.log10(ekvNmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A"))}
+            console.log("this.location.y = ", this.location.y)
+        } else {
+            this.location = {x: this.value, y: Math.log10(ekvPmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A"))}
+        }
+    }
+
+    updateValueBasedOnMousePosition(localMousePosition: Point) {
+        this.value = (localMousePosition.x - this.paddingL) / this.xScale
+    }
+
+    mouseDownIntiatesDrag(localMousePosition: Point): Boolean {
+        return (localMousePosition.x > 0) && (localMousePosition.x < this.width) && (localMousePosition.y > 0) && (localMousePosition.y < this.height)
+    }
+
 }
 
