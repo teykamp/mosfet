@@ -97,17 +97,15 @@ export class Mosfet extends CtxArtist{
                 "Vg_drive_Vsource": {x: 120, y: 90},
             }
         }
-        this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 200, -200, Vg, Vs, Vd, Vb, 3, 5, "Vgs", "I", "V", "A", 300, 200, Visibility.Hidden)
-        this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 200, -400, Vg, Vs, Vd, Vb, 3, 5, "Vds", "I", "V", "A", 300, 200, Visibility.Hidden)
+        this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 3, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
+        this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 3, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
     }
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
-        ctx.fillStyle = "grey"
-        ctx.fillRect(200, -200, 300, 200)
-        ctx.strokeStyle = "grey"
         ctx.lineWidth = 5
-        ctx.strokeRect(200, -200, 300, 200)
+        ctx.strokeRect(150, -50, 200, 120)
+        ctx.strokeRect(150, -170, 200, 120)
 
         if (this.selected) {
             console.log("I'm selected!")
