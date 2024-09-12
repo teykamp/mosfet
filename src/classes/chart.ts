@@ -234,9 +234,9 @@ export class Chart extends CtxSlider{
 
     xLocationToValue(xLocation: number): number {
         if (this.xScaleType == 'linear') {
-            return xLocation / this.axesWidth * (this.temporaryMaxValue)
+            return (this.mosfetType == 'nmos' ? xLocation : this.Vs.value.voltage - xLocation) / this.axesWidth * (this.temporaryMaxValue)
         } // else
-        return 10 ** (Math.log10(xLocation) / this.axesWidth * (this.temporaryMaxValue))
+        return 10 ** (Math.log10((this.mosfetType == 'nmos' ? xLocation : this.Vs.value.voltage - xLocation)) / this.axesWidth * (this.temporaryMaxValue))
     }
 
     xValueToLocation(xValue: number): number {
@@ -259,12 +259,13 @@ export class Chart extends CtxSlider{
     }
 
     updateLocationBasedOnValue() {
+        const valueToDraw = (this.mosfetType == 'nmos' ? this.value : this.Vs.value.voltage - this.value)
         if (this.chartType == 'Vgs') {
-            this.yValue = this.getMosfetCurrentFromGateVoltage(this.value)
+            this.yValue = this.getMosfetCurrentFromGateVoltage(valueToDraw)
         } else {
-            this.yValue = this.getMosfetSaturationFromDrainVoltage(this.value)
+            this.yValue = this.getMosfetSaturationFromDrainVoltage(valueToDraw)
         }
-        this.location = {x: this.xValueToLocation(this.value), y: this.yValueToLocation(this.yValue)}
+        this.location = {x: this.xValueToLocation(valueToDraw), y: this.yValueToLocation(this.yValue)}
     }
 
     getMosfetCurrentFromGateVoltage(gateVoltage: number) {
