@@ -184,11 +184,7 @@ export class Chart extends CtxSlider{
         this.yMax = -Infinity
         let nextPoint = {x: 0, y: 0}
         gateVoltages.forEach((gateVoltage: number) => {
-            if (this.mosfetType == 'nmos') {
-                nextPoint = ({x: gateVoltage, y: ekvNmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")})
-            } else {
-                nextPoint = ({x: gateVoltage, y: ekvPmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")})
-            }
+            nextPoint = {x: gateVoltage, y: this.getMosfetCurrentFromGateVoltage(gateVoltage)}
             this.yMin = Math.min(this.yMin, nextPoint.y)
             this.yMax = Math.max(this.yMax, nextPoint.y)
             this.points.push(nextPoint)
@@ -204,11 +200,7 @@ export class Chart extends CtxSlider{
         this.yMax = -Infinity
         let nextPoint = {x: 0, y: 0}
         drainVoltages.forEach((drainVoltage: number) => {
-            if (this.mosfetType == 'nmos') {
-                nextPoint = ({x: drainVoltage, y: ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100})
-            } else {
-                nextPoint = ({x: drainVoltage, y: ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100})
-            }
+            nextPoint = {x: drainVoltage, y: this.getMosfetSaturationFromDrainVoltage(drainVoltage)}
             this.yMin = Math.min(this.yMin, nextPoint.y)
             this.yMax = Math.max(this.yMax, nextPoint.y)
             this.points.push(nextPoint)
@@ -243,20 +235,28 @@ export class Chart extends CtxSlider{
 
     updateLocationBasedOnValue() {
         if (this.chartType == 'Vgs') {
-            if (this.mosfetType == 'nmos') {
-                this.yValue = ekvNmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
-            } else {
-                this.yValue = ekvPmos(unit(this.value, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
-            }
+            this.yValue = this.getMosfetCurrentFromGateVoltage(this.value)
         } else {
-            if (this.mosfetType == 'nmos') {
-                this.yValue = ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.value, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
-            } else {
-                this.yValue = ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.value, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
-            }
+            this.yValue = this.getMosfetSaturationFromDrainVoltage(this.value)
         }
         this.location = {x: this.xValueToLocation(this.value), y: this.yValueToLocation(this.yValue)}
     }
+
+    getMosfetCurrentFromGateVoltage(gateVoltage: number) {
+        if (this.mosfetType == 'nmos') {
+            return ekvNmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
+        } else {
+            return ekvPmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
+        }
+    }
+
+    getMosfetSaturationFromDrainVoltage(drainVoltage: number) {
+        if (this.mosfetType == 'nmos') {
+            return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
+        } else {
+            return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
+        }
+}
 
     updateValueBasedOnMousePosition(localMousePosition: Point) {
         this.value = this.xLocationToValue(localMousePosition.x)

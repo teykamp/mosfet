@@ -47,7 +47,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 type DefinedCircuits = keyof typeof circuits
-const currentCircuit = ref<DefinedCircuits>('nMosSingle')
+const currentCircuit = ref<DefinedCircuits>('pMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
