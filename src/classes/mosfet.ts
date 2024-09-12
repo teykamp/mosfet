@@ -79,14 +79,14 @@ export class Mosfet extends CtxArtist{
         if (this.mosfetType == 'nmos') {
             this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 'toNode', 3, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 'toNode', 3, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
         }
         else {
             this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility)
             this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 'fromNode', 3, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 'fromNode', 3, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
         }
 
     }

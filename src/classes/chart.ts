@@ -28,10 +28,9 @@ export class Chart extends CtxSlider{
     Vs: Ref<Node>
     Vd: Ref<Node>
     Vb: Ref<Node>
-    maxVgs: number
-    maxVds: number
     mosfetType: 'nmos' | 'pmos'
     chartType: 'Vgs' | 'Vds'
+    originalMaxValue: number
 
     xScaleType: 'log' | 'linear'
     yScaleType: 'log' | 'linear'
@@ -40,8 +39,8 @@ export class Chart extends CtxSlider{
     static paddingR = 10 // 40
     static paddingT = 25 // 25
     static paddingB = 30 // 30
-    xMin: number = 0
-    xMax: number = 0
+    // xMin: number = 0
+    // xMax: number = 0
     yMin: number = 0
     yMax: number = 0
     xTicks: number[] = []
@@ -50,8 +49,32 @@ export class Chart extends CtxSlider{
     yScale: number = 0
 
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, drivenNode: 'fromNode' | 'toNode', maxVgs: number = 3, maxVds: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX + Chart.paddingL, y: originY - Chart.paddingB + height}).mirror(false, mosfetType == 'nmos'), Vs, chartType == 'Vgs' ? Vg : Vd, drivenNode, 0, chartType == 'Vgs' ? maxVgs : maxVds, visibility)
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
+        let fromNode = Vs
+        let toNode = Vg
+        let drivenNode: 'fromNode' | 'toNode' = 'toNode'
+        if (mosfetType == 'nmos') {
+            if (chartType == 'Vgs') {
+                fromNode = Vs
+                toNode = Vg
+                drivenNode = 'toNode'
+            } else {
+                fromNode = Vs
+                toNode = Vd
+                drivenNode = 'toNode'
+            }
+        } else {
+            if (chartType == 'Vgs') {
+                fromNode = Vg
+                toNode = Vs
+                drivenNode = 'fromNode'
+            } else {
+                fromNode = Vd
+                toNode = Vs
+                drivenNode = 'fromNode'
+            }
+        }
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX + Chart.paddingL, y: originY - Chart.paddingB + height}).mirror(false, mosfetType == 'nmos'), fromNode, toNode, drivenNode, 0, maxValue, visibility)
         this.points = []
         this.xAxisLabel = xAxisLabel
         this.yAxisLabel = yAxisLabel
@@ -69,10 +92,12 @@ export class Chart extends CtxSlider{
         this.Vs = Vs
         this.Vd = Vd
         this.Vb = Vb
-        this.maxVgs = maxVgs
-        this.maxVds = maxVds
         this.mosfetType = mosfetType
         this.chartType = chartType
+        this.setMinMaxXValues()
+        this.temporaryMinValue = this.minValue
+        this.temporaryMaxValue = this.maxValue
+        this.originalMaxValue = maxValue
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -89,7 +114,7 @@ export class Chart extends CtxSlider{
             this.sweepDrainVoltages()
         }
 
-        this.xTicks = getTickLabelList(this.xMin, this.xMax, this.xScaleType == 'log').filter((val: number) => val >= this.xMin && val <= this.xMax)
+        this.xTicks = getTickLabelList(this.minValue, this.maxValue, this.xScaleType == 'log').filter((val: number) => val >= this.minValue && val <= this.maxValue)
         this.yTicks = getTickLabelList(this.yMin, this.yMax, this.yScaleType == 'log').filter((val: number) => val >= this.yMin && val <= this.yMax)
 
         let xAxisLabelLocation = 0
@@ -176,12 +201,12 @@ export class Chart extends CtxSlider{
     }
 
     sweepGateVoltages(nPoints: number = this.width / 2) {
-        const gateVoltages = linspace(this.Vs.value.voltage, this.maxVgs, nPoints)
         this.points = []
-        this.xMin = this.Vs.value.voltage
-        this.xMax = this.maxVgs
+        this.setMinMaxXValues()
         this.yMin = Infinity
         this.yMax = -Infinity
+        const gateVoltages = linspace(this.minValue, this.maxValue, nPoints)
+
         let nextPoint = {x: 0, y: 0}
         gateVoltages.forEach((gateVoltage: number) => {
             nextPoint = {x: gateVoltage, y: this.getMosfetCurrentFromGateVoltage(gateVoltage)}
@@ -192,12 +217,12 @@ export class Chart extends CtxSlider{
     }
 
     sweepDrainVoltages(nPoints: number = this.width / 2) {
-        const drainVoltages = linspace(this.Vs.value.voltage, this.maxVds, nPoints)
         this.points = []
-        this.xMin = this.Vs.value.voltage
-        this.xMax = this.maxVds
+        this.setMinMaxXValues()
         this.yMin = Infinity
         this.yMax = -Infinity
+        const drainVoltages = linspace(this.minValue, this.maxValue, nPoints)
+
         let nextPoint = {x: 0, y: 0}
         drainVoltages.forEach((drainVoltage: number) => {
             nextPoint = {x: drainVoltage, y: this.getMosfetSaturationFromDrainVoltage(drainVoltage)}
@@ -209,16 +234,16 @@ export class Chart extends CtxSlider{
 
     xLocationToValue(xLocation: number): number {
         if (this.xScaleType == 'linear') {
-            return xLocation / this.axesWidth * (this.temporaryMaxValue - this.temporaryMinValue)
+            return xLocation / this.axesWidth * (this.temporaryMaxValue)
         } // else
-        return 10 ** (Math.log10(xLocation) / this.axesWidth * (this.temporaryMaxValue - this.temporaryMinValue))
+        return 10 ** (Math.log10(xLocation) / this.axesWidth * (this.temporaryMaxValue))
     }
 
     xValueToLocation(xValue: number): number {
         if (this.xScaleType == 'linear') {
-            return xValue / (this.temporaryMaxValue - this.temporaryMinValue) * this.axesWidth
+            return xValue / (this.temporaryMaxValue) * this.axesWidth
         } // else
-        return Math.log10(xValue) / (this.temporaryMaxValue - this.temporaryMinValue) * this.axesWidth
+        return Math.log10(xValue) / (this.temporaryMaxValue) * this.axesWidth
     }
 
     yValueToLocation(yValue: number): number {
@@ -266,5 +291,9 @@ export class Chart extends CtxSlider{
         return (localMousePosition.x > 0) && (localMousePosition.x < this.axesWidth) && (localMousePosition.y > 0) && (localMousePosition.y < this.axesHeight)
     }
 
+    setMinMaxXValues() {
+        this.minValue = this.mosfetType == 'nmos' ? this.Vs.value.voltage : this.Vs.value.voltage - this.originalMaxValue
+        this.maxValue = this.mosfetType == 'nmos' ? this.originalMaxValue : this.Vs.value.voltage
+    }
 }
 
