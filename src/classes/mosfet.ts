@@ -40,7 +40,7 @@ export class Mosfet extends CtxArtist{
             "gate": {
                 node: Vg,
                 origin: new TectonicPoint(this.transformations, {
-                    x: 30,
+                    x: 60,
                     y: 0,
                 }),
                 color: 'red',
@@ -50,7 +50,7 @@ export class Mosfet extends CtxArtist{
                 node: Vd,
                 origin: new TectonicPoint(this.transformations, {
                     x: 0,
-                    y: 30,
+                    y: -60,
                 }),
                 color: 'red',
                 gradientSize: 100,
@@ -129,7 +129,7 @@ export class Mosfet extends CtxArtist{
         [{center: {x: 45, y: 0}, outerDiameter: 10}]
 
         this.gradientSize = this.getGradientSizeFromSaturationLevel()
-        const gradientOrigin: Point = {x: 0, y: -60 * (this.mosfetType == 'nmos' ? 1 : -1)}
+        const gradientOrigin: Point = {x: 0, y: -60}
         const gradient = makeStandardGradient(ctx, gradientOrigin, this.gradientSize, 'rgba(200, 200, 200, 1)')
 
         const forwardCurrentScaled = this.getForwardCurrentScaled()
