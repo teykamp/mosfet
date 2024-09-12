@@ -12,17 +12,15 @@ export class AngleSlider extends CtxSlider{
     endAngle: number
     displayText: string
     displayTextLocation: RelativeDirection
-    displayNegative: boolean
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, displayNegative: boolean = false) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, minValue, maxValue, visibility)
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility) {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, drivenNode, minValue, maxValue, visibility)
 
         this.radius = radius
         this.originalRadius = radius
         this.endAngle = endAngle
         this.displayText = name
         this.displayTextLocation = CCW ? RelativeDirection.Right : RelativeDirection.Left
-        this.displayNegative = displayNegative
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -44,8 +42,8 @@ export class AngleSlider extends CtxSlider{
         ctx.arc(0, 0, this.radius, 0, this.endAngle, false)
 
         // switch head and tail if the min and max are negative valued
-        const headAngle = this.displayNegative ? 0 : this.endAngle
-        const tailAngle = this.displayNegative ? this.endAngle : 0
+        const headAngle = this.endAngle
+        const tailAngle = 0
 
         // draw tail flourish on slider path
         const tailSize = 7
@@ -54,8 +52,7 @@ export class AngleSlider extends CtxSlider{
 
         // draw head flourish on slider path
         const headSize = 7
-        const headDirection = (this.displayNegative) ? 1 : -1
-        const arrowAngle = headDirection * toRadians(5)
+        const arrowAngle = toRadians(-5)
         ctx.moveTo((this.radius + headSize) * Math.cos(headAngle + arrowAngle), (this.radius + headSize) * Math.sin(headAngle + arrowAngle))
         ctx.lineTo((this.radius           ) * Math.cos(headAngle            ), (this.radius           ) * Math.sin(headAngle            ))
         ctx.lineTo((this.radius - headSize) * Math.cos(headAngle + arrowAngle), (this.radius - headSize) * Math.sin(headAngle + arrowAngle))
@@ -101,7 +98,7 @@ export class AngleSlider extends CtxSlider{
         ctx.font = '18px Arial'
         const nextLineLocation = this.fillTextGlobalReferenceFrame(ctx, textLocation, this.displayText, true, false, 18)
         ctx.font = '16px Arial'
-        this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, toSiPrefix(this.value * (this.displayNegative ? -1 : 1), 'V', 3), true)
+        this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, toSiPrefix(this.value, 'V', 3), true)
     }
 
     updateLocationBasedOnValue() {
@@ -118,11 +115,7 @@ export class AngleSlider extends CtxSlider{
 
         const percentValue = between(0, 1, mouseAngle / this.endAngle)
         this.value = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
-
-        this.location = {
-          x: Math.cos(mouseAngle) * this.radius,
-          y: Math.sin(mouseAngle) * this.radius
-        }
+        this.updateLocationBasedOnValue()
     }
 
     mouseDownIntiatesDrag(localMousePosition: Point): Boolean {

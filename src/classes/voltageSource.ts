@@ -2,7 +2,7 @@ import { Circle, Line, Point, SchematicEffect, Visibility } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toRadians } from "../functions/extraMath"
-import { Ref } from 'vue'
+import { ref, Ref } from 'vue'
 import { AngleSlider } from "./angleSlider"
 import { drawCirclesFillSolid, drawLinesFillSolid } from "../functions/drawFuncs"
 import { Node } from "./node"
@@ -21,9 +21,9 @@ export class VoltageSource extends CtxArtist{
         this.vminus = vminus
         this.fixedAt = fixedAt
         if (fixedAt == 'gnd') {
-            this.voltageDrop = new AngleSlider(this.transformations, vminus, vplus, 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
+            this.voltageDrop = new AngleSlider(this.transformations, vminus, vplus, 'toNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
         } else {
-            this.voltageDrop = new AngleSlider(this.transformations, vplus, vminus, 0, 0, 50, toRadians(40), toRadians(80), true, -5, 0, name, Visibility.Visible, true)
+            this.voltageDrop = new AngleSlider(this.transformations.concat([ref((new TransformationMatrix().mirror(false, true))) as Ref<TransformationMatrix>]), vminus, vplus, 'fromNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible)
         }
         this.schematicEffects = {}
         this.current = 0 // Amps

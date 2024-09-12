@@ -50,8 +50,8 @@ export class Chart extends CtxSlider{
     yScale: number = 0
 
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX + Chart.paddingL, y: originY - Chart.paddingB + height}).mirror(false, true), Vs, chartType == 'Vgs' ? Vg : Vd, 0, chartType == 'Vgs' ? maxVgs : maxVds, visibility)
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, drivenNode: 'fromNode' | 'toNode', maxVgs: number = 3, maxVds: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX + Chart.paddingL, y: originY - Chart.paddingB + height}).mirror(false, mosfetType == 'nmos'), Vs, chartType == 'Vgs' ? Vg : Vd, drivenNode, 0, chartType == 'Vgs' ? maxVgs : maxVds, visibility)
         this.points = []
         this.xAxisLabel = xAxisLabel
         this.yAxisLabel = yAxisLabel

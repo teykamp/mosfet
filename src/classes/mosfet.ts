@@ -33,9 +33,9 @@ export class Mosfet extends CtxArtist{
     vdsChart: Chart
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, mosfetType == 'pmos'))
+
         this.mosfetType = mosfetType
-        // this.mirror = mirror
         this.schematicEffects = {
             "gate": {
                 node: Vg,
@@ -50,55 +50,45 @@ export class Mosfet extends CtxArtist{
                 node: Vd,
                 origin: new TectonicPoint(this.transformations, {
                     x: 0,
-                    y: 30 * (mosfetType == 'nmos' ? -1 : 1),
+                    y: 30,
                 }),
                 color: 'red',
                 gradientSize: 100,
             },
-        },
+        }
+
         this.Vg = Vg
         this.Vs = Vs
         this.Vd = Vd
         this.Vb = Vb
 
-        if (this.mosfetType == 'nmos') {
-            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
-            this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+        this.anchorPoints = {
+            "Vg": {x: 60, y: 0},
+            "Vs": {x: 0, y: 60},
+            "Vd": {x: 0, y: -60},
+            "Vb": {x: 0, y: 0},
+            "Gnd": {x: 0, y: 90},
+            "Vdd": {x: 0, y: -90},
+            "Vg_mirror_gate": {x: 90, y: 0},
+            "Vg_mirror_corner": {x: 90, y: -90},
+            "Vg_mirror_drain": {x: 0, y: -90},
+            "Vg_drive_gate": {x: 120, y: 0},
+            "Vg_drive_Vsource": {x: 120, y: 90},
+        }
 
-            this.anchorPoints = {
-                "Vg": {x: 60, y: 0},
-                "Vs": {x: 0, y: 60},
-                "Vd": {x: 0, y: -60},
-                "Vb": {x: 0, y: 0},
-                "Gnd": {x: 0, y: 90},
-                "Vdd": {x: 0, y: -90},
-                "Vg_mirror_gate": {x: 90, y: 0},
-                "Vg_mirror_corner": {x: 90, y: -90},
-                "Vg_mirror_drain": {x: 0, y: -90},
-                "Vg_drive_gate": {x: 120, y: 0},
-                "Vg_drive_Vsource": {x: 120, y: 90},
-            }
+        if (this.mosfetType == 'nmos') {
+            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
+            this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 'toNode', 3, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 'toNode', 3, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
         }
         else {
-            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
-            this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
-
-            this.anchorPoints = {
-                "Vg": {x: 60, y: 0},
-                "Vs": {x: 0, y: -60},
-                "Vd": {x: 0, y: 60},
-                "Vb": {x: 0, y: 0},
-                "Gnd": {x: 0, y: 90},
-                "Vdd": {x: 0, y: -90},
-                "Vg_mirror_gate": {x: 90, y: 0},
-                "Vg_mirror_corner": {x: 90, y: 90},
-                "Vg_mirror_drain": {x: 0, y: 90},
-                "Vg_drive_gate": {x: 120, y: 0},
-                "Vg_drive_Vsource": {x: 120, y: 90},
-            }
+            this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility)
+            this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 'fromNode', 3, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 'fromNode', 3, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
         }
-        this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', 150, -50 , Vg, Vs, Vd, Vb, 3, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, Visibility.Hidden)
-        this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', 150, -170, Vg, Vs, Vd, Vb, 3, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, Visibility.Hidden)
+
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -108,9 +98,10 @@ export class Mosfet extends CtxArtist{
         ctx.strokeRect(150, -170, 200, 120)
 
         if (this.selected) {
-            console.log("I'm selected!")
             const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
-            backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 1)')
+            backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
+            backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')
+            backgroundGradient.addColorStop(0.8, 'rgba(255, 0, 0, 0.2)')
             backgroundGradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
             ctx.fillStyle = backgroundGradient
             ctx.arc(0, 0, 200, 0, 2 * Math.PI)

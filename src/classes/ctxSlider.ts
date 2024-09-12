@@ -15,6 +15,7 @@ export class CtxSlider extends CtxArtist{
     minValue: number
     maxValue: number
     value: number // a number between minValue and maxValue
+    drivenNode: 'fromNode' | 'toNode'
 
     preciseDragging: boolean = false
     temporaryMinValue: number
@@ -23,7 +24,7 @@ export class CtxSlider extends CtxArtist{
     valueRateOfChange: number = 0
 
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, minValue: number, maxValue: number, visibility: Visibility = Visibility.Visible) {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, visibility: Visibility = Visibility.Visible) {
         super(parentTransformations, localTransformationMatrix)
 
         this.visibility = visibility
@@ -35,6 +36,7 @@ export class CtxSlider extends CtxArtist{
         this.temporaryMinValue = minValue
         this.temporaryMaxValue = maxValue
         this.previousValue = minValue
+        this.drivenNode = drivenNode
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -64,8 +66,13 @@ export class CtxSlider extends CtxArtist{
 
     updateNodeVoltagesBasedOnValue() {
         if (this.dragging) {
-            this.toNode.value.fixed = true
-            this.toNode.value.voltage = this.fromNode.value.voltage + this.value
+            if (this.drivenNode == 'toNode') {
+                this.toNode.value.fixed = true
+                this.toNode.value.voltage = this.fromNode.value.voltage + this.value
+            } else {
+                this.fromNode.value.fixed = true
+                this.fromNode.value.voltage = this.toNode.value.voltage - this.value
+            }
         }
     }
 
@@ -98,7 +105,11 @@ export class CtxSlider extends CtxArtist{
         this.temporaryMaxValue = this.maxValue
         this.preciseDragging = false
         this.dragging = false
-        this.toNode.value.fixed = false
+        if (this.drivenNode == 'toNode') {
+            this.toNode.value.fixed = false
+        } else {
+            this.fromNode.value.fixed = false
+        }
     }
 
     adjustPreciseSlider(timeDifference: number = 10) {
