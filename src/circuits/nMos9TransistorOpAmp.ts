@@ -254,18 +254,18 @@ const useNmos9TransistorOpAmp = () => {
     circuit.schematic = new Schematic(
         circuit.transformations,
         [
-            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
-            new GndSymbol(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Gnd")),
-            new GndSymbol(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Gnd")),
+            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
+            new GndSymbol(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("SourceSupply")),
+            new GndSymbol(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("SourceSupply")),
             new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
             new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
             new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
         ],
         [
-            new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vdd")),
-            new VddSymbol(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vdd")),
-            new VddSymbol(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vdd")),
-            new VddSymbol(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vdd")),
+            new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("SourceSupply")),
         ],
         [],
         Object.values(circuit.devices.mosfets),
@@ -274,9 +274,9 @@ const useNmos9TransistorOpAmp = () => {
             {
                 node: circuit.nodes[gndNodeId],
                 lines: [
-                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
-                    new TectonicLine(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Gnd")),
-                    new TectonicLine(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Gnd")),
+                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("SourceSupply")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -284,10 +284,10 @@ const useNmos9TransistorOpAmp = () => {
             {
                 node: circuit.nodes[vddNodeId],
                 lines: [
-                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vdd")),
-                    new TectonicLine(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vdd")),
-                    new TectonicLine(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vdd")),
-                    new TectonicLine(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vdd")),
+                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("SourceSupply")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []

@@ -74,9 +74,9 @@ export class Chart extends CtxSlider{
                 drivenNode = 'fromNode'
             }
         }
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX + Chart.paddingL, y: originY - Chart.paddingB + height}).mirror(false, mosfetType == 'nmos'), fromNode, toNode, drivenNode, 0, maxValue, visibility)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX + Chart.paddingL, y: originY - Chart.paddingB + height}), fromNode, toNode, drivenNode, 0, maxValue, visibility)
         this.points = []
-        this.xAxisLabel = xAxisLabel
+        this.xAxisLabel = "←" + xAxisLabel + "→"
         this.yAxisLabel = yAxisLabel
         this.xUnit = xUnit
         this.yUnit = yUnit
@@ -142,7 +142,7 @@ export class Chart extends CtxSlider{
 
         // Draw axis labels
         ctx.font = '18px Arial'
-        this.fillTextGlobalReferenceFrame(ctx, {x: xAxisLabelLocation - 10, y: -20}, this.xAxisLabel, true)
+        this.fillTextGlobalReferenceFrame(ctx, {x: xAxisLabelLocation - 7 * this.xAxisLabel.length, y: -20}, this.xAxisLabel, true)
         this.fillTextGlobalReferenceFrame(ctx, {x: -30, y: this.axesHeight + 6}, this.yAxisLabel, true, true)
 
         // Calculate and draw ticks

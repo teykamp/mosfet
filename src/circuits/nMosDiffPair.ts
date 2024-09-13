@@ -145,13 +145,13 @@ const useNmosDiffPair = () => {
         circuit.transformations,
         [
             new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
-            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
+            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
             new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
             new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
         ],
         [
-            new VddSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vdd")),
-            new VddSymbol(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vdd")),
+            new VddSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("SourceSupply")),
         ],
         [],
         Object.values(circuit.devices.mosfets),
@@ -168,8 +168,8 @@ const useNmosDiffPair = () => {
             {
                 node: circuit.nodes[vddNodeId],
                 lines: [
-                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vdd")),
-                    new TectonicLine(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vdd")),
+                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("SourceSupply")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []

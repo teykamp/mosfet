@@ -56,7 +56,8 @@ const useNmosSingle = () => {
             circuit.nodes["M1_gate"],
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_drain"],
-            circuit.nodes[gndNodeId]
+            circuit.nodes[gndNodeId],
+            3, 5, false, Visibility.Visible, Visibility.Visible, 'gate'
         )
     }
 
