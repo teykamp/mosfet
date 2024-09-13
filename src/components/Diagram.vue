@@ -130,10 +130,8 @@ const mouseUp = (event: MouseEvent) => {
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
         mosfet.selected = !mosfet.selected
-        mosfet.chartVisibility = Visibility.Visible
       } else {
-        mosfet.selected = false // unselect everything when you click somewhere else
-        mosfet.chartVisibility = Visibility.Hidden
+        // mosfet.selected = false // unselect everything when you click somewhere else
       }
       mosfet.mouseDownInsideSelectionArea = false
     })
