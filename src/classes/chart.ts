@@ -94,10 +94,10 @@ export class Chart extends CtxSlider{
         this.Vb = Vb
         this.mosfetType = mosfetType
         this.chartType = chartType
+        this.originalMaxValue = maxValue
         this.setMinMaxXValues()
         this.temporaryMinValue = this.minValue
         this.temporaryMaxValue = this.maxValue
-        this.originalMaxValue = maxValue
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -233,22 +233,25 @@ export class Chart extends CtxSlider{
     }
 
     xLocationToValue(xLocation: number): number {
+        let returnValue = 0
         if (this.xScaleType == 'linear') {
-            return (this.mosfetType == 'nmos' ? xLocation : this.Vs.value.voltage - xLocation) / this.axesWidth * (this.temporaryMaxValue)
-        } // else
-        return 10 ** (Math.log10((this.mosfetType == 'nmos' ? xLocation : this.Vs.value.voltage - xLocation)) / this.axesWidth * (this.temporaryMaxValue))
+            returnValue = xLocation / this.axesWidth * (this.temporaryMaxValue)
+        } else {
+            returnValue = 10 ** (Math.log10(xLocation) / this.axesWidth * (this.temporaryMaxValue))
+        }
+        return (this.mosfetType == 'nmos' ? returnValue : this.Vs.value.voltage - returnValue)
     }
 
     xValueToLocation(xValue: number): number {
         if (this.xScaleType == 'linear') {
-            return xValue / (this.temporaryMaxValue) * this.axesWidth
+            return (xValue - this.temporaryMinValue) / (this.temporaryMaxValue - this.temporaryMinValue) * this.axesWidth
         } // else
-        return Math.log10(xValue) / (this.temporaryMaxValue) * this.axesWidth
+        return (Math.log10(xValue) - Math.log10(this.temporaryMinValue)) / (Math.log10(this.temporaryMaxValue) - Math.log10(this.temporaryMinValue)) * this.axesWidth
     }
 
     yValueToLocation(yValue: number): number {
         if (this.yScaleType == 'linear') {
-            return yValue / (this.yMax - this.yMin) * this.axesHeight
+            return (yValue - this.yMin) / (this.yMax - this.yMin) * this.axesHeight
         } // else
         return (Math.log10(yValue) - Math.log10(this.yMin)) / (Math.log10(this.yMax) - Math.log10(this.yMin)) * this.axesHeight
     }
