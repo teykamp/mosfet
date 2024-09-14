@@ -1,4 +1,4 @@
-import { BoundingBox, Point } from "../types"
+import { Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
@@ -13,7 +13,7 @@ import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 import { CtxSlider } from "./ctxSlider"
 
 export class Circuit extends CtxArtist {
-    boundingBox: BoundingBox
+    boundingBox: TectonicPoint[]
     schematic: Schematic // how to draw the circuit
     devices: {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
@@ -28,12 +28,12 @@ export class Circuit extends CtxArtist {
         const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
         super([ref((new TransformationMatrix()).scale(canvasDpi * scale).translate(extraShift)) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
 
-        this.boundingBox = {
-            topLeft: new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
-            topRight: new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y - height / 2}),
-            bottomLeft: new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y + height / 2}),
-            bottomRight: new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y + height / 2}),
-        }
+        this.boundingBox = [
+            new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
+            new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y - height / 2}),
+            new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y + height / 2}),
+            new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y + height / 2}),
+        ]
 
         this.schematic = schematic
         this.devices = {
@@ -122,19 +122,14 @@ export class Circuit extends CtxArtist {
             }
         }
 
-        drawCirclesFillSolid(ctx, [
-            {center: this.boundingBox.topLeft.toPoint(), outerDiameter: 2},
-            {center: this.boundingBox.topRight.toPoint(), outerDiameter: 2},
-            {center: this.boundingBox.bottomRight.toPoint(), outerDiameter: 2},
-            {center: this.boundingBox.bottomLeft.toPoint(), outerDiameter: 2},
-        ], 0.2, "purple")
+        drawCirclesFillSolid(ctx, this.boundingBox.map((point: TectonicPoint) => {return {center: point.toPoint(), outerDiameter: 2}}), 0.2, "purple")
     }
 
     setScaleBasedOnBoundingBox() {
-        const left =   Math.min(this.boundingBox.topLeft.toPoint().x, this.boundingBox.topRight.toPoint().x, this.boundingBox.bottomRight.toPoint().x, this.boundingBox.bottomLeft.toPoint().x)
-        const right =  Math.max(this.boundingBox.topLeft.toPoint().x, this.boundingBox.topRight.toPoint().x, this.boundingBox.bottomRight.toPoint().x, this.boundingBox.bottomLeft.toPoint().x)
-        const top =    Math.min(this.boundingBox.topLeft.toPoint().y, this.boundingBox.topRight.toPoint().y, this.boundingBox.bottomRight.toPoint().y, this.boundingBox.bottomLeft.toPoint().y)
-        const bottom = Math.max(this.boundingBox.topLeft.toPoint().y, this.boundingBox.topRight.toPoint().y, this.boundingBox.bottomRight.toPoint().y, this.boundingBox.bottomLeft.toPoint().y)
+        const left =   Math.min(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().x))
+        const right =  Math.max(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().x))
+        const top =    Math.min(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().y))
+        const bottom = Math.max(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().y))
 
         const height = Math.abs(top - bottom)
         const width = Math.abs(right - left)

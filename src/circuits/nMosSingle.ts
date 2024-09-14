@@ -40,12 +40,12 @@ const useNmosSingle = () => {
         return (circuit.devices.mosfets["M1"].selected.value) ? {x: 6, y: 0} : {x: 0, y: 0}
     }))
 
-    circuit.boundingBox = {
-        topLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: -12}),
-        topRight: new TectonicPoint(tectonicPlateChart.transformations, {x: 5, y: -12}),
-        bottomLeft: new TectonicPoint(circuit.transformations, {x: -5, y: 6}),
-        bottomRight: new TectonicPoint(circuit.transformations, {x: 5, y: 6}),
-    }
+    circuit.boundingBox = [
+        new TectonicPoint(tectonicPlate.transformations, {x: -5, y: -12}),
+        new TectonicPoint(tectonicPlateChart.transformations, {x: 5, y: -12}),
+        new TectonicPoint(circuit.transformations, {x: -5, y: 6}),
+        new TectonicPoint(circuit.transformations, {x: 5, y: 6}),
+    ]
 
     //////////////////////////////
     ///         MOSFETS        ///

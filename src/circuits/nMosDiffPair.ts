@@ -40,20 +40,29 @@ const useNmosDiffPair = () => {
     const tectonicPlateM2: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
         return getPointAlongPath([{start: {x: 0, y: 1}, end: {x: 0, y: -7}}],
             between(gndVoltage, vddVoltage, Math.max(circuit.nodes["M2_gate"].value.voltage, circuit.nodes["Vnode"].value.voltage)) / (vddVoltage - gndVoltage))
+        }))
+
+        const tectonicPlateVnode: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
+            return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -8}}],
+                between(gndVoltage, vddVoltage, circuit.nodes["Vnode"].value.voltage) / (vddVoltage - gndVoltage))
+            }))
+
+    const tectonicPlateMbChart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
+        return (circuit.devices.mosfets["Mb"].selected.value) ? {x: 0, y: 2} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
+        return (circuit.devices.mosfets["M1"].selected.value) ? {x: -8, y: 0} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM2Chart: TectonicPlate = new TectonicPlate(tectonicPlateM2.transformations, computed(() => {
+        return (circuit.devices.mosfets["M2"].selected.value) ? {x: 8, y: 0} : {x: 0, y: 0}
     }))
 
-    const tectonicPlateVnode: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -8}}],
-            between(gndVoltage, vddVoltage, circuit.nodes["Vnode"].value.voltage) / (vddVoltage - gndVoltage))
-    }))
-
-
-    circuit.boundingBox = {
-        topLeft: new TectonicPoint(tectonicPlateM1.transformations, {x: -5, y: -6}),
-        topRight: new TectonicPoint(tectonicPlateM2.transformations, {x: 5, y: -6}),
-        bottomLeft: new TectonicPoint(circuit.transformations, {x: -5, y: 12}),
-        bottomRight: new TectonicPoint(circuit.transformations, {x: 5, y: 12}),
-    }
+    circuit.boundingBox = [
+        new TectonicPoint(tectonicPlateM1Chart.transformations, {x: -11, y: -6}),
+        new TectonicPoint(tectonicPlateM2Chart.transformations, {x: 11, y: -6}),
+        new TectonicPoint(circuit.transformations, {x: -11, y: 13}),
+        new TectonicPoint(tectonicPlateMbChart.transformations, {x: 11, y: 13}),
+    ]
 
 
     //////////////////////////////
