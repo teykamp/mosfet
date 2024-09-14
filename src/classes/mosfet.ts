@@ -34,10 +34,11 @@ export class Mosfet extends CtxArtist{
     static chartWidth = 200
     static chartHeight = 120
     static chartLocations = {
-        "base": {x: -Mosfet.chartWidth - 100, y: 0},
+        "base": {x: -Mosfet.chartWidth / 2 - 100, y: 0},
+        "lowerBase": {x: -Mosfet.chartWidth / 2 - 100, y: 90},
         "gate": {x: Mosfet.chartWidth / 2 + 120, y: 0},
         "voltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 0},
-        "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 210, y: 80}
+        "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 80}
     }
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate") {

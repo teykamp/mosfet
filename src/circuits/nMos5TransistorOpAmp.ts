@@ -58,13 +58,32 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             between(gndVoltage, vddVoltage, Math.max(circuit.nodes["Vout"].value.voltage, circuit.nodes["M2_gate"].value.voltage - 1.25)) / (vddVoltage - gndVoltage))
     }))
 
+    const tectonicPlateMbChart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
+        return (circuit.devices.mosfets["Mb"].selected.value) ? {x: 5, y: 2} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
+        return (circuit.devices.mosfets["M1"].selected.value) ? {x: -8, y: 0} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM2Chart: TectonicPlate = new TectonicPlate(tectonicPlateM2.transformations, computed(() => {
+        return (circuit.devices.mosfets["M2"].selected.value) ? {x: 8, y: 0} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM3Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
+        return (circuit.devices.mosfets["M3"].selected.value) ? {x: -3, y: -3} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM4Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
+        return (circuit.devices.mosfets["M4"].selected.value) ? {x: 3, y: -3} : {x: 0, y: 0}
+    }))
 
-    circuit.boundingBox = {
-        topLeft: new TectonicPoint(tectonicPlatePmos.transformations, {x: -5, y: -14}),
-        topRight: new TectonicPoint(tectonicPlatePmos.transformations, {x: 5, y: -14}),
-        bottomLeft: new TectonicPoint(circuit.transformations, {x: -5, y: 14}),
-        bottomRight: new TectonicPoint(circuit.transformations, {x: 5, y: 14}),
-    }
+
+
+    circuit.boundingBox = [
+        new TectonicPoint(tectonicPlateM1Chart.transformations, {x: -12, y: -14}),
+        new TectonicPoint(tectonicPlateM2Chart.transformations, {x: 12, y: -14}),
+        new TectonicPoint(tectonicPlateM3Chart.transformations, {x: -12, y: -14}),
+        new TectonicPoint(tectonicPlateM4Chart.transformations, {x: 12, y: -14}),
+        new TectonicPoint(circuit.transformations, {x: -12, y: 14}),
+        new TectonicPoint(tectonicPlateMbChart.transformations, {x: 12, y: 14}),
+    ]
 
     //////////////////////////////
     ///         MOSFETS        ///
@@ -84,7 +103,8 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             undefined,
             false,
             Visibility.Locked,
-            Visibility.Locked
+            Visibility.Locked,
+            'lowerVoltageSource'
         ),
         "M1": new Mosfet(
             tectonicPlateM1.transformations,
@@ -100,6 +120,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             true,
             Visibility.Locked,
             Visibility.Locked,
+            'voltageSource'
         ),
         "M2": new Mosfet(
             tectonicPlateM2.transformations,
@@ -115,6 +136,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             false,
             Visibility.Locked,
             Visibility.Locked,
+            'voltageSource'
         ),
         "M3": new Mosfet(
             tectonicPlatePmos.transformations,
@@ -130,6 +152,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             false,
             Visibility.Locked,
             Visibility.Locked,
+            'lowerBase'
         ),
         "M4": new Mosfet(
             tectonicPlatePmos.transformations,
@@ -145,6 +168,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             true,
             Visibility.Locked,
             Visibility.Locked,
+            'lowerBase'
         ),
     }
 

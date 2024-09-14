@@ -48,7 +48,7 @@ const useNmosDiffPair = () => {
             }))
 
     const tectonicPlateMbChart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
-        return (circuit.devices.mosfets["Mb"].selected.value) ? {x: 0, y: 2} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["Mb"].selected.value) ? {x: 5, y: 2} : {x: 0, y: 0}
     }))
     const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
         return (circuit.devices.mosfets["M1"].selected.value) ? {x: -8, y: 0} : {x: 0, y: 0}
