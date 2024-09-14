@@ -35,10 +35,14 @@ const useNmosSingle = () => {
         return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -6}}],
             between(gndVoltage, vddVoltage, circuit.nodes["M1_drain"].value.voltage) / (vddVoltage - gndVoltage))
     }))
+    const tectonicPlateChart: TectonicPlate = new TectonicPlate(tectonicPlate.transformations, computed(() => {
+        console.log(circuit.devices.mosfets["M1"].selected.value)
+        return (circuit.devices.mosfets["M1"].selected.value) ? {x: 6, y: 0} : {x: 0, y: 0}
+    }))
 
     circuit.boundingBox = {
         topLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: -12}),
-        topRight: new TectonicPoint(tectonicPlate.transformations, {x: 5, y: -12}),
+        topRight: new TectonicPoint(tectonicPlateChart.transformations, {x: 5, y: -12}),
         bottomLeft: new TectonicPoint(circuit.transformations, {x: -5, y: 6}),
         bottomRight: new TectonicPoint(circuit.transformations, {x: 5, y: 6}),
     }

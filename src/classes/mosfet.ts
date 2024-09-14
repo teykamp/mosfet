@@ -27,7 +27,7 @@ export class Mosfet extends CtxArtist{
     Vd: Ref<Node>
     Vb: Ref<Node>
     mouseDownInsideSelectionArea = false
-    selected = false
+    selected: Ref<boolean> = ref(true)
     chartVisibility: Visibility = Visibility.Hidden
     vgsChart: Chart
     vdsChart: Chart
@@ -35,8 +35,9 @@ export class Mosfet extends CtxArtist{
     static chartHeight = 120
     static chartLocations = {
         "base": {x: -Mosfet.chartWidth - 100, y: 0},
-        "gate": {x: Mosfet.chartWidth / 2 + 80, y: 0},
-        "voltageSource": {x: 150, y: 0},
+        "gate": {x: Mosfet.chartWidth / 2 + 120, y: 0},
+        "voltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 0},
+        "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 210, y: 80}
     }
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate") {
@@ -75,6 +76,7 @@ export class Mosfet extends CtxArtist{
             "Vd": {x: 0, y: -60},
             "Vb": {x: 0, y: 0},
             "SourceSupply": {x: 0, y: 90},
+            "DrainSupply": {x: 0, y: -90},
             "Vg_mirror_gate": {x: 90, y: 0},
             "Vg_mirror_corner": {x: 90, y: -90},
             "Vg_mirror_drain": {x: 0, y: -90},
@@ -100,7 +102,7 @@ export class Mosfet extends CtxArtist{
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
 
-        if (this.selected) {
+        if (this.selected.value) {
             const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
             backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
             backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')
@@ -165,7 +167,7 @@ export class Mosfet extends CtxArtist{
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
 
-        if (this.selected) {
+        if (this.selected.value) {
             this.vgsChart.draw(ctx)
             this.vdsChart.draw(ctx)
         }

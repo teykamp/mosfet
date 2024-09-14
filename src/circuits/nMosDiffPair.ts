@@ -74,7 +74,8 @@ const useNmosDiffPair = () => {
             undefined,
             false,
             Visibility.Locked,
-            Visibility.Locked
+            Visibility.Locked,
+            'lowerVoltageSource'
         ),
         "M1": new Mosfet(
             tectonicPlateM1.transformations,
@@ -90,6 +91,7 @@ const useNmosDiffPair = () => {
             true,
             Visibility.Locked,
             Visibility.Locked,
+            'voltageSource'
         ),
         "M2": new Mosfet(
             tectonicPlateM2.transformations,
@@ -105,6 +107,7 @@ const useNmosDiffPair = () => {
             false,
             Visibility.Locked,
             Visibility.Locked,
+            'voltageSource'
         ),
     }
 
@@ -150,8 +153,8 @@ const useNmosDiffPair = () => {
             new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
         ],
         [
-            new VddSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("SourceSupply")),
-            new VddSymbol(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("DrainSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("DrainSupply")),
         ],
         [],
         Object.values(circuit.devices.mosfets),
@@ -168,8 +171,8 @@ const useNmosDiffPair = () => {
             {
                 node: circuit.nodes[vddNodeId],
                 lines: [
-                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("SourceSupply")),
-                    new TectonicLine(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("DrainSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M2"].getAnchorPointWithTransformations("DrainSupply")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
