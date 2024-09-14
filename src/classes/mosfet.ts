@@ -38,7 +38,8 @@ export class Mosfet extends CtxArtist{
         "lowerBase": {x: -Mosfet.chartWidth / 2 - 100, y: 90},
         "gate": {x: Mosfet.chartWidth / 2 + 120, y: 0},
         "voltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 0},
-        "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 80}
+        "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 90},
+        "mirrorDriver": {x: Mosfet.chartWidth / 2 + 110, y: -this.chartHeight - 20}
     }
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate") {
