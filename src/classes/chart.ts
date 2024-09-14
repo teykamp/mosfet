@@ -9,6 +9,7 @@ import { ekvNmos, ekvPmos } from "../functions/ekvModel"
 import { Node } from "./node"
 import { unit } from "mathjs"
 import { CtxSlider } from "./ctxSlider"
+import { CtxArtist } from "./ctxArtist"
 
 export class Chart extends CtxSlider{
     points: Point[]
@@ -74,7 +75,24 @@ export class Chart extends CtxSlider{
                 drivenNode = 'fromNode'
             }
         }
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX + Chart.paddingL, y: originY - Chart.paddingB + height}), fromNode, toNode, drivenNode, 0, maxValue, visibility)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, visibility)
+        console.log("-----------------")
+        console.log(this.transformationMatrix.isMirrored)
+        if (this.transformationMatrix.isMirrored) {
+            this.transformations[this.transformations.length - 1].value.mirror(true, false, true)
+        }
+        this.transformations[this.transformations.length - 1].value.rotate(-this.transformationMatrix.rotation, true)
+        console.log(this.transformationMatrix.matrix.values)
+        console.log(this.transformationMatrix.isMirrored)
+        console.log(this.transformationMatrix.rotation)
+        this.transformations[this.transformations.length - 1].value.mirror(false, true, true)
+        if (chartType == 'Vgs') {
+            this.transformations[this.transformations.length - 1].value.translate({x: -width / 2, y: 0}, true)
+        } else {
+            this.transformations[this.transformations.length - 1].value.translate({x: -width / 2, y: -height}, true)
+        }
+        this.transformations[this.transformations.length - 1].value.translate({x: Chart.paddingL, y: Chart.paddingB}, true)
+
         this.points = []
         this.xAxisLabel = "←" + xAxisLabel + "→"
         this.yAxisLabel = yAxisLabel

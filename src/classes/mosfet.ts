@@ -35,11 +35,11 @@ export class Mosfet extends CtxArtist{
     static chartHeight = 120
     static chartLocations = {
         "base": {x: -Mosfet.chartWidth - 100, y: 0},
-        "gate": {x: 110, y: 0},
+        "gate": {x: Mosfet.chartWidth / 2 + 80, y: 0},
         "voltageSource": {x: 150, y: 0},
     }
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "base") {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate") {
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, mosfetType == 'pmos'))
 
         this.mosfetType = mosfetType
@@ -82,26 +82,17 @@ export class Mosfet extends CtxArtist{
             "Vg_drive_Vsource": {x: 120, y: 90},
         }
 
-        const vgsChartCoordinates = {
-            x: Mosfet.chartLocations[chartLocation].x,
-            y: -Mosfet.chartLocations[chartLocation].y - 1 / 2 * Mosfet.chartHeight
-        }
-        const vdsChartCoordinates = {
-            x: Mosfet.chartLocations[chartLocation].x,
-            y: -Mosfet.chartLocations[chartLocation].y - 3 / 2 * Mosfet.chartHeight
-        }
-
         if (this.mosfetType == 'nmos') {
             this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
-            this.vgsChart = new Chart(this.transformations.concat(ref((new TransformationMatrix()).mirror(false, true)) as Ref<TransformationMatrix>), mosfetType, 'Vgs', vgsChartCoordinates.x, vgsChartCoordinates.y, Vg, Vs, Vd, Vb, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, vgsVisibility)
-            this.vdsChart = new Chart(this.transformations.concat(ref((new TransformationMatrix()).mirror(false, true)) as Ref<TransformationMatrix>), mosfetType, 'Vds', vdsChartCoordinates.x, vdsChartCoordinates.y, Vg, Vs, Vd, Vb, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, vdsVisibility)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, 5, "Vgs", "Current", "V", "A", 'linear', 'log', 200, 120, vgsVisibility)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, 5, "Vds", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, vdsVisibility)
         }
         else {
             this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility)
             this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', vgsChartCoordinates.x, vgsChartCoordinates.y, Vg, Vs, Vd, Vb, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 120, vgsVisibility)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', vdsChartCoordinates.x, vdsChartCoordinates.y, Vg, Vs, Vd, Vb, 5, "Vs", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, vdsVisibility)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 120, vgsVisibility)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, 5, "Vs", "Saturation Level", "V", "%", 'linear', 'linear', 200, 120, vdsVisibility)
         }
 
     }

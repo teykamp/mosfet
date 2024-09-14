@@ -31,7 +31,7 @@ export class TransformationMatrix {
     }
 
     get isMirrored(): boolean {
-        return Math.sqrt(this.matrix.determinant()) < 0
+        return this.matrix.determinant() < 0
     }
 
     get translation(): Point {

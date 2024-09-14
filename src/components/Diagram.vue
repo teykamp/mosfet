@@ -32,7 +32,6 @@ import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasDpi, canvasSize } from '../constants'
-import { Visibility } from '../types'
 import { CtxSlider } from '../classes/ctxSlider'
 
 const canvas = ref<null | HTMLCanvasElement>(null)
