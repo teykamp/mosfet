@@ -9,7 +9,6 @@ import { ekvNmos, ekvPmos } from "../functions/ekvModel"
 import { Node } from "./node"
 import { unit } from "mathjs"
 import { CtxSlider } from "./ctxSlider"
-import { CtxArtist } from "./ctxArtist"
 import { drawGrid } from "../constants"
 
 export class Chart extends CtxSlider{
@@ -109,7 +108,6 @@ export class Chart extends CtxSlider{
         this.mosfetType = mosfetType
         this.chartType = chartType
         this.originalMaxValue = maxValue
-        this.setMinMaxXValues()
         this.temporaryMinValue = this.minValue
         this.temporaryMaxValue = this.maxValue
     }
@@ -128,8 +126,18 @@ export class Chart extends CtxSlider{
             this.sweepDrainVoltages()
         }
 
-        this.xTicks = getTickLabelList(this.minValue, this.maxValue, this.xScaleType == 'log').filter((val: number) => val >= this.minValue && val <= this.maxValue)
-        this.yTicks = getTickLabelList(this.yMin, this.yMax, this.yScaleType == 'log').filter((val: number) => val >= this.yMin && val <= this.yMax)
+        if (this.preciseDragging) {
+            this.xTicks = getTickLabelList(this.temporaryMinValue, this.temporaryMaxValue, this.xScaleType == 'log').filter((val: number) => val >= this.temporaryMinValue && val <= this.temporaryMaxValue)
+            this.yTicks = getTickLabelList(this.yMin, this.yMax, this.yScaleType == 'log').filter((val: number) => val >= this.yMin && val <= this.yMax)
+        } else {
+            if (this.chartType == 'Vgs') {
+                this.xTicks = [0, 5]
+                this.yTicks = [1e-3, 1e-6, 1e-9, 1e-12].filter((val: number) => val >= this.yMin && val <= this.yMax)
+            } else {
+                this.xTicks = [0, 5]
+                this.yTicks = [25, 50, 75, 100].filter((val: number) => val >= this.yMin && val <= this.yMax)
+            }
+        }
 
         let xAxisLabelLocation = 0
         if (this.xTicks.length > 2) {
@@ -211,7 +219,8 @@ export class Chart extends CtxSlider{
         ctx.stroke()
         const displayText = toSiPrefix(this.yValue, this.yUnit)
         const textWidth = displayText.length * 5
-        this.fillTextGlobalReferenceFrame(ctx, {x: this.location.x < this.axesWidth - textWidth ? Math.max(5, this.location.x + textWidth) : this.location.x - textWidth, y: Math.max(5, this.location.y - 15)}, displayText)
+        const nextLine = this.fillTextGlobalReferenceFrame(ctx, {x: this.location.x < this.axesWidth - textWidth ? Math.max(5, this.location.x + textWidth) : this.location.x - textWidth, y: Math.max(5, this.location.y - 15)}, displayText)
+        this.fillTextGlobalReferenceFrame(ctx, nextLine, "value = " + toSiPrefix(this.value, "V"))
 
         // draw borders
         if (drawGrid) {
@@ -221,12 +230,11 @@ export class Chart extends CtxSlider{
         }
     }
 
-    sweepGateVoltages(nPoints: number = this.width / 2) {
+    sweepGateVoltages(nPoints: number = this.width / 3) {
         this.points = []
-        this.setMinMaxXValues()
         this.yMin = Infinity
         this.yMax = -Infinity
-        const gateVoltages = linspace(this.minValue, this.maxValue, nPoints)
+        const gateVoltages = linspace(this.temporaryMinValue, this.temporaryMaxValue, nPoints)
 
         let nextPoint = {x: 0, y: 0}
         gateVoltages.forEach((gateVoltage: number) => {
@@ -237,16 +245,18 @@ export class Chart extends CtxSlider{
         })
     }
 
-    sweepDrainVoltages(nPoints: number = this.width / 2) {
+    sweepDrainVoltages(nPoints: number = this.width / 3) {
         this.points = []
-        this.setMinMaxXValues()
         this.yMin = Infinity
         this.yMax = -Infinity
-        const drainVoltages = linspace(this.minValue, this.maxValue, nPoints)
+        const drainVoltages = linspace(this.temporaryMinValue, this.temporaryMaxValue, nPoints)
 
         let nextPoint = {x: 0, y: 0}
         drainVoltages.forEach((drainVoltage: number) => {
             nextPoint = {x: drainVoltage, y: this.getMosfetSaturationFromDrainVoltage(drainVoltage)}
+            if (nextPoint.y < 0) {
+                nextPoint.y = 0
+            }
             this.yMin = Math.min(this.yMin, nextPoint.y)
             this.yMax = Math.max(this.yMax, nextPoint.y)
             this.points.push(nextPoint)
@@ -256,9 +266,9 @@ export class Chart extends CtxSlider{
     xLocationToValue(xLocation: number): number {
         let returnValue = 0
         if (this.xScaleType == 'linear') {
-            returnValue = xLocation / this.axesWidth * (this.temporaryMaxValue)
+            returnValue = xLocation / this.axesWidth * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
         } else {
-            returnValue = 10 ** (Math.log10(xLocation) / this.axesWidth * (this.temporaryMaxValue))
+            returnValue = 10 ** (Math.log10(xLocation) / this.axesWidth * (Math.log10(this.temporaryMaxValue) - Math.log10(this.temporaryMinValue)) + Math.log10(this.temporaryMinValue))
         }
         return (this.mosfetType == 'nmos' ? returnValue : this.Vs.value.voltage - returnValue)
     }
@@ -283,7 +293,7 @@ export class Chart extends CtxSlider{
     }
 
     updateLocationBasedOnValue() {
-        const valueToDraw = (this.mosfetType == 'nmos' ? this.value : this.Vs.value.voltage - this.value)
+        const valueToDraw = (this.mosfetType == 'nmos' ? this.Vs.value.voltage + this.value : this.Vs.value.voltage - this.value)
         if (this.chartType == 'Vgs') {
             this.yValue = this.getMosfetCurrentFromGateVoltage(valueToDraw)
         } else {
@@ -314,11 +324,6 @@ export class Chart extends CtxSlider{
 
     mouseDownIntiatesDrag(localMousePosition: Point): Boolean {
         return (localMousePosition.x > 0) && (localMousePosition.x < this.axesWidth) && (localMousePosition.y > 0) && (localMousePosition.y < this.axesHeight)
-    }
-
-    setMinMaxXValues() {
-        this.minValue = this.mosfetType == 'nmos' ? this.Vs.value.voltage : this.Vs.value.voltage - this.originalMaxValue
-        this.maxValue = this.mosfetType == 'nmos' ? this.originalMaxValue : this.Vs.value.voltage
     }
 }
 
