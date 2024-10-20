@@ -86,7 +86,7 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlateVout: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 8.5}, end: (circuit.devices.mosfets["M5"].selected.value || circuit.devices.mosfets["M6"].selected.value) ? {x: 0, y: circuit.devices.mosfets["M2"].selected.value ? -20 : -15} : {x: 0, y: -9}}],
+        return getPointAlongPath([{start: {x: 0, y: 8.5}, end: (circuit.devices.mosfets["M5"].selected.value || circuit.devices.mosfets["M6"].selected.value) ? {x: 0, y: circuit.devices.mosfets["M2"].selected.value ? -14 : -11} : {x: 0, y: -9}}],
             between(gndVoltage, vddVoltage, circuit.nodes["Vout"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 
