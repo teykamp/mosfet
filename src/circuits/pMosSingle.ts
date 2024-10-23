@@ -60,6 +60,7 @@ const usePmosSingle = () => {
             circuit.nodes[vddNodeId],
             circuit.nodes["M1_drain"],
             circuit.nodes[vddNodeId],
+            circuit.nodes[gndNodeId],
             3, 5, false, Visibility.Visible, Visibility.Visible, 'gate'
         )
     }

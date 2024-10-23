@@ -50,31 +50,36 @@ export class Chart extends CtxSlider{
     yScale: number = 0
 
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
-        let fromNode = Vs
-        let toNode = Vg
-        let drivenNode: 'fromNode' | 'toNode' = 'toNode'
-        if (mosfetType == 'nmos') {
-            if (chartType == 'Vgs') {
-                fromNode = Vs
-                toNode = Vg
-                drivenNode = 'toNode'
-            } else {
-                fromNode = Vs
-                toNode = Vd
-                drivenNode = 'toNode'
-            }
-        } else {
-            if (chartType == 'Vgs') {
-                fromNode = Vg
-                toNode = Vs
-                drivenNode = 'fromNode'
-            } else {
-                fromNode = Vd
-                toNode = Vs
-                drivenNode = 'fromNode'
-            }
-        }
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
+        // let fromNode = Vs
+        // let toNode = Vg
+        // let drivenNode: 'fromNode' | 'toNode' = 'toNode'
+        // if (mosfetType == 'nmos') {
+        //     if (chartType == 'Vgs') {
+        //         fromNode = Vs
+        //         toNode = Vg
+        //         drivenNode = 'toNode'
+        //     } else {
+        //         fromNode = Vs
+        //         toNode = Vd
+        //         drivenNode = 'toNode'
+        //     }
+        // } else {
+        //     if (chartType == 'Vgs') {
+        //         fromNode = Vg
+        //         toNode = Vs
+        //         drivenNode = 'fromNode'
+        //     } else {
+        //         fromNode = Vd
+        //         toNode = Vs
+        //         drivenNode = 'fromNode'
+        //     }
+        // } // obsolete, replaced by:
+
+        const fromNode = gnd
+        const toNode = chartType == 'Vgs' ? Vg : Vd
+        const drivenNode: 'fromNode' | 'toNode' = 'toNode'
+
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, visibility)
         if (this.transformationMatrix.isMirrored) {
             this.transformations[this.transformations.length - 1].value.mirror(true, false, true)
@@ -119,6 +124,12 @@ export class Chart extends CtxSlider{
         this.transformationMatrix.transformCanvas(ctx)
         const axisLineThickness = this.localLineThickness / 2
         const tickLineThickness = this.localLineThickness / 4
+
+        // nope, but kind of close
+        // if (this.mosfetType == 'pmos') {
+        //     this.temporaryMinValue = this.Vs.value.voltage - this.temporaryMaxValue
+        //     this.temporaryMaxValue = this.Vs.value.voltage - this.temporaryMinValue
+        // }
 
         if (this.chartType == 'Vgs') {
             this.sweepGateVoltages()
@@ -277,7 +288,8 @@ export class Chart extends CtxSlider{
         } else {
             returnValue = 10 ** (Math.log10(xLocation) / this.axesWidth * (Math.log10(this.temporaryMaxValue) - Math.log10(this.temporaryMinValue)) + Math.log10(this.temporaryMinValue))
         }
-        return (this.mosfetType == 'nmos' ? returnValue : this.Vs.value.voltage - returnValue)
+        // return (this.mosfetType == 'nmos' ? returnValue : this.Vs.value.voltage - returnValue)
+        return returnValue
     }
 
     xValueToLocation(xValue: number): number {
@@ -303,7 +315,8 @@ export class Chart extends CtxSlider{
         // valueToDraw is the actual gate voltage, Vg.
         // For nMOS transistors, this means Vs + value = Vs + Vgs = Vs + Vg - Vs = Vg
         // For pMOS transistors, this means Vs - value = Vs - Vsg = Vs - (Vs - Vg) = Vs - Vs + Vg = Vg
-        const valueToDraw = (this.mosfetType == 'nmos' ? this.Vs.value.voltage + this.value : this.Vs.value.voltage - this.value)
+        // const valueToDraw = (this.mosfetType == 'nmos' ? this.Vs.value.voltage + this.value : this.Vs.value.voltage - this.value)
+        const valueToDraw = this.value
         // could also be const valueToDraw = this.Vg.value.voltage
 
         if (this.chartType == 'Vgs') {
