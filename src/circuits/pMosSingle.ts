@@ -36,7 +36,6 @@ const usePmosSingle = () => {
             between(gndVoltage, vddVoltage, circuit.nodes["M1_drain"].value.voltage) / (vddVoltage - gndVoltage))
     }))
     const tectonicPlateChart: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        console.log(circuit.devices.mosfets["M1"].selected.value)
         return (circuit.devices.mosfets["M1"].selected.value) ? {x: 6, y: 0} : {x: 0, y: 0}
     }))
 

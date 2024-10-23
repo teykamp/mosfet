@@ -46,7 +46,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 type DefinedCircuits = keyof typeof circuits
-const currentCircuit = ref<DefinedCircuits>('nMos9TransistorOpAmp')
+const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
@@ -57,6 +57,7 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 }
 
 const updateSlidersBasedOnNodeVoltages = () => {
+  // Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => mosfet.setMinAndMaxValue())
   circuit.value.allSliders.forEach((slider: CtxSlider) => {
     slider.updateValueBasedOnNodeVoltages()
   })

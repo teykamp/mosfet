@@ -124,11 +124,19 @@ export class Chart extends CtxSlider{
             this.sweepGateVoltages()
         } else {
             this.sweepDrainVoltages()
+            this.yMin = 0
+            this.yMax = 100
         }
 
         if (this.preciseDragging) {
             this.xTicks = getTickLabelList(this.temporaryMinValue, this.temporaryMaxValue, this.xScaleType == 'log').filter((val: number) => val >= this.temporaryMinValue && val <= this.temporaryMaxValue)
-            this.yTicks = getTickLabelList(this.yMin, this.yMax, this.yScaleType == 'log').filter((val: number) => val >= this.yMin && val <= this.yMax)
+
+            if (this.chartType == 'Vgs') {
+                this.yTicks = getTickLabelList(this.yMin, this.yMax, this.yScaleType == 'log').filter((val: number) => val >= this.yMin && val <= this.yMax)
+            } else {
+
+                this.yTicks = [25, 50, 75, 100].filter((val: number) => val >= this.yMin && val <= this.yMax)
+            }
         } else {
             if (this.chartType == 'Vgs') {
                 this.xTicks = [0, 5]
@@ -219,8 +227,7 @@ export class Chart extends CtxSlider{
         ctx.stroke()
         const displayText = toSiPrefix(this.yValue, this.yUnit)
         const textWidth = displayText.length * 5
-        const nextLine = this.fillTextGlobalReferenceFrame(ctx, {x: this.location.x < this.axesWidth - textWidth ? Math.max(5, this.location.x + textWidth) : this.location.x - textWidth, y: Math.max(5, this.location.y - 15)}, displayText)
-        this.fillTextGlobalReferenceFrame(ctx, nextLine, "value = " + toSiPrefix(this.value, "V"))
+        this.fillTextGlobalReferenceFrame(ctx, {x: this.location.x < this.axesWidth - textWidth ? Math.max(5, this.location.x + textWidth) : this.location.x - textWidth, y: Math.max(5, this.location.y - 15)}, displayText)
 
         // draw borders
         if (drawGrid) {
@@ -293,7 +300,12 @@ export class Chart extends CtxSlider{
     }
 
     updateLocationBasedOnValue() {
+        // valueToDraw is the actual gate voltage, Vg.
+        // For nMOS transistors, this means Vs + value = Vs + Vgs = Vs + Vg - Vs = Vg
+        // For pMOS transistors, this means Vs - value = Vs - Vsg = Vs - (Vs - Vg) = Vs - Vs + Vg = Vg
         const valueToDraw = (this.mosfetType == 'nmos' ? this.Vs.value.voltage + this.value : this.Vs.value.voltage - this.value)
+        // could also be const valueToDraw = this.Vg.value.voltage
+
         if (this.chartType == 'Vgs') {
             this.yValue = this.getMosfetCurrentFromGateVoltage(valueToDraw)
         } else {
