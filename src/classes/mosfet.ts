@@ -3,8 +3,7 @@ import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { AngleSlider } from "./angleSlider"
 import { ref, Ref } from 'vue'
-import { unit, Unit } from "mathjs"
-import { ekvNmos, ekvPmos } from "../functions/ekvModel"
+import { ekvNmosNoUnits, ekvPmosNoUnits } from "../functions/ekvModel"
 import { between, toRadians } from "../functions/extraMath"
 import { toSiPrefix } from "../functions/toSiPrefix"
 import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, getLineLength, makeStandardGradient } from "../functions/drawFuncs"
@@ -212,18 +211,18 @@ export class Mosfet extends CtxArtist{
         }
     }
 
-    getMosfetEkvResult(): { I: Unit, saturationLevel: number, IF: Unit } {
+    getMosfetEkvResult(): { I: number, saturationLevel: number, IF: number } {
         if (this.mosfetType == 'pmos') {
-            return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
+            return ekvPmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage)
         }
         else {
-            return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
+            return ekvNmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage)
         }
     }
 
     getMosfetCurrent(): number {
         const result = this.getMosfetEkvResult()
-        return result.I.toNumber('A')
+        return result.I
     }
 
     getMosfetSaturationLevel(): number {
@@ -233,7 +232,7 @@ export class Mosfet extends CtxArtist{
 
     getMosfetForwardCurrent(): number {
         const result = this.getMosfetEkvResult()
-        return result.IF.toNumber('A')
+        return result.IF
     }
 
     getGradientSizeFromSaturationLevel(): number {
