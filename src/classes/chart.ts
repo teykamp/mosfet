@@ -10,6 +10,7 @@ import { Node } from "./node"
 import { unit } from "mathjs"
 import { CtxSlider } from "./ctxSlider"
 import { drawGrid } from "../constants"
+import { LRUCache } from 'lru-cache'
 
 export class Chart extends CtxSlider{
     points: Point[]
@@ -24,6 +25,9 @@ export class Chart extends CtxSlider{
     cornerToCornerGraph: boolean = true
     plottingValues: Point[] = []
     yValue: number = 0
+    pointsCache: LRUCache<string, Point[]> = new LRUCache({max: 1000})
+    cacheAttempts: number = 0
+    cacheHits: number = 0
 
     Vg: Ref<Node>
     Vs: Ref<Node>
@@ -208,7 +212,6 @@ export class Chart extends CtxSlider{
     }
 
     sweepGateVoltages(nPoints: number = this.width / 3) {
-        this.points = []
         this.yMin = Infinity
         this.yMax = -Infinity
 
@@ -219,12 +222,23 @@ export class Chart extends CtxSlider{
             this.yMax = Math.max(this.yMax, yVal)
         })
 
+        this.cacheAttempts += 1
+        console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
+        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage))
+        if (cacheValue !== undefined) {
+            this.points = cacheValue
+            this.cacheHits += 1
+            return
+        } // else
+
+        this.points = []
         let nextPoint = {x: 0, y: 0}
         const gateVoltages = linspace(this.temporaryMinValue, this.temporaryMaxValue, nPoints)
         gateVoltages.forEach((gateVoltage: number) => {
             nextPoint = {x: gateVoltage, y: this.getMosfetCurrentFromGateVoltage(gateVoltage)}
             this.points.push(nextPoint)
         })
+        this.pointsCache.set(this.discretizeArgsForCache(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage), this.points)
     }
 
     sweepDrainVoltages(nPoints: number = this.width / 3) {
@@ -252,6 +266,11 @@ export class Chart extends CtxSlider{
             }
             this.points.push(nextPoint)
         })
+    }
+
+    discretizeArgsForCache(V1: number, V2: number, V3: number): string {
+        const nDecimals = 2
+        return JSON.stringify([V1.toFixed(nDecimals), V2.toFixed(nDecimals), V3.toFixed(nDecimals)])
     }
 
     xLocationToValue(xLocation: number): number {
