@@ -168,7 +168,7 @@ export class Mosfet extends CtxArtist{
 
         ctx.fillStyle = 'black'
         ctx.font = "14px sans-serif";
-        const nextLineLocation = this.fillTextGlobalReferenceFrame(ctx, {x: 20, y: -3}, currentMantissa, true, true, 14)
+        const nextLineLocation = this.fillTextGlobalReferenceFrame(ctx, {x: 20, y: this.mosfetType == 'nmos' ? -3 : 3}, currentMantissa, true, true, 14)
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
 

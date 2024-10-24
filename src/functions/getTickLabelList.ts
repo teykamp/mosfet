@@ -42,9 +42,6 @@ export const getTickLabelList = (lowerBound: number, upperBound: number, log: bo
     const starting_tick = getNextRoundMultiple(lowerBound, tickSpacing)
     let next_tick = starting_tick
     let ticks: number[] = []
-    console.log("upperBound = ", upperBound)
-    console.log("lowerBound = ", lowerBound)
-    console.log("tickSpacing = ", tickSpacing)
     while (next_tick <= upperBound) {
         ticks.push(next_tick)
         next_tick = next_tick + tickSpacing
