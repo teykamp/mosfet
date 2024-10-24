@@ -5,9 +5,8 @@ import { toSiPrefix } from "../functions/toSiPrefix"
 import { getTickLabelList } from '../functions/getTickLabelList'
 import { drawLinesFillSolid } from "../functions/drawFuncs"
 import { linspace } from "../functions/linspace"
-import { ekvNmos, ekvNmosNoUnits, ekvPmos, ekvPmosNoUnits } from "../functions/ekvModel"
+import { ekvNmosNoUnits, ekvPmosNoUnits } from "../functions/ekvModel"
 import { Node } from "./node"
-import { unit } from "mathjs"
 import { CtxSlider } from "./ctxSlider"
 import { drawGrid } from "../constants"
 import { LRUCache } from 'lru-cache'
