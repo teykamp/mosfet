@@ -6,11 +6,13 @@ import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
-import { canvasDpi, canvasSize, drawGrid, moveNodesInResponseToCircuitState, schematicScale } from "../constants"
+import { schematicScale } from "../constants"
+import { canvasSize } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 import { CtxSlider } from "./ctxSlider"
+import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 
 export class Circuit extends CtxArtist {
     boundingBox: TectonicPoint[]
@@ -24,9 +26,9 @@ export class Circuit extends CtxArtist {
     originalTextTransformationMatrix: TransformationMatrix
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
-        const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
-        const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
-        super([ref((new TransformationMatrix()).scale(canvasDpi * scale).translate(extraShift)) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
+        const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height)
+        const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2}
+        super([ref((new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift)) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
 
         this.boundingBox = [
             new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
@@ -42,7 +44,7 @@ export class Circuit extends CtxArtist {
         }
         this.nodes = nodes
         this.originalTextTransformationMatrix = textTransformationMatrix
-        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale / canvasDpi).multiply(this.originalTextTransformationMatrix)
+        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
@@ -63,7 +65,7 @@ export class Circuit extends CtxArtist {
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
 
-        if (moveNodesInResponseToCircuitState) {
+        if (moveNodesInResponseToCircuitState.value) {
             let slidersDragging = false
             this.allSliders.forEach((slider: CtxSlider) => {
                 if (slider.dragging) {
@@ -73,13 +75,15 @@ export class Circuit extends CtxArtist {
             // if (!slidersDragging) {
                 TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
             // }
+        } else {
+            TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardLocation({x: 0, y: 0})})
         }
 
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {mosfet.draw(ctx)})
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {voltageSource.draw(ctx)})
 
-        if (drawGrid) {
+        if (drawGrid.value) {
             this.drawGrid(ctx)
         }
 
@@ -105,7 +109,7 @@ export class Circuit extends CtxArtist {
     drawGrid(ctx: CanvasRenderingContext2D) {
         CtxArtist.circuitTransformationMatrix.transformCanvas(ctx)
         const topLeftCornerOfCanvasInLocalReferenceFrame = this.transformationMatrix.inverse().transformPoint({x: 0, y: 0})
-        const bottomRightCornerOfCanvasInLocalReferenceFrame = this.transformationMatrix.inverse().transformPoint({x: canvasSize.x * canvasDpi, y: canvasSize.y * canvasDpi})
+        const bottomRightCornerOfCanvasInLocalReferenceFrame = this.transformationMatrix.inverse().transformPoint({ x: canvasSize.value.width * canvasDpi.value, y: canvasSize.value.height * canvasDpi.value})
         for (let xPosition = Math.floor(topLeftCornerOfCanvasInLocalReferenceFrame.x); xPosition <= Math.ceil(bottomRightCornerOfCanvasInLocalReferenceFrame.x); xPosition += 1) {
             for (let yPosition = Math.floor(topLeftCornerOfCanvasInLocalReferenceFrame.y); yPosition <= Math.ceil(bottomRightCornerOfCanvasInLocalReferenceFrame.y); yPosition += 1) {
                 let dotRadius = 0.1
@@ -135,11 +139,11 @@ export class Circuit extends CtxArtist {
         const width = Math.abs(right - left)
         const origin = {x: left + width / 2, y: top + height / 2}
 
-        const scale = Math.min(canvasSize.x / width, canvasSize.y / height)
-        const extraShift = {x: (canvasSize.x / scale - width) / 2, y: (canvasSize.y / scale - height) / 2}
+        const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height)
+        const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2}
 
-        this.transformations[0].value = (new TransformationMatrix()).scale(canvasDpi * scale).translate(extraShift)
+        this.transformations[0].value = (new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift)
         this.transformations[1].value = (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2})
-        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale / canvasDpi).multiply(this.originalTextTransformationMatrix)
+        this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
     }
 }

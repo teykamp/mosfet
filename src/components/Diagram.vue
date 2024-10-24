@@ -9,30 +9,90 @@
   </div>
 
   <Transition>
-    <div
-      v-show="showSideBar"
-      ref="sideBar"
+    <div v-show="showSideBar" ref="sideBar"
       style="display: flex; flex-direction: column; width: 250px; height: 100vh; padding: 10px; background-color: whitesmoke; position: absolute;">
       <h3 style="text-align: center;">Circuits</h3>
       <div style="border: 1px solid grey;"></div>
       <button v-for="circuit in circuitsToChooseFrom" @click.prevent="setCircuit(circuit)"
         :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`">{{
         circuit }}</button>
-      <button
-        @click="showSideBar = false"
-        style="position: absolute; bottom: 40px; right: 15px;"
-      >Close</button>
+      <div style="border: 1px solid grey; margin-top: 20px; margin-bottom: 30px;"></div>
+      <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
+      <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
+        <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
+        <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
+      </div>
+      <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
     </div>
   </Transition>
-  <canvas ref="canvas" :width="canvasSize.x" :height="canvasSize.y" @mousedown="checkDrag"></canvas>
+
+  <div :style="{
+    display: xs ? undefined : 'flex',
+    justifyContent: 'center',
+  }">
+    <canvas ref="canvas" :style="{
+      width: computeCanvasWidth,
+      height: computeCanvasHeight,
+      flexGrow: xs ? undefined : 1,
+    }" @mousedown="checkDrag"></canvas>
+    <button 
+      v-if="xs"
+      @click="showGraphBar = !showGraphBar" 
+      style="position: absolute; bottom: 0; font-size: xx-large; padding: 5px; width: 100px; right: calc(50% - 50px);"
+    > {{ showGraphBar ? 'V' : '^' }} </button>
+    <button
+      v-else
+      @click="showGraphBar = !showGraphBar" 
+      style="position: absolute; right: 0; font-size: xx-large; padding: 5px; height: 100px; top: calc(50vh - 50px);"
+    > {{ showGraphBar ? '>' : '<' }} </button>
+    <div 
+      v-show="showGraphBar"
+      :style="computeSmallCanvasStyles"
+    >
+      <canvas style="background-color: yellow;" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
+      <canvas style=" background-color: green" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
+    </div>
+
+  </div>
+  
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef, onBeforeUnmount } from 'vue'
+import { ref, onMounted, shallowRef, onBeforeUnmount, computed } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { canvasDpi, canvasSize } from '../constants'
 import { CtxSlider } from '../classes/ctxSlider'
+import { AngleSlider } from '../classes/angleSlider'
+import Switch from './Switch.vue'
+import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize } from '../globalState'
+import useBreakpoints from '../composables/useBreakpoints'
+
+const { screenHeight, screenWidth, xs } = useBreakpoints()
+
+const computeCanvasWidth = computed(() => {
+  if (xs.value) {
+    return '100vw'
+  } else {
+    return showGraphBar.value ? '82vw' : '100vw'
+  }
+})
+const computeCanvasHeight = computed(() => {
+  if (xs.value) {
+    return showGraphBar.value ? '80vh' : '100vh'
+  } else {
+    return '100vh'
+  }
+})
+
+const computeSmallCanvasStyles = computed(() => {
+  if (xs.value) {
+    return 'display: flex; height: 20vh; justify-content: center'
+  } else {
+    return 'flex-direction: column; width: 18vw'
+    
+  }
+})
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
@@ -40,6 +100,7 @@ let previousTimestamp = 0
 
 const sideBar = ref<HTMLElement | null>(null)
 const showSideBar = ref(false)
+const showGraphBar = ref(false)
 
 const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
@@ -72,8 +133,8 @@ const updateNodeVoltagesBasedOnSliders = () => {
 const getMousePos = (event: MouseEvent) => {
   if (!canvas.value) return { mouseX: 0, mouseY: 0 }
   const rect = canvas.value.getBoundingClientRect()
-  const mouseX = (event.clientX - rect.left) * canvasDpi
-  const mouseY = (event.clientY - rect.top) * canvasDpi
+  const mouseX = (event.clientX - rect.left) * canvasDpi.value
+  const mouseY = (event.clientY - rect.top) * canvasDpi.value
   return { mouseX, mouseY }
 }
 
@@ -144,12 +205,13 @@ const mouseUp = (event: MouseEvent) => {
 
 const draw = () => {
   if (!ctx.value || !canvas.value) return
+  getCanvasSize(ctx.value)
 
-  const dpi = canvasDpi
-  canvas.value.width = canvasSize.x * dpi
-  canvas.value.height = canvasSize.y * dpi
-  canvas.value.style.width = `${canvasSize.x}px`
-  canvas.value.style.height = `${canvasSize.y}px`
+  const dpi = canvasDpi.value
+  canvas.value.width = canvasSize.value.width * dpi
+  canvas.value.height = canvasSize.value.height * dpi
+  canvas.value.style.width = `${canvasSize.value.width}px`
+  canvas.value.style.height = `${canvasSize.value.height}px`
 
   ctx.value.resetTransform()
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
@@ -183,7 +245,6 @@ onMounted(() => {
   if (canvas.value) {
     ctx.value = canvas.value.getContext('2d')
 
-    // if (ctx.value) ctx.value.scale(0.8, 0.8)
     document.addEventListener('click', handleClickOutside)
 
     draw()

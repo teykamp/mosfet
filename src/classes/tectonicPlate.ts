@@ -16,8 +16,11 @@ export class TectonicPlate extends CtxArtist {
     }
 
     moveTowardDesiredLocation() {
+        this.moveTowardLocation(this.desiredLocation.value)
+    }
+
+    moveTowardLocation(desiredLocation: Point) {
         const currentLocation = this.currentLocation
-        const desiredLocation = this.desiredLocation.value
         const lineToTravel: Line = {start: currentLocation, end: desiredLocation}
 
         let newLocation: Point = {x: 0, y: 0}

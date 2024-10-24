@@ -1,28 +1,28 @@
 <template>
-  <div @click="toggle" style="cursor: pointer; display: flex; align-items: center; max-width: 250px;" class="prevent-select">
-    <p style="margin-right: 10px;">{{ props.option }}</p>
+  <div @click="toggle" style="cursor: pointer; display: flex; align-items: center; max-width: 250px; height: 50px; padding: 10px" class="prevent-select">
+    <p style="margin-right: 10px; text-align: right;">{{ props.option }}</p>
     <div>
-      <div style="display: flex; margin-bottom: -30px;">
+      <div style="display: flex; margin-bottom: -30px; width: 100px;">
         <!-- Indicator line on the left side -->
-        <div style="width: 10px; height: 0; margin-top: 28px; border: 1px solid black; margin-left: 38px;"></div>
+        <div :style="`width: 15px; border-radius: 2px; margin-top: 26px; background-color: black; height: ${isBoolean ? (props.modelValue ? '3px' : '2px') : (props.modelValue === props.labelUp ? '3px' : '2px')}; margin-left: 34px;`"></div>
         <!-- Label for the current value of modelValue -->
-        <p :style="`margin-left: 10px; font-weight: ${isBoolean ? (props.modelValue ? 'bold' : '') : (props.modelValue === props.labelUp ? 'bold' : '')}`">
+        <p :style="`margin-left: 7px; font-weight: ${isBoolean ? (props.modelValue ? 'bold' : '') : (props.modelValue === props.labelUp ? 'bold' : '')}`">
           {{ props.labelUp }}
         </p>
       </div>
-      <div style="margin-top: 20px; margin-bottom: 20px; display: flex;">
+      <div style="display: flex; margin-top: 15px; margin-bottom: 15px;">
         <!-- Vertical separator line -->
-        <div style="width: 10px; border: 1px solid black;"></div>
+        <div style="width: 15px; height: 3px; background-color: black; border-radius: 2px;"></div>
         <!-- Rotatable element indicating the switch position -->
         <div
-          :style="`width: 30px; border: 1px solid black; transform: rotate(${isBoolean ? (props.modelValue ? '-35deg' : '35deg') : (props.modelValue === props.labelUp ? '-35deg' : '35deg')}); transform-origin: 0% 50%; transition-duration: 200ms;`">
+          :style="`width: 26px; height: 3px; background-color: black; border-radius: 2px; margin-left: -1px; transform: rotate(${isBoolean ? (props.modelValue ? '-33deg' : '33deg') : (props.modelValue === props.labelUp ? '-33deg' : '33deg')}); transform-origin: 0% 50%; transition-duration: 200ms;`">
         </div>
       </div>
-      <div style="display: flex; margin-top: -30px;">
+      <div style="display: flex; margin-top: -30px; width: 100px;">
         <!-- Indicator line on the right side -->
-        <div style="width: 10px; height: 0; margin-top: 26px; border: 1px solid black; margin-left: 38px;"></div>
+        <div :style="`width: 15px; border-radius: 2px; margin-top: 26px; background-color: black; height: ${isBoolean ? (props.modelValue ? '2px' : '3px') : (props.modelValue === props.labelUp ? '2px' : '3px')}; margin-left: 34px;`"></div>
         <!-- Label for the other value of modelValue -->
-        <p :style="`margin-left: 10px; font-weight: ${isBoolean ? (props.modelValue ? '' : 'bold') : (props.modelValue === props.labelDown ? 'bold' : '')}`">
+        <p :style="`margin-left: 7px; font-weight: ${isBoolean ? (props.modelValue ? '' : 'bold') : (props.modelValue === props.labelDown ? 'bold' : '')}`">
           {{ props.labelDown }}
         </p>
       </div>
