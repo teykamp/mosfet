@@ -223,8 +223,9 @@ export class Chart extends CtxSlider{
         })
 
         this.cacheAttempts += 1
-        console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
-        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage))
+        // console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
+        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage))
+        // const cacheValue = undefined
         if (cacheValue !== undefined) {
             this.points = cacheValue
             this.cacheHits += 1
@@ -238,7 +239,7 @@ export class Chart extends CtxSlider{
             nextPoint = {x: gateVoltage, y: this.getMosfetCurrentFromGateVoltage(gateVoltage)}
             this.points.push(nextPoint)
         })
-        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage), this.points)
+        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage), this.points)
     }
 
     sweepDrainVoltages(nPoints: number = this.width / 3) {
@@ -259,8 +260,9 @@ export class Chart extends CtxSlider{
 
 
         this.cacheAttempts += 1
-        console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
-        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage))
+        // console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
+        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vb.value.voltage))
+        // const cacheValue = undefined
         if (cacheValue !== undefined) {
             this.points = cacheValue
             this.cacheHits += 1
@@ -277,11 +279,11 @@ export class Chart extends CtxSlider{
             this.points.push(nextPoint)
         })
 
-        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage), this.points)
+        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vb.value.voltage), this.points)
     }
 
     discretizeArgsForCache(Vmin: number, Vmax: number, V1: number, V2: number, V3: number): string {
-        const nDecimals = 2
+        const nDecimals = 3
         return JSON.stringify([Vmin.toFixed(nDecimals), Vmax.toFixed(nDecimals), V1.toFixed(nDecimals), V2.toFixed(nDecimals), V3.toFixed(nDecimals)])
     }
 
@@ -328,18 +330,13 @@ export class Chart extends CtxSlider{
 
     getMosfetCurrentFromGateVoltage(gateVoltage: number) {
         if (this.mosfetType == 'nmos') {
-            return ekvNmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
+            return ekvNmosNoUnits(gateVoltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage).I
         } else {
-            return ekvPmos(unit(gateVoltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V')).I.toNumber("A")
+            return ekvPmosNoUnits(gateVoltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage).I
         }
     }
 
     getMosfetSaturationFromDrainVoltage(drainVoltage: number) {
-        // if (this.mosfetType == 'nmos') {
-        //     return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
-        // } else {
-        //     return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
-        // }
         if (this.mosfetType == 'nmos') {
             return ekvNmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, drainVoltage, this.Vb.value.voltage).saturationLevel * 100
         } else {

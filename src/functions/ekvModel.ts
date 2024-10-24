@@ -13,7 +13,7 @@ export const ekvNmosNoUnits = (Vg: number, Vs: number = 0, Vd: number = 5, Vb: n
   const Kappa = 0.8051 // this matches closer with the LTSpice model
   const Is = 1.640e-6 // A
 
-  const IF = Is * (Math.log(1 + Math.exp((Kappa * (Vgb - VT0) - Vsb) / (2 * UT)))) ** 2
+  const IF = Is * (Math.log(1 + Math.exp((Kappa * (Vgb - VT0) - Vsb) / (2 * UT)))) ** 2 + 1e-15
   const IR = Is * (Math.log(1 + Math.exp((Kappa * (Vgb - VT0) - Vdb) / (2 * UT)))) ** 2
 
   const I = IF - IR
@@ -35,7 +35,7 @@ export const ekvPmosNoUnits = (Vg: number, Vs: number = 5, Vd: number = 0, Vb: n
   const Kappa = 0.7609
   const Is = 6.108e-7 // A
 
-  const IF = Is * (Math.log(1 + Math.exp((Kappa * (Vbg - VT0) - Vbs) / (2 * UT)))) ** 2
+  const IF = Is * (Math.log(1 + Math.exp((Kappa * (Vbg - VT0) - Vbs) / (2 * UT)))) ** 2 + 1e-15
   const IR = Is * (Math.log(1 + Math.exp((Kappa * (Vbg - VT0) - Vbd) / (2 * UT)))) ** 2
 
   const I = IF - IR
