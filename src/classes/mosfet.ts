@@ -18,7 +18,7 @@ import { vddVoltage } from "../constants"
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
     // mirror: boolean
-    currentDots: CurrentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
+    currentDots: CurrentDots
     gradientSize: number = 100
     schematicEffects: {[name: string]: SchematicEffect}
     vgs: AngleSlider
@@ -93,14 +93,15 @@ export class Mosfet extends CtxArtist{
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
             this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility)
             this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility)
+            this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         }
         else {
             this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility)
             this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility)
             this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility)
             this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility)
+            this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
-
     }
 
     draw(ctx: CanvasRenderingContext2D) {
