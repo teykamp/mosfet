@@ -129,9 +129,10 @@ const mouseUp = (event: MouseEvent) => {
   if (!anySlidersDragging) {
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
-        mosfet.selected.value = !mosfet.selected.value
+        mosfet.selectedFocus.value = !mosfet.selectedFocus.value
+        mosfet.selected.value = mosfet.selectedFocus.value
       } else {
-        // mosfet.selected.value = false // unselect everything when you click somewhere else
+        mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
       }
       mosfet.mouseDownInsideSelectionArea = false
     })
