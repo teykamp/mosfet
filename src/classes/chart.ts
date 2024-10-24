@@ -5,7 +5,7 @@ import { toSiPrefix } from "../functions/toSiPrefix"
 import { getTickLabelList } from '../functions/getTickLabelList'
 import { drawLinesFillSolid } from "../functions/drawFuncs"
 import { linspace } from "../functions/linspace"
-import { ekvNmos, ekvPmos } from "../functions/ekvModel"
+import { ekvNmos, ekvNmosNoUnits, ekvPmos, ekvPmosNoUnits } from "../functions/ekvModel"
 import { Node } from "./node"
 import { unit } from "mathjs"
 import { CtxSlider } from "./ctxSlider"
@@ -335,10 +335,15 @@ export class Chart extends CtxSlider{
     }
 
     getMosfetSaturationFromDrainVoltage(drainVoltage: number) {
+        // if (this.mosfetType == 'nmos') {
+        //     return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
+        // } else {
+        //     return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
+        // }
         if (this.mosfetType == 'nmos') {
-            return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
+            return ekvNmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, drainVoltage, this.Vb.value.voltage).saturationLevel * 100
         } else {
-            return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(drainVoltage, 'V'), unit(this.Vb.value.voltage, 'V')).saturationLevel * 100
+            return ekvPmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, drainVoltage, this.Vb.value.voltage).saturationLevel * 100
         }
 }
 

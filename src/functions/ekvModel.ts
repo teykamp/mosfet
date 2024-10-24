@@ -2,6 +2,51 @@ import { add, subtract, multiply, divide, pow, exp, log, unit, type Unit } from 
 import { linspace } from '../functions/extraMath'
 import { Point } from '../types'
 
+export const ekvNmosNoUnits = (Vg: number, Vs: number = 0, Vd: number = 5, Vb: number = 0) => {
+  const Vgb = Vg - Vb
+  const Vsb = Vs - Vb
+  const Vdb = Vd - Vb
+
+  const UT = 25.6e-3 // V
+  const VT0 = 0.6480 // V
+  // const Kappa = 0.7051 // this is the value derived in Ian's Lab 4 report
+  const Kappa = 0.8051 // this matches closer with the LTSpice model
+  const Is = 1.640e-6 // A
+
+  const IF = Is * (Math.log(1 + Math.exp((Kappa * (Vgb - VT0) - Vsb) / (2 * UT)))) ** 2
+  const IR = Is * (Math.log(1 + Math.exp((Kappa * (Vgb - VT0) - Vdb) / (2 * UT)))) ** 2
+
+  const I = IF - IR
+  const saturationLevel = I / IF
+  return {
+    I,
+    IF,
+    saturationLevel
+  }
+}
+
+export const ekvPmosNoUnits = (Vg: number, Vs: number = 5, Vd: number = 0, Vb: number = 5) => {
+  const Vbg = Vb - Vg
+  const Vbs = Vb - Vs
+  const Vbd = Vb - Vd
+
+  const UT = 25.6e-3 // V
+  const VT0 = 0.7283 // V
+  const Kappa = 0.7609
+  const Is = 6.108e-7 // A
+
+  const IF = Is * (Math.log(1 + Math.exp((Kappa * (Vbg - VT0) - Vbs) / (2 * UT)))) ** 2
+  const IR = Is * (Math.log(1 + Math.exp((Kappa * (Vbg - VT0) - Vbd) / (2 * UT)))) ** 2
+
+  const I = IF - IR
+  const saturationLevel = I / IF
+  return {
+    I,
+    IF,
+    saturationLevel
+  }
+}
+
 export const ekvNmos = (Vg: Unit, Vs: Unit = unit(0, 'V'), Vd: Unit = unit(5, 'V'), Vb: Unit = unit(0, 'V')) => {
   const Vgb = subtract(Vg, Vb)
   const Vsb = subtract(Vs, Vb)
