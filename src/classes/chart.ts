@@ -27,6 +27,7 @@ export class Chart extends CtxSlider{
     pointsCache: LRUCache<string, Point[]> = new LRUCache({max: 1000})
     cacheAttempts: number = 0
     cacheHits: number = 0
+    memoize: boolean = false
 
     Vg: Ref<Node>
     Vs: Ref<Node>
@@ -221,15 +222,16 @@ export class Chart extends CtxSlider{
             this.yMax = Math.max(this.yMax, yVal)
         })
 
-        this.cacheAttempts += 1
-        // console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
-        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage))
-        // const cacheValue = undefined
-        if (cacheValue !== undefined) {
-            this.points = cacheValue
-            this.cacheHits += 1
-            return
-        } // else
+        if (this.memoize) {
+            this.cacheAttempts += 1
+            // console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
+            const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage))
+            if (cacheValue !== undefined) {
+                this.points = cacheValue
+                this.cacheHits += 1
+                return
+            } // else
+        }
 
         this.points = []
         let nextPoint = {x: 0, y: 0}
@@ -238,7 +240,9 @@ export class Chart extends CtxSlider{
             nextPoint = {x: gateVoltage, y: this.getMosfetCurrentFromGateVoltage(gateVoltage)}
             this.points.push(nextPoint)
         })
-        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage), this.points)
+        if (this.memoize) {
+            this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage), this.points)
+        }
     }
 
     sweepDrainVoltages(nPoints: number = this.width / 3) {
@@ -257,16 +261,16 @@ export class Chart extends CtxSlider{
         })
         this.yMin = 0
 
-
-        this.cacheAttempts += 1
-        // console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
-        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vb.value.voltage))
-        // const cacheValue = undefined
-        if (cacheValue !== undefined) {
-            this.points = cacheValue
-            this.cacheHits += 1
-            return
-        } // else
+        if (this.memoize) {
+            this.cacheAttempts += 1
+            // console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
+            const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vb.value.voltage))
+            if (cacheValue !== undefined) {
+                this.points = cacheValue
+                this.cacheHits += 1
+                return
+            } // else
+        }
 
         const drainVoltages = linspace(this.temporaryMinValue, this.temporaryMaxValue, nPoints)
         let nextPoint = {x: 0, y: 0}
@@ -278,7 +282,9 @@ export class Chart extends CtxSlider{
             this.points.push(nextPoint)
         })
 
-        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vb.value.voltage), this.points)
+        if (this.memoize) {
+            this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vb.value.voltage), this.points)
+        }
     }
 
     discretizeArgsForCache(Vmin: number, Vmax: number, V1: number, V2: number, V3: number): string {
