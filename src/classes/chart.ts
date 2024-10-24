@@ -224,7 +224,7 @@ export class Chart extends CtxSlider{
 
         this.cacheAttempts += 1
         console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
-        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage))
+        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage))
         if (cacheValue !== undefined) {
             this.points = cacheValue
             this.cacheHits += 1
@@ -238,7 +238,7 @@ export class Chart extends CtxSlider{
             nextPoint = {x: gateVoltage, y: this.getMosfetCurrentFromGateVoltage(gateVoltage)}
             this.points.push(nextPoint)
         })
-        this.pointsCache.set(this.discretizeArgsForCache(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage), this.points)
+        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage), this.points)
     }
 
     sweepDrainVoltages(nPoints: number = this.width / 3) {
@@ -257,6 +257,16 @@ export class Chart extends CtxSlider{
         })
         this.yMin = 0
 
+
+        this.cacheAttempts += 1
+        console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
+        const cacheValue = this.pointsCache.get(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage))
+        if (cacheValue !== undefined) {
+            this.points = cacheValue
+            this.cacheHits += 1
+            return
+        } // else
+
         const drainVoltages = linspace(this.temporaryMinValue, this.temporaryMaxValue, nPoints)
         let nextPoint = {x: 0, y: 0}
         drainVoltages.forEach((drainVoltage: number) => {
@@ -266,11 +276,13 @@ export class Chart extends CtxSlider{
             }
             this.points.push(nextPoint)
         })
+
+        this.pointsCache.set(this.discretizeArgsForCache(this.temporaryMinValue, this.temporaryMaxValue, this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage), this.points)
     }
 
-    discretizeArgsForCache(V1: number, V2: number, V3: number): string {
+    discretizeArgsForCache(Vmin: number, Vmax: number, V1: number, V2: number, V3: number): string {
         const nDecimals = 2
-        return JSON.stringify([V1.toFixed(nDecimals), V2.toFixed(nDecimals), V3.toFixed(nDecimals)])
+        return JSON.stringify([Vmin.toFixed(nDecimals), Vmax.toFixed(nDecimals), V1.toFixed(nDecimals), V2.toFixed(nDecimals), V3.toFixed(nDecimals)])
     }
 
     xLocationToValue(xLocation: number): number {
