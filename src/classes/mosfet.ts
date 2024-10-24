@@ -2,21 +2,22 @@ import { Visibility, SchematicEffect, Line, Point, Circle } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { AngleSlider } from "./angleSlider"
-import { Ref } from 'vue'
-import { unit, Unit } from "mathjs"
-import { ekvNmos, ekvPmos } from "../functions/ekvModel"
+import { ref, Ref } from 'vue'
+import { ekvNmosNoUnits, ekvPmosNoUnits } from "../functions/ekvModel"
 import { between, toRadians } from "../functions/extraMath"
 import { toSiPrefix } from "../functions/toSiPrefix"
-import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, getLineLength, makeStandardGradient } from "../functions/drawFuncs"
 import { interpolateInferno } from "d3"
 import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
+import { Chart } from "./chart"
+import { vddVoltage } from "../constants"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
     // mirror: boolean
-    currentDots: CurrentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
+    currentDots: CurrentDots
     gradientSize: number = 100
     schematicEffects: {[name: string]: SchematicEffect}
     vgs: AngleSlider
@@ -25,16 +26,32 @@ export class Mosfet extends CtxArtist{
     Vs: Ref<Node>
     Vd: Ref<Node>
     Vb: Ref<Node>
+    mouseDownInsideSelectionArea = false
+    selected: Ref<boolean> = ref(true)
+    selectedFocus: Ref<boolean> = ref(false)
+    chartVisibility: Visibility = Visibility.Hidden
+    vgsChart: Chart
+    vdsChart: Chart
+    static chartWidth = 200
+    static chartHeight = 120
+    static chartLocations = {
+        "base": {x: -Mosfet.chartWidth / 2 - 100, y: 0},
+        "lowerBase": {x: -Mosfet.chartWidth / 2 - 100, y: 100},
+        "gate": {x: Mosfet.chartWidth / 2 + 120, y: 0},
+        "voltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 0},
+        "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 100},
+        "mirrorDriver": {x: Mosfet.chartWidth / 2 + 110, y: -this.chartHeight - 20}
+    }
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, false))
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate") {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, mosfetType == 'pmos'))
+
         this.mosfetType = mosfetType
-        // this.mirror = mirror
         this.schematicEffects = {
             "gate": {
                 node: Vg,
                 origin: new TectonicPoint(this.transformations, {
-                    x: 30,
+                    x: 60,
                     y: 0,
                 }),
                 color: 'red',
@@ -44,57 +61,72 @@ export class Mosfet extends CtxArtist{
                 node: Vd,
                 origin: new TectonicPoint(this.transformations, {
                     x: 0,
-                    y: 30 * (mosfetType == 'nmos' ? -1 : 1),
+                    y: -60,
                 }),
                 color: 'red',
                 gradientSize: 100,
             },
-        },
+        }
+
         this.Vg = Vg
         this.Vs = Vs
         this.Vd = Vd
         this.Vb = Vb
 
-        if (this.mosfetType == 'nmos') {
-            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
-            this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+        this.anchorPoints = {
+            "Vg": {x: 60, y: 0},
+            "Vs": {x: 0, y: 60},
+            "Vd": {x: 0, y: -60},
+            "Vb": {x: 0, y: 0},
+            "SourceSupply": {x: 0, y: 90},
+            "DrainSupply": {x: 0, y: -90},
+            "Vg_mirror_gate": {x: 90, y: 0},
+            "Vg_mirror_corner": {x: 90, y: -90},
+            "Vg_mirror_drain": {x: 0, y: -90},
+            "Vg_drive_gate": {x: 120, y: 0},
+            "Vg_drive_Vsource": {x: 120, y: 90},
+        }
 
-            this.anchorPoints = {
-                "Vg": {x: 60, y: 0},
-                "Vs": {x: 0, y: 60},
-                "Vd": {x: 0, y: -60},
-                "Vb": {x: 0, y: 0},
-                "Gnd": {x: 0, y: 90},
-                "Vdd": {x: 0, y: -90},
-                "Vg_mirror_gate": {x: 90, y: 0},
-                "Vg_mirror_corner": {x: 90, y: -90},
-                "Vg_mirror_drain": {x: 0, y: -90},
-                "Vg_drive_gate": {x: 120, y: 0},
-                "Vg_drive_Vsource": {x: 120, y: 90},
-            }
+        // maybe can be condensed down to one case
+        if (this.mosfetType == 'nmos') {
+            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
+            this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility)
+            this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         }
         else {
-            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 10, -10, 60, toRadians(-5), toRadians(70), true, -maxVgs, 0, 'Vsg', vgsVisibility, true)
-            this.vds = new AngleSlider(this.transformations, Vs, Vd, 30, 0, 75, toRadians(140), toRadians(80), false, -maxVds, 0, 'Vsd', vdsVisibility, true)
-
-            this.anchorPoints = {
-                "Vg": {x: 60, y: 0},
-                "Vs": {x: 0, y: -60},
-                "Vd": {x: 0, y: 60},
-                "Vb": {x: 0, y: 0},
-                "Gnd": {x: 0, y: 90},
-                "Vdd": {x: 0, y: -90},
-                "Vg_mirror_gate": {x: 90, y: 0},
-                "Vg_mirror_corner": {x: 90, y: 90},
-                "Vg_mirror_drain": {x: 0, y: 90},
-                "Vg_drive_gate": {x: 120, y: 0},
-                "Vg_drive_Vsource": {x: 120, y: 90},
-            }
+            this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility)
+            this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility)
+            this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
     }
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
+
+        if (this.selectedFocus.value) {
+            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
+            backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
+            backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
+            backgroundGradient.addColorStop(0.8, 'rgba(0, 0, 255, 0.2)')
+            backgroundGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
+            ctx.fillStyle = backgroundGradient
+            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
+            ctx.fill()
+        }
+        else if (this.selected.value) {
+            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
+            backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
+            backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')
+            backgroundGradient.addColorStop(0.8, 'rgba(255, 0, 0, 0.2)')
+            backgroundGradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
+            ctx.fillStyle = backgroundGradient
+            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
+            ctx.fill()
+        }
 
         const bodyLines: Line[] = [
             {start: {x: 0, y: 20}, end: {x: 0, y: 59}},
@@ -117,7 +149,7 @@ export class Mosfet extends CtxArtist{
         [{center: {x: 45, y: 0}, outerDiameter: 10}]
 
         this.gradientSize = this.getGradientSizeFromSaturationLevel()
-        const gradientOrigin: Point = {x: 0, y: -60 * (this.mosfetType == 'nmos' ? 1 : -1)}
+        const gradientOrigin: Point = {x: 0, y: -60}
         const gradient = makeStandardGradient(ctx, gradientOrigin, this.gradientSize, 'rgba(200, 200, 200, 1)')
 
         const forwardCurrentScaled = this.getForwardCurrentScaled()
@@ -146,9 +178,14 @@ export class Mosfet extends CtxArtist{
 
         ctx.fillStyle = 'black'
         ctx.font = "14px sans-serif";
-        const nextLineLocation = this.fillTextGlobalReferenceFrame(ctx, {x: 20, y: -3}, currentMantissa, true, true, 14)
+        const nextLineLocation = this.fillTextGlobalReferenceFrame(ctx, {x: 20, y: this.mosfetType == 'nmos' ? -3 : 3}, currentMantissa, true, true, 14)
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
+
+        if (this.selected.value) {
+            this.vgsChart.draw(ctx)
+            this.vdsChart.draw(ctx)
+        }
 
         // draw mosfet angle sliders
         this.vgs.draw(ctx)
@@ -165,19 +202,38 @@ export class Mosfet extends CtxArtist{
         return this.getMosfetForwardCurrent()
     }
 
+    checkSelectionArea(mousePosition: Point): boolean {
+        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
+        const radius = 60
+        return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
+    }
 
-    getMosfetEkvResult(): { I: Unit, saturationLevel: number, IF: Unit } {
+    setMinAndMaxValue() {
         if (this.mosfetType == 'pmos') {
-            return ekvPmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
+            this.vgs.minValue = this.Vs.value.voltage - vddVoltage
+            this.vds.minValue = this.Vs.value.voltage - vddVoltage
+            this.vgsChart.minValue = this.Vs.value.voltage - vddVoltage
+            this.vdsChart.minValue = this.Vs.value.voltage - vddVoltage
+        } else {
+            this.vgs.minValue = -this.Vs.value.voltage
+            this.vds.minValue = -this.Vs.value.voltage
+            this.vgsChart.minValue = -this.Vs.value.voltage
+            this.vdsChart.minValue = -this.Vs.value.voltage
+        }
+    }
+
+    getMosfetEkvResult(): { I: number, saturationLevel: number, IF: number } {
+        if (this.mosfetType == 'pmos') {
+            return ekvPmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage)
         }
         else {
-            return ekvNmos(unit(this.Vg.value.voltage, 'V'), unit(this.Vs.value.voltage, 'V'), unit(this.Vd.value.voltage, 'V'), unit(this.Vb.value.voltage, 'V'))
+            return ekvNmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage)
         }
     }
 
     getMosfetCurrent(): number {
         const result = this.getMosfetEkvResult()
-        return result.I.toNumber('A')
+        return result.I
     }
 
     getMosfetSaturationLevel(): number {
@@ -187,7 +243,7 @@ export class Mosfet extends CtxArtist{
 
     getMosfetForwardCurrent(): number {
         const result = this.getMosfetEkvResult()
-        return result.IF.toNumber('A')
+        return result.IF
     }
 
     getGradientSizeFromSaturationLevel(): number {

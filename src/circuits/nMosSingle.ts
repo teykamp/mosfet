@@ -11,6 +11,7 @@ import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicP
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
+import { Visibility } from '../types'
 
 const useNmosSingle = () => {
     const circuit: Circuit = new Circuit({x: 0, y: -3}, 10, 20)
@@ -34,13 +35,16 @@ const useNmosSingle = () => {
         return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -6}}],
             between(gndVoltage, vddVoltage, circuit.nodes["M1_drain"].value.voltage) / (vddVoltage - gndVoltage))
     }))
+    const tectonicPlateChart: TectonicPlate = new TectonicPlate(tectonicPlate.transformations, computed(() => {
+        return (circuit.devices.mosfets["M1"].selected.value) ? {x: 6, y: 0} : {x: 0, y: 0}
+    }))
 
-    circuit.boundingBox = {
-        topLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: -12}),
-        topRight: new TectonicPoint(tectonicPlate.transformations, {x: 5, y: -12}),
-        bottomLeft: new TectonicPoint(circuit.transformations, {x: -5, y: 6}),
-        bottomRight: new TectonicPoint(circuit.transformations, {x: 5, y: 6}),
-    }
+    circuit.boundingBox = [
+        new TectonicPoint(tectonicPlate.transformations, {x: -5, y: -12}),
+        new TectonicPoint(tectonicPlateChart.transformations, {x: 5, y: -12}),
+        new TectonicPoint(circuit.transformations, {x: -5, y: 6}),
+        new TectonicPoint(circuit.transformations, {x: 5, y: 6}),
+    ]
 
     //////////////////////////////
     ///         MOSFETS        ///
@@ -55,9 +59,15 @@ const useNmosSingle = () => {
             circuit.nodes["M1_gate"],
             circuit.nodes[gndNodeId],
             circuit.nodes["M1_drain"],
-            circuit.nodes[gndNodeId]
+            circuit.nodes[gndNodeId],
+            circuit.nodes[gndNodeId],
+            3, 5, false, Visibility.Visible, Visibility.Visible, 'gate'
         )
     }
+
+    circuit.devices.mosfets["M1"].vgsChart.visibility = Visibility.Visible
+    circuit.devices.mosfets["M1"].vdsChart.visibility = Visibility.Visible
+
 
     //////////////////////////////
     ///     VOLTAGE SOURCES    ///

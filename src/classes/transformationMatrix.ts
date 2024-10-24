@@ -27,11 +27,11 @@ export class TransformationMatrix {
     }
 
     get rotation(): number {
-        return Math.atan2(-1 * this.matrix.at(0, 1) * this.matrix.at(1, 0), this.matrix.at(0, 0) * this.matrix.at(1, 1))
+        return Math.atan2(-1 * this.matrix.at(0, 1), this.matrix.at(0, 0))
     }
 
     get isMirrored(): boolean {
-        return Math.sqrt(this.matrix.determinant()) < 0
+        return this.matrix.determinant() < 0
     }
 
     get translation(): Point {

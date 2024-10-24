@@ -48,15 +48,36 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlatePmos: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return {x: 0, y: -6}
+        return (circuit.devices.mosfets["M5"].selected.value || circuit.devices.mosfets["M6"].selected.value) ? {x: 0, y: circuit.devices.mosfets["M2"].selected.value ? -14 : -10} : {x: 0, y: -5}
+        // return {x: 0, y: -10}
     }))
 
     const tectonicPlateOutput: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return {x: 10, y: 0}
+        let nChartsSelected = [circuit.devices.mosfets["M2"].selected.value, circuit.devices.mosfets["M5"].selected.value, circuit.devices.mosfets["M6"].selected.value, circuit.devices.mosfets["Mb"].selected.value, circuit.devices.mosfets["M7"].selected.value].filter(Boolean).length
+        if (nChartsSelected == 0) {
+            return {x: 0, y: 0}
+        }
+        if (nChartsSelected == 1) {
+            return {x: 5, y: 0}
+        }
+        if ((circuit.devices.mosfets["M5"].selected.value && circuit.devices.mosfets["M6"].selected.value) || (circuit.devices.mosfets["Mb"].selected.value && circuit.devices.mosfets["M7"].selected.value)) {
+            return {x: 10, y: 0}
+        }
+        return {x: 5, y: 0}
     }))
 
     const tectonicPlatePmosOutput: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
-        return {x: 10, y: 0}
+        let nChartsSelected = [circuit.devices.mosfets["M2"].selected.value, circuit.devices.mosfets["M5"].selected.value, circuit.devices.mosfets["M6"].selected.value, circuit.devices.mosfets["Mb"].selected.value, circuit.devices.mosfets["M7"].selected.value].filter(Boolean).length
+        if (nChartsSelected == 0) {
+            return {x: 0, y: 0}
+        }
+        if (nChartsSelected == 1) {
+            return {x: 5, y: 0}
+        }
+        if ((circuit.devices.mosfets["M5"].selected.value && circuit.devices.mosfets["M6"].selected.value) || (circuit.devices.mosfets["Mb"].selected.value && circuit.devices.mosfets["M7"].selected.value)) {
+            return {x: 10, y: 0}
+        }
+        return {x: 5, y: 0}
     }))
 
     const tectonicPlateVnode: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
@@ -65,16 +86,34 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlateVout: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 8.5}, end: {x: 0, y: -9}}],
+        return getPointAlongPath([{start: {x: 0, y: 8.5}, end: (circuit.devices.mosfets["M5"].selected.value || circuit.devices.mosfets["M6"].selected.value) ? {x: 0, y: circuit.devices.mosfets["M2"].selected.value ? -20 : -15} : {x: 0, y: -9}}],
             between(gndVoltage, vddVoltage, circuit.nodes["Vout"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 
-    circuit.boundingBox = {
-        topLeft: new TectonicPoint(tectonicPlatePmos.transformations, {x: -12, y: -18}),
-        topRight: new TectonicPoint(tectonicPlatePmosOutput.transformations, {x: 33, y: -18}),
-        bottomLeft: new TectonicPoint(circuit.transformations, {x: -12, y: 14}),
-        bottomRight: new TectonicPoint(tectonicPlateOutput.transformations, {x: 33, y: 14}),
-    }
+    const tectonicPlateLowerCharts: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
+        return (circuit.devices.mosfets["Mb"].selected.value || circuit.devices.mosfets["M7"].selected.value || circuit.devices.mosfets["M8"].selected.value) ? {x: 0, y: 2} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
+        return (circuit.devices.mosfets["M1"].selected.value) ? {x: -8, y: 0} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM3Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
+        return (circuit.devices.mosfets["M3"].selected.value) ? {x: -3, y: -4} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM4Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmosOutput.transformations, computed(() => {
+        return (circuit.devices.mosfets["M4"].selected.value) ? {x: 2, y: -4} : {x: 0, y: 0}
+    }))
+    const tectonicPlateM8Chart: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
+        return (circuit.devices.mosfets["M8"].selected.value) ? {x: 2, y: 2} : {x: 0, y: 0}
+    }))
+
+
+    circuit.boundingBox = [
+        new TectonicPoint(tectonicPlateM3Chart.transformations, {x: -12, y: -16}),
+        new TectonicPoint(tectonicPlateM4Chart.transformations, {x: 33, y: -16}),
+        new TectonicPoint(tectonicPlateLowerCharts.transformations, {x: -12, y: 12}),
+        new TectonicPoint(tectonicPlateM1Chart.transformations, {x: -12, y: 0}),
+        new TectonicPoint(tectonicPlateM8Chart.transformations, {x: 33, y: 12}),
+    ]
 
     //////////////////////////////
     ///         MOSFETS        ///
@@ -90,11 +129,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes[gndNodeId],
             circuit.nodes["Vnode"],
             circuit.nodes[gndNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             false,
             Visibility.Locked,
-            Visibility.Locked
+            Visibility.Locked,
+            'lowerVoltageSource'
         ),
         "M1": new Mosfet(
             tectonicPlateM1.transformations,
@@ -105,11 +146,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes["Vnode"],
             circuit.nodes["M1_drain"],
             circuit.nodes[gndNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             true,
             Visibility.Locked,
             Visibility.Locked,
+            'voltageSource'
         ),
         "M2": new Mosfet(
             tectonicPlateM2.transformations,
@@ -120,11 +163,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes["Vnode"],
             circuit.nodes["M2_drain"],
             circuit.nodes[gndNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             false,
             Visibility.Locked,
             Visibility.Locked,
+            'voltageSource'
         ),
         "M3": new Mosfet(
             tectonicPlatePmos.transformations,
@@ -135,11 +180,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes[vddNodeId],
             circuit.nodes["M1_drain"],
             circuit.nodes[vddNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             false,
             Visibility.Locked,
             Visibility.Locked,
+            'lowerBase'
         ),
         "M4": new Mosfet(
             tectonicPlatePmosOutput.transformations,
@@ -150,11 +197,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes[vddNodeId],
             circuit.nodes["Vout"],
             circuit.nodes[vddNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             true,
             Visibility.Locked,
             Visibility.Locked,
+            'lowerBase'
         ),
         "M5": new Mosfet(
             tectonicPlatePmos.transformations,
@@ -165,11 +214,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes[vddNodeId],
             circuit.nodes["M2_drain"],
             circuit.nodes[vddNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             false,
             Visibility.Locked,
             Visibility.Locked,
+            'mirrorDriver'
         ),
         "M6": new Mosfet(
             tectonicPlatePmosOutput.transformations,
@@ -180,11 +231,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes[vddNodeId],
             circuit.nodes["M7_drain"],
             circuit.nodes[vddNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             true,
             Visibility.Locked,
             Visibility.Locked,
+            'mirrorDriver'
         ),
         "M7": new Mosfet(
             tectonicPlateOutput.transformations,
@@ -195,11 +248,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes[gndNodeId],
             circuit.nodes["M7_drain"],
             circuit.nodes[gndNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             false,
             Visibility.Locked,
             Visibility.Locked,
+            'lowerBase'
         ),
         "M8": new Mosfet(
             tectonicPlateOutput.transformations,
@@ -210,11 +265,13 @@ const useNmos9TransistorOpAmp = () => {
             circuit.nodes[gndNodeId],
             circuit.nodes["Vout"],
             circuit.nodes[gndNodeId],
+            circuit.nodes[gndNodeId],
             undefined,
             undefined,
             true,
             Visibility.Locked,
             Visibility.Locked,
+            'lowerBase'
         ),
     }
 
@@ -254,18 +311,18 @@ const useNmos9TransistorOpAmp = () => {
     circuit.schematic = new Schematic(
         circuit.transformations,
         [
-            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
-            new GndSymbol(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Gnd")),
-            new GndSymbol(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Gnd")),
+            new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
+            new GndSymbol(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("SourceSupply")),
+            new GndSymbol(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("SourceSupply")),
             new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
             new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
             new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
         ],
         [
-            new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vdd")),
-            new VddSymbol(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vdd")),
-            new VddSymbol(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vdd")),
-            new VddSymbol(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vdd")),
+            new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("SourceSupply")),
+            new VddSymbol(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("SourceSupply")),
         ],
         [],
         Object.values(circuit.devices.mosfets),
@@ -274,9 +331,9 @@ const useNmos9TransistorOpAmp = () => {
             {
                 node: circuit.nodes[gndNodeId],
                 lines: [
-                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Gnd")),
-                    new TectonicLine(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Gnd")),
-                    new TectonicLine(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Gnd")),
+                    new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("SourceSupply")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -284,10 +341,10 @@ const useNmos9TransistorOpAmp = () => {
             {
                 node: circuit.nodes[vddNodeId],
                 lines: [
-                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vdd")),
-                    new TectonicLine(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vdd")),
-                    new TectonicLine(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vdd")),
-                    new TectonicLine(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vdd")),
+                    new TectonicLine(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M5"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M6"].getAnchorPointWithTransformations("SourceSupply")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []

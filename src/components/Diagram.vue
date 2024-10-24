@@ -61,6 +61,8 @@
 import { ref, onMounted, shallowRef, onBeforeUnmount, computed } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
+import { canvasDpi, canvasSize } from '../constants'
+import { CtxSlider } from '../classes/ctxSlider'
 import { AngleSlider } from '../classes/angleSlider'
 import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize } from '../globalState'
@@ -105,7 +107,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 type DefinedCircuits = keyof typeof circuits
-const currentCircuit = ref<DefinedCircuits>('nMos9TransistorOpAmp')
+const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
@@ -116,14 +118,15 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 }
 
 const updateSlidersBasedOnNodeVoltages = () => {
-  circuit.value.allSliders.forEach((slider: AngleSlider) => {
-    slider.updateSliderBasedOnNodeVoltages()
+  // Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => mosfet.setMinAndMaxValue())
+  circuit.value.allSliders.forEach((slider: CtxSlider) => {
+    slider.updateValueBasedOnNodeVoltages()
   })
 }
 
 const updateNodeVoltagesBasedOnSliders = () => {
-  circuit.value.allSliders.forEach((slider: AngleSlider) => {
-    slider.updateNodeVoltagesBasedOnSlider()
+  circuit.value.allSliders.forEach((slider: CtxSlider) => {
+    slider.updateNodeVoltagesBasedOnValue()
   })
 }
 
@@ -137,9 +140,19 @@ const getMousePos = (event: MouseEvent) => {
 
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
+  let anySlidersDragging = false
     circuit.value.allSliders.forEach(slider => {
       slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+      if (slider.dragging) {
+        anySlidersDragging = true
+      }
   })
+
+  if (!anySlidersDragging) {
+    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+      mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
+    })
+  }
 
   drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
   document.addEventListener('mousemove', drag)
@@ -163,10 +176,28 @@ const drag = (event: MouseEvent) => {
   updateNodeVoltagesBasedOnSliders()
 }
 
-const mouseUp = () => {
+const mouseUp = (event: MouseEvent) => {
+  const { mouseX, mouseY } = getMousePos(event)
+
+  let anySlidersDragging = false
   circuit.value.allSliders.forEach((slider) => {
+    if (slider.dragging) {
+      anySlidersDragging = true
+    }
     slider.releaseSlider()
   })
+
+  if (!anySlidersDragging) {
+    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+      if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
+        mosfet.selectedFocus.value = !mosfet.selectedFocus.value
+        mosfet.selected.value = mosfet.selectedFocus.value
+      } else {
+        mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
+      }
+      mosfet.mouseDownInsideSelectionArea = false
+    })
+  }
 
   document.removeEventListener('mousemove', drag)
   document.removeEventListener('mouseup', mouseUp)

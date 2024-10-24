@@ -11,6 +11,7 @@ import { between } from '../functions/extraMath'
 import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicPlate'
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
+import { Visibility } from '../types'
 
 const usePmosSingle = () => {
     const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
@@ -22,7 +23,7 @@ const usePmosSingle = () => {
     circuit.nodes = {
         [gndNodeId]: ref(new Node(gndVoltage, true)),
         [vddNodeId]: ref(new Node(vddVoltage, true)),
-        "M1_drain": ref(new Node(5, false)),
+        "M1_drain": ref(new Node(2, false)),
         "M1_gate": ref(new Node(1, false)),
     }
 
@@ -34,13 +35,16 @@ const usePmosSingle = () => {
         return getPointAlongPath([{start: {x: 0, y: 6}, end: {x: 0, y: 0}}],
             between(gndVoltage, vddVoltage, circuit.nodes["M1_drain"].value.voltage) / (vddVoltage - gndVoltage))
     }))
+    const tectonicPlateChart: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
+        return (circuit.devices.mosfets["M1"].selected.value) ? {x: 6, y: 0} : {x: 0, y: 0}
+    }))
 
-    circuit.boundingBox = {
-        topLeft: new TectonicPoint(circuit.transformations, {x: -5, y: -6}),
-        topRight: new TectonicPoint(circuit.transformations, {x: 5, y: -6}),
-        bottomLeft: new TectonicPoint(tectonicPlate.transformations, {x: -5, y: 12}),
-        bottomRight: new TectonicPoint(tectonicPlate.transformations, {x: 5, y: 12}),
-    }
+    circuit.boundingBox = [
+        new TectonicPoint(circuit.transformations, {x: -5, y: -6}),
+        new TectonicPoint(tectonicPlateChart.transformations, {x: 5, y: -6}),
+        new TectonicPoint(tectonicPlate.transformations, {x: -5, y: 12}),
+        new TectonicPoint(tectonicPlate.transformations, {x: 5, y: 12}),
+    ]
 
     //////////////////////////////
     ///         MOSFETS        ///
@@ -55,9 +59,14 @@ const usePmosSingle = () => {
             circuit.nodes["M1_gate"],
             circuit.nodes[vddNodeId],
             circuit.nodes["M1_drain"],
-            circuit.nodes[vddNodeId]
+            circuit.nodes[vddNodeId],
+            circuit.nodes[gndNodeId],
+            3, 5, false, Visibility.Visible, Visibility.Visible, 'gate'
         )
     }
+
+    circuit.devices.mosfets["M1"].vgsChart.visibility = Visibility.Visible
+    circuit.devices.mosfets["M1"].vdsChart.visibility = Visibility.Visible
 
     //////////////////////////////
     ///     VOLTAGE SOURCES    ///

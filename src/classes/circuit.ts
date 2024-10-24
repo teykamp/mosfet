@@ -1,8 +1,7 @@
-import { BoundingBox, Point } from "../types"
+import { Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
-import { AngleSlider } from "./angleSlider"
 import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
@@ -12,10 +11,11 @@ import { canvasSize } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
+import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 
 export class Circuit extends CtxArtist {
-    boundingBox: BoundingBox
+    boundingBox: TectonicPoint[]
     schematic: Schematic // how to draw the circuit
     devices: {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
@@ -30,12 +30,12 @@ export class Circuit extends CtxArtist {
         const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2}
         super([ref((new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift)) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
 
-        this.boundingBox = {
-            topLeft: new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
-            topRight: new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y - height / 2}),
-            bottomLeft: new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y + height / 2}),
-            bottomRight: new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y + height / 2}),
-        }
+        this.boundingBox = [
+            new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
+            new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y - height / 2}),
+            new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y + height / 2}),
+            new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y + height / 2}),
+        ]
 
         this.schematic = schematic
         this.devices = {
@@ -51,7 +51,7 @@ export class Circuit extends CtxArtist {
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
     }
 
-    get allSliders(): AngleSlider[] {
+    get allSliders(): CtxSlider[] {
         return this.makeListOfSliders()
     }
 
@@ -66,12 +66,12 @@ export class Circuit extends CtxArtist {
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
 
         if (moveNodesInResponseToCircuitState.value) {
-            // let slidersDragging = false
-            // this.allSliders.forEach((slider: AngleSlider) => {
-            //     if (slider.dragging) {
-            //         slidersDragging = true
-            //     }
-            // })
+            let slidersDragging = false
+            this.allSliders.forEach((slider: CtxSlider) => {
+                if (slider.dragging) {
+                    slidersDragging = true
+                }
+            })
             // if (!slidersDragging) {
                 TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
             // }
@@ -90,12 +90,14 @@ export class Circuit extends CtxArtist {
         ctx.restore()
     }
 
-    makeListOfSliders(): AngleSlider[] {
-        const allSliders: AngleSlider[] = []
+    makeListOfSliders(): CtxSlider[] {
+        const allSliders: CtxSlider[] = []
         for (const mosfetId in this.devices.mosfets) {
             const mosfet = this.devices.mosfets[mosfetId]
             allSliders.push(mosfet.vgs)
             allSliders.push(mosfet.vds)
+            allSliders.push(mosfet.vgsChart)
+            allSliders.push(mosfet.vdsChart)
         }
         for (const voltageSourceId in this.devices.voltageSources) {
             const voltageSource = this.devices.voltageSources[voltageSourceId]
@@ -124,19 +126,14 @@ export class Circuit extends CtxArtist {
             }
         }
 
-        drawCirclesFillSolid(ctx, [
-            {center: this.boundingBox.topLeft.toPoint(), outerDiameter: 2},
-            {center: this.boundingBox.topRight.toPoint(), outerDiameter: 2},
-            {center: this.boundingBox.bottomRight.toPoint(), outerDiameter: 2},
-            {center: this.boundingBox.bottomLeft.toPoint(), outerDiameter: 2},
-        ], 0.2, "purple")
+        drawCirclesFillSolid(ctx, this.boundingBox.map((point: TectonicPoint) => {return {center: point.toPoint(), outerDiameter: 2}}), 0.2, "purple")
     }
 
     setScaleBasedOnBoundingBox() {
-        const left =   Math.min(this.boundingBox.topLeft.toPoint().x, this.boundingBox.topRight.toPoint().x, this.boundingBox.bottomRight.toPoint().x, this.boundingBox.bottomLeft.toPoint().x)
-        const right =  Math.max(this.boundingBox.topLeft.toPoint().x, this.boundingBox.topRight.toPoint().x, this.boundingBox.bottomRight.toPoint().x, this.boundingBox.bottomLeft.toPoint().x)
-        const top =    Math.min(this.boundingBox.topLeft.toPoint().y, this.boundingBox.topRight.toPoint().y, this.boundingBox.bottomRight.toPoint().y, this.boundingBox.bottomLeft.toPoint().y)
-        const bottom = Math.max(this.boundingBox.topLeft.toPoint().y, this.boundingBox.topRight.toPoint().y, this.boundingBox.bottomRight.toPoint().y, this.boundingBox.bottomLeft.toPoint().y)
+        const left =   Math.min(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().x))
+        const right =  Math.max(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().x))
+        const top =    Math.min(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().y))
+        const bottom = Math.max(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().y))
 
         const height = Math.abs(top - bottom)
         const width = Math.abs(right - left)
