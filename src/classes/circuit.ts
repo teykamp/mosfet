@@ -66,12 +66,12 @@ export class Circuit extends CtxArtist {
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
 
         if (moveNodesInResponseToCircuitState.value) {
-            let slidersDragging = false
-            this.allSliders.forEach((slider: CtxSlider) => {
-                if (slider.dragging) {
-                    slidersDragging = true
-                }
-            })
+            // let slidersDragging = false
+            // this.allSliders.forEach((slider: CtxSlider) => {
+            //     if (slider.dragging) {
+            //         slidersDragging = true
+            //     }
+            // })
             // if (!slidersDragging) {
                 TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
             // }

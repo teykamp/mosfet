@@ -35,17 +35,17 @@
       height: computeCanvasHeight,
       flexGrow: xs ? undefined : 1,
     }" @mousedown="checkDrag"></canvas>
-    <button 
+    <button
       v-if="xs"
-      @click="showGraphBar = !showGraphBar" 
+      @click="showGraphBar = !showGraphBar"
       style="position: absolute; bottom: 0; font-size: xx-large; padding: 5px; width: 100px; right: calc(50% - 50px);"
     > {{ showGraphBar ? 'V' : '^' }} </button>
     <button
       v-else
-      @click="showGraphBar = !showGraphBar" 
+      @click="showGraphBar = !showGraphBar"
       style="position: absolute; right: 0; font-size: xx-large; padding: 5px; height: 100px; top: calc(50vh - 50px);"
     > {{ showGraphBar ? '>' : '<' }} </button>
-    <div 
+    <div
       v-show="showGraphBar"
       :style="computeSmallCanvasStyles"
     >
@@ -54,16 +54,14 @@
     </div>
 
   </div>
-  
+
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, shallowRef, onBeforeUnmount, computed } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
-import { canvasDpi, canvasSize } from '../constants'
 import { CtxSlider } from '../classes/ctxSlider'
-import { AngleSlider } from '../classes/angleSlider'
 import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
@@ -90,7 +88,7 @@ const computeSmallCanvasStyles = computed(() => {
     return 'display: flex; height: 20vh; justify-content: center'
   } else {
     return 'flex-direction: column; width: 18vw'
-    
+
   }
 })
 

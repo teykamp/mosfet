@@ -8,7 +8,7 @@ import { linspace } from "../functions/linspace"
 import { ekvNmosNoUnits, ekvPmosNoUnits } from "../functions/ekvModel"
 import { Node } from "./node"
 import { CtxSlider } from "./ctxSlider"
-import { drawGrid } from "../constants"
+import { drawGrid } from "../globalState"
 import { LRUCache } from 'lru-cache'
 
 export class Chart extends CtxSlider{
@@ -204,7 +204,7 @@ export class Chart extends CtxSlider{
         this.fillTextGlobalReferenceFrame(ctx, {x: this.location.x < this.axesWidth - textWidth ? Math.max(5, this.location.x + textWidth) : this.location.x - textWidth, y: Math.max(5, this.location.y - 15)}, displayText)
 
         // draw borders
-        if (drawGrid) {
+        if (drawGrid.value) {
             ctx.lineWidth = 5
             ctx.strokeStyle = "black"
             ctx.strokeRect(-Chart.paddingL, -Chart.paddingB, this.width, this.height)
