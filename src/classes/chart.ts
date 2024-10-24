@@ -38,7 +38,7 @@ export class Chart extends CtxSlider{
 
     static paddingL = 40 // 40
     static paddingR = 10 // 40
-    static paddingT = 25 // 25
+    static paddingT = 20 // 25
     static paddingB = 30 // 30
     yMin: number = 0
     yMax: number = 0
@@ -67,7 +67,7 @@ export class Chart extends CtxSlider{
         this.transformations[this.transformations.length - 1].value.translate({x: Chart.paddingL, y: Chart.paddingB}, true)
 
         this.points = []
-        this.xAxisLabel = "←" + xAxisLabel + "→"
+        this.xAxisLabel = xAxisLabel // "←" + xAxisLabel + "→"
         this.yAxisLabel = yAxisLabel
         this.xUnit = xUnit
         this.yUnit = yUnit
@@ -107,7 +107,7 @@ export class Chart extends CtxSlider{
         if (this.preciseDragging) {
             this.xTicks = getTickLabelList(this.temporaryMinValue, this.temporaryMaxValue, this.xScaleType == 'log').filter((val: number) => val >= this.temporaryMinValue && val <= this.temporaryMaxValue)
         } else {
-            this.xTicks = [0, 5]
+            this.xTicks = [0, 1, 2, 3, 4, 5]
         }
 
         if (this.chartType == 'Vgs') {
@@ -116,14 +116,11 @@ export class Chart extends CtxSlider{
             this.yTicks = [25, 50, 75, 100].filter((val: number) => val >= this.yMin && val <= this.yMax)
         }
 
-        let xAxisLabelLocation = 0
-        if (this.xTicks.length > 2) {
-            const xTickNumberToReplace = Math.ceil(this.xTicks.length / 2)
-            xAxisLabelLocation = this.xValueToLocation(this.xTicks[xTickNumberToReplace])
-            this.xTicks = this.xTicks.slice(0, xTickNumberToReplace).concat(this.xTicks.slice(xTickNumberToReplace + 1))
-        } else {
-            xAxisLabelLocation = this.xValueToLocation((this.xTicks[0] + this.xTicks[this.xTicks.length - 1]) / 2)
-        }
+        const xAxisLabelLocation = this.xValueToLocation(this.value)
+        const xAxisLabelRange = (this.temporaryMaxValue - this.temporaryMinValue) / 4
+        this.xTicks = this.xTicks.filter((xTick: number) => {
+            return !((this.value - xAxisLabelRange / 2 < xTick) && (xTick < this.value + xAxisLabelRange / 2))
+        })
 
         this.plottingValues = this.points.map((p: Point) => ({
             x: this.xValueToLocation(p.x),
@@ -140,8 +137,12 @@ export class Chart extends CtxSlider{
         ], axisLineThickness, "black")
 
         // Draw axis labels
+        ctx.font = '16px Arial'
+        ctx.textAlign = 'center'
+        let nextLine = this.fillTextGlobalReferenceFrame(ctx, {x: xAxisLabelLocation, y: -16}, this.xAxisLabel, false)
+        ctx.font = '12px Arial'
+        this.fillTextGlobalReferenceFrame(ctx, {x: nextLine.x, y: nextLine.y + 3}, toSiPrefix(this.value, 'V'), false)
         ctx.font = '18px Arial'
-        this.fillTextGlobalReferenceFrame(ctx, {x: xAxisLabelLocation - 7 * this.xAxisLabel.length, y: -20}, this.xAxisLabel, true)
         this.fillTextGlobalReferenceFrame(ctx, {x: -30, y: this.axesHeight + 6}, this.yAxisLabel, true, true)
 
         // Calculate and draw ticks
