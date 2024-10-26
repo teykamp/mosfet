@@ -1,4 +1,4 @@
-import { ref } from "vue"
+import { Ref, ref } from "vue"
 
 export const moveNodesInResponseToCircuitState = ref(true)
 export const drawGrid = ref(false)
@@ -9,9 +9,19 @@ export const canvasSize = ref({
     height: 1
 })
 
-export const getCanvasSize = (ctx: CanvasRenderingContext2D) => {
-    canvasSize.value = {
-        width: ctx.canvas.clientWidth,
-        height: ctx.canvas.clientHeight
+export const graphBarMosfetCanvasSize = ref({
+    width: 1,
+    height: 1
+})
+
+export const graphBarChartCanvasSize = ref({
+    width: 1,
+    height: 1
+})
+
+export const getCanvasSize = (myCtx: CanvasRenderingContext2D, myCanvasSize: Ref<{width: number, height: number}>) => {
+    myCanvasSize.value = {
+        width: myCtx.canvas.clientWidth,
+        height: myCtx.canvas.clientHeight
     }
 }

@@ -49,8 +49,8 @@
       v-show="showGraphBar"
       :style="computeSmallCanvasStyles"
     >
-      <canvas style="background-color: yellow;" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
-      <canvas style=" background-color: green" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
+      <canvas ref="graphBarChartCanvas" style="background-color: yellow;" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
+      <canvas ref="graphBarMosfetCanvas" style=" background-color: green" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
     </div>
 
   </div>
@@ -58,12 +58,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, shallowRef, onBeforeUnmount, computed, Ref } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
@@ -94,6 +94,11 @@ const computeSmallCanvasStyles = computed(() => {
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
+const graphBarMosfetCanvas = ref<null | HTMLCanvasElement>(null)
+const graphBarMosfetCtx = ref<null | CanvasRenderingContext2D>(null)
+const graphBarChartCanvas = ref<null | HTMLCanvasElement>(null)
+const graphBarChartCtx = ref<null | CanvasRenderingContext2D>(null)
+
 let previousTimestamp = 0
 
 const sideBar = ref<HTMLElement | null>(null)
@@ -204,20 +209,30 @@ const mouseUp = (event: MouseEvent) => {
   document.removeEventListener('mouseup', mouseUp)
 }
 
-const draw = () => {
-  if (!ctx.value || !canvas.value) return
-  getCanvasSize(ctx.value)
+const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | CanvasRenderingContext2D>, myCanvasSize: Ref<{width: number, height: number}>): boolean => {
+  if (!myCanvas.value) return false
+  myCtx.value = myCanvas.value.getContext('2d')
+  if (!myCtx.value) return false
+  getCanvasSize(myCtx.value, myCanvasSize)
 
   const dpi = canvasDpi.value
-  canvas.value.width = canvasSize.value.width * dpi
-  canvas.value.height = canvasSize.value.height * dpi
-  canvas.value.style.width = `${canvasSize.value.width}px`
-  canvas.value.style.height = `${canvasSize.value.height}px`
+  myCanvas.value.width = myCanvasSize.value.width * dpi
+  myCanvas.value.height = myCanvasSize.value.height * dpi
+  myCanvas.value.style.width = `${myCanvasSize.value.width}px`
+  myCanvas.value.style.height = `${myCanvasSize.value.height}px`
 
-  ctx.value.resetTransform()
-  ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
+  myCtx.value.resetTransform()
+  myCtx.value.clearRect(0, 0, myCanvas.value.width, myCanvas.value.height)
+  return true
+}
+
+const draw = () => {
+  if (!setUpCtx(canvas, ctx, canvasSize)) return
+  if (!setUpCtx(graphBarMosfetCanvas, graphBarMosfetCtx, graphBarMosfetCanvasSize)) return
+  if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
+
   updateSlidersBasedOnNodeVoltages()
-  circuit.value.draw(ctx.value as CanvasRenderingContext2D)
+  circuit.value.draw(ctx.value as CanvasRenderingContext2D, graphBarMosfetCtx.value as CanvasRenderingContext2D, graphBarChartCtx.value as CanvasRenderingContext2D)
 }
 
 const animate = (timestamp: number) => {
@@ -251,6 +266,12 @@ onMounted(() => {
     draw()
     requestAnimationFrame(animate)
 
+  }
+  if (graphBarMosfetCanvas.value) {
+    graphBarMosfetCtx.value = graphBarMosfetCanvas.value.getContext('2d')
+  }
+  if (graphBarChartCanvas.value) {
+    graphBarChartCtx.value = graphBarChartCanvas.value.getContext('2d')
   }
 })
 

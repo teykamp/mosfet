@@ -55,7 +55,7 @@ export class Circuit extends CtxArtist {
         return this.makeListOfSliders()
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D, graphBarMosfetCtx: CanvasRenderingContext2D, graphBarChartCtx: CanvasRenderingContext2D) {
         ctx.save()
 
         this.setScaleBasedOnBoundingBox()
@@ -80,7 +80,18 @@ export class Circuit extends CtxArtist {
         }
 
         this.schematic.draw(ctx)
-        Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {mosfet.draw(ctx)})
+        Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
+            mosfet.draw(ctx)
+            if (mosfet.selectedFocus.value) {
+                console.log(mosfet.transformationMatrix.matrix.values)
+                graphBarMosfetCtx.arc(0, 0, 10, 0, 2 * Math.PI)
+                graphBarMosfetCtx.fillStyle = 'red'
+                graphBarMosfetCtx.fill()
+                mosfet.draw(graphBarMosfetCtx, (new TransformationMatrix).translate({x: 200, y: 200}))
+                mosfet.vgsChart.draw(graphBarChartCtx, (new TransformationMatrix).translate({x: 200, y: 200}))
+                mosfet.vdsChart.draw(graphBarChartCtx, (new TransformationMatrix).translate({x: 200, y: 200}))
+            }
+        })
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {voltageSource.draw(ctx)})
 
         if (drawGrid.value) {

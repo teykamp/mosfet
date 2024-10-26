@@ -34,8 +34,12 @@ export class VoltageSource extends CtxArtist{
         }
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
-        this.transformationMatrix.transformCanvas(ctx)
+    draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {
+        if (transformationMatrix !== undefined) {
+            transformationMatrix.transformCanvas(ctx)
+        } else {
+            this.transformationMatrix.transformCanvas(ctx)
+        }
 
         const radius = 30
         const symbolSize = 11

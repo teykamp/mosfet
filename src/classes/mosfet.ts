@@ -104,8 +104,12 @@ export class Mosfet extends CtxArtist{
         }
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
-        this.transformationMatrix.transformCanvas(ctx)
+    draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {
+        if (transformationMatrix !== undefined) {
+            transformationMatrix.transformCanvas(ctx)
+        } else {
+            this.transformationMatrix.transformCanvas(ctx)
+        }
 
         if (this.selectedFocus.value) {
             const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)

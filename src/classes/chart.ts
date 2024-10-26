@@ -94,11 +94,16 @@ export class Chart extends CtxSlider{
         this.temporaryMaxValue = this.maxValue
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {
         if (this.visibility == Visibility.Hidden) {
             return
         }
-        this.transformationMatrix.transformCanvas(ctx)
+        if (transformationMatrix !== undefined) {
+            transformationMatrix.transformCanvas(ctx)
+        } else {
+            this.transformationMatrix.transformCanvas(ctx)
+        }
+
         const axisLineThickness = this.localLineThickness / 2
         const tickLineThickness = this.localLineThickness / 4
 
