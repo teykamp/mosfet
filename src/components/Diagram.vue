@@ -45,8 +45,6 @@
       <canvas 
         ref="canvas" 
         @mousedown="checkDrag"
-        :height="computedCanvasLayout.mainCanvas.height"
-        :width="computedCanvasLayout.mainCanvas.width"
         :style="`width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
       ></canvas>
       
@@ -57,14 +55,10 @@
         <canvas 
           ref="graphBarChartCanvas" 
           :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px;`"
-          :height="computedCanvasLayout.graphBarChartCanvas.height" 
-          :width="computedCanvasLayout.graphBarChartCanvas.width"
         ></canvas>
         <canvas 
           ref="graphBarMosfetCanvas" 
           :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px;`" 
-          :height="computedCanvasLayout.graphBarMosfetCanvas.height" 
-          :width="computedCanvasLayout.graphBarMosfetCanvas.width"
         ></canvas>
       </div>
     </div>
