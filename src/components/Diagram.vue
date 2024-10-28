@@ -42,23 +42,25 @@
       display: 'flex',
       flexDirection: xs ? 'column' : 'row',
     }">
-      <canvas 
-        ref="canvas" 
+      <canvas
+        ref="canvas"
         @mousedown="checkDrag"
         :style="`width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
       ></canvas>
-      
+
       <div :style="{
         display: 'flex',
         flexDirection: xs ? 'row' : 'column',
       }">
-        <canvas 
-          ref="graphBarChartCanvas" 
+        <canvas
+          ref="graphBarChartCanvas"
+          @mousedown="logMouseLocation"
           :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px;`"
         ></canvas>
-        <canvas 
-          ref="graphBarMosfetCanvas" 
-          :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px;`" 
+        <canvas
+          ref="graphBarMosfetCanvas"
+          @mousedown="logMouseLocation"
+          :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px;`"
         ></canvas>
       </div>
     </div>
@@ -83,7 +85,7 @@ const computedCanvasLayout = computed(() => {
   const bottomGraphHeight = 150
   const sideGraphWidth = 400
 
-  const mainCanvas = xs.value ? 
+  const mainCanvas = xs.value ?
   {
     width: screenWidth.value - padding,
     height: showGraphBar.value ? screenHeight.value - padding - bottomGraphHeight + 5 : screenHeight.value - padding
@@ -93,7 +95,7 @@ const computedCanvasLayout = computed(() => {
     height: screenHeight.value - padding
   }
 
-  const graphBarChartCanvas = xs.value ? 
+  const graphBarChartCanvas = xs.value ?
   {
     width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
     height: showGraphBar.value ? bottomGraphHeight : 0
@@ -103,7 +105,7 @@ const computedCanvasLayout = computed(() => {
     height: showGraphBar.value ? (screenHeight.value - padding) / 2 : 0
   }
 
-  const graphBarMosfetCanvas = xs.value ? 
+  const graphBarMosfetCanvas = xs.value ?
   {
     width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
     height: showGraphBar.value ? bottomGraphHeight : 0
@@ -137,6 +139,12 @@ const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
 
+const logMouseLocation = (event: MouseEvent) => {
+  const mousePos = getMousePos(event)
+  console.log("mouse x: ", mousePos.mouseX, "y: ", mousePos.mouseY)
+  console.log(event.target)
+}
+
 type DefinedCircuits = keyof typeof circuits
 const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
@@ -162,24 +170,31 @@ const updateNodeVoltagesBasedOnSliders = () => {
 }
 
 const getMousePos = (event: MouseEvent) => {
-  if (!canvas.value) return { mouseX: 0, mouseY: 0 }
-  const rect = canvas.value.getBoundingClientRect()
+  const myCanvas = event.target as HTMLCanvasElement
+  if (!myCanvas) return { mouseX: 0, mouseY: 0 }
+  const rect = myCanvas.getBoundingClientRect()
   const mouseX = (event.clientX - rect.left) * canvasDpi.value
   const mouseY = (event.clientY - rect.top) * canvasDpi.value
   return { mouseX, mouseY }
 }
 
+const anySlidersDragging = (): boolean => {
+  let flag = false
+  circuit.value.allSliders.forEach(slider => {
+    if (slider.dragging) {
+      flag = true
+    }
+  })
+  return flag
+}
+
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-  let anySlidersDragging = false
-    circuit.value.allSliders.forEach(slider => {
-      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
-      if (slider.dragging) {
-        anySlidersDragging = true
-      }
+  circuit.value.allSliders.forEach(slider => {
+    slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
   })
 
-  if (!anySlidersDragging) {
+  if (!anySlidersDragging()) {
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
     })
@@ -210,28 +225,25 @@ const drag = (event: MouseEvent) => {
 const mouseUp = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  let anySlidersDragging = false
-  circuit.value.allSliders.forEach((slider) => {
-    if (slider.dragging) {
-      anySlidersDragging = true
-    }
-    slider.releaseSlider()
-  })
-
-  if (!anySlidersDragging) {
+  if (!anySlidersDragging()) {
+    circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
         if (mosfet.selectedFocus.value) {
           mosfet.selected.value = !mosfet.selected.value
         }
-        // mosfet.selectedFocus.value = !mosfet.selectedFocus.value
         mosfet.selectedFocus.value = true
+        circuit.value.setSelectedDevice(mosfet)
       } else {
         mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
       }
       mosfet.mouseDownInsideSelectionArea = false
     })
   }
+
+  circuit.value.allSliders.forEach((slider) => {
+    slider.releaseSlider()
+  })
 
   document.removeEventListener('mousemove', drag)
   document.removeEventListener('mouseup', mouseUp)

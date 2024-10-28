@@ -16,6 +16,7 @@ import { vddVoltage } from "../constants"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
+    isDuplicate: boolean = false
     // mirror: boolean
     currentDots: CurrentDots
     gradientSize: number = 100
@@ -104,14 +105,10 @@ export class Mosfet extends CtxArtist{
         }
     }
 
-    draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {
-        if (transformationMatrix !== undefined) {
-            transformationMatrix.transformCanvas(ctx)
-        } else {
-            this.transformationMatrix.transformCanvas(ctx)
-        }
+    draw(ctx: CanvasRenderingContext2D) {
+        this.transformationMatrix.transformCanvas(ctx)
 
-        if (this.selectedFocus.value) {
+        if (this.selectedFocus.value && !this.isDuplicate) {
             const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
             backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
             backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
@@ -121,7 +118,7 @@ export class Mosfet extends CtxArtist{
             ctx.arc(0, 0, 200, 0, 2 * Math.PI)
             ctx.fill()
         }
-        else if (this.selected.value) {
+        else if (this.selected.value && !this.isDuplicate) {
             const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
             backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
             backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')

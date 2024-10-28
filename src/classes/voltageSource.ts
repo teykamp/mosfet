@@ -14,6 +14,7 @@ export class VoltageSource extends CtxArtist{
     schematicEffects: {[name: string]: SchematicEffect}
     current: number // in Amps
     fixedAt: 'gnd' | 'vdd'
+    isDuplicate: boolean = false
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false) {
         super(parentTransformations, (new TransformationMatrix()).translate(origin).mirror(mirror, false).scale(1/30))

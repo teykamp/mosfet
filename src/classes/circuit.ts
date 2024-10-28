@@ -6,7 +6,7 @@ import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
-import { schematicScale } from "../constants"
+import { gndNodeId, schematicScale } from "../constants"
 import { canvasSize } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
@@ -21,6 +21,7 @@ export class Circuit extends CtxArtist {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
       voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
     }
+    selectedDevice: Mosfet | VoltageSource | null = null
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
     originalTextTransformationMatrix: TransformationMatrix
@@ -82,23 +83,64 @@ export class Circuit extends CtxArtist {
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
             mosfet.draw(ctx)
-            if (mosfet.selectedFocus.value) {
-                console.log(mosfet.transformationMatrix.matrix.values)
-                graphBarMosfetCtx.arc(0, 0, 10, 0, 2 * Math.PI)
-                graphBarMosfetCtx.fillStyle = 'red'
-                graphBarMosfetCtx.fill()
-                mosfet.draw(graphBarMosfetCtx, (new TransformationMatrix).translate({x: 200, y: 200}))
-                mosfet.vgsChart.draw(graphBarChartCtx, (new TransformationMatrix).translate({x: 200, y: 200}))
-                mosfet.vdsChart.draw(graphBarChartCtx, (new TransformationMatrix).translate({x: 200, y: 200}))
-            }
         })
-        Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {voltageSource.draw(ctx)})
-
+        Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
+            voltageSource.draw(ctx)
+        })
+        if (this.selectedDevice) {
+            this.selectedDevice.draw(graphBarMosfetCtx)
+        }
         if (drawGrid.value) {
             this.drawGrid(ctx)
         }
 
         ctx.restore()
+    }
+
+    setSelectedDevice(device: Mosfet | VoltageSource) {
+        // this.selectedDevice = device
+        // this.selectedDevice = JSON.parse(JSON.stringify(device))
+        // this.selectedDevice = structuredClone(device)
+        // if (device instanceof Mosfet) {
+        //     this.selectedDevice = {...device} as Mosfet // shallow copy
+        // } else if (device instanceof VoltageSource) {
+        //     this.selectedDevice = {...device} as VoltageSource // shallow copy
+        // } else {
+        //     console.log("Error assigning selected device to either Mosfet or VoltageSource object")
+        // }
+
+        if (device instanceof Mosfet) {
+            this.selectedDevice = new Mosfet(
+                [ref((new TransformationMatrix()).translate({x: 100, y: 100}).scale(60)) as Ref<TransformationMatrix>],
+                device.mosfetType,
+                0,
+                0,
+                device.Vg,
+                device.Vs,
+                device.Vd,
+                device.Vb,
+                this.nodes[gndNodeId],
+            )
+        } else if (device instanceof VoltageSource) {
+            this.selectedDevice = new VoltageSource(
+                [ref((new TransformationMatrix()).translate({x: 100, y: 100}).scale(30)) as Ref<TransformationMatrix>],
+                {x: 0, y: 0},
+                device.vminus,
+                device.vplus,
+                device.voltageDrop.displayText,
+                device.fixedAt,
+            )
+        } else {
+            this.selectedDevice = null
+        }
+        if (!this.selectedDevice) {
+            return
+        }
+        this.selectedDevice.isDuplicate = true
+    }
+
+    resetSelectedDevice() {
+        this.selectedDevice = null // may need to delete selectedDevice instead of just setting it to null, to free up memory
     }
 
     makeListOfSliders(): CtxSlider[] {
@@ -110,9 +152,18 @@ export class Circuit extends CtxArtist {
             allSliders.push(mosfet.vgsChart)
             allSliders.push(mosfet.vdsChart)
         }
+        if (this.selectedDevice instanceof Mosfet) {
+            allSliders.push(this.selectedDevice.vgs)
+            allSliders.push(this.selectedDevice.vds)
+            allSliders.push(this.selectedDevice.vgsChart)
+            allSliders.push(this.selectedDevice.vdsChart)
+        }
         for (const voltageSourceId in this.devices.voltageSources) {
             const voltageSource = this.devices.voltageSources[voltageSourceId]
             allSliders.push(voltageSource.voltageDrop)
+        }
+        if (this.selectedDevice instanceof VoltageSource) {
+            allSliders.push(this.selectedDevice.voltageDrop)
         }
         return allSliders
     }
