@@ -26,31 +26,47 @@
     </div>
   </Transition>
 
-  <div :style="{
-    display: xs ? undefined : 'flex',
-    justifyContent: 'center',
-  }">
-    <canvas ref="canvas" :style="{
-      width: computeCanvasWidth,
-      height: computeCanvasHeight,
-      flexGrow: xs ? undefined : 1,
-    }" @mousedown="checkDrag"></canvas>
-    <button
-      v-if="xs"
-      @click="showGraphBar = !showGraphBar"
-      style="position: absolute; bottom: 0; font-size: xx-large; padding: 5px; width: 100px; right: calc(50% - 50px);"
-    > {{ showGraphBar ? 'V' : '^' }} </button>
-    <button
-      v-else
-      @click="showGraphBar = !showGraphBar"
-      style="position: absolute; right: 0; font-size: xx-large; padding: 5px; height: 100px; top: calc(50vh - 50px);"
-    > {{ showGraphBar ? '>' : '<' }} </button>
-    <div
-      v-show="showGraphBar"
-      :style="computeSmallCanvasStyles"
-    >
-      <canvas ref="graphBarChartCanvas" style="background-color: yellow;" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
-      <canvas ref="graphBarMosfetCanvas" style=" background-color: green" :height="xs ? (1 / 6 * screenHeight - 17) : (1 / 2 * screenHeight - 17)" :width="xs ? (1 / 2.5 * screenWidth) : (1 / 6 * screenWidth)"></canvas>
+  <button
+    v-if="xs"
+    @click="showGraphBar = !showGraphBar"
+    style="position: absolute; bottom: 0; font-size: xx-large; padding: 5px; width: 100px; right: calc(50% - 50px);"
+  > {{ showGraphBar ? 'V' : '^' }} </button>
+  <button
+    v-else
+    @click="showGraphBar = !showGraphBar"
+    style="position: absolute; right: 0; font-size: xx-large; padding: 5px; height: 100px; top: calc(50vh - 50px);"
+  > {{ showGraphBar ? '>' : '<' }} </button>
+  <div>
+
+    <div :style="{
+      display: 'flex',
+      flexDirection: xs ? 'column' : 'row',
+    }">
+      <canvas 
+        ref="canvas" 
+        @mousedown="checkDrag"
+        :height="computedCanvasLayout.mainCanvas.height"
+        :width="computedCanvasLayout.mainCanvas.width"
+        :style="`width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
+      ></canvas>
+      
+      <div :style="{
+        display: 'flex',
+        flexDirection: xs ? 'row' : 'column',
+      }">
+        <canvas 
+          ref="graphBarChartCanvas" 
+          :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px;`"
+          :height="computedCanvasLayout.graphBarChartCanvas.height" 
+          :width="computedCanvasLayout.graphBarChartCanvas.width"
+        ></canvas>
+        <canvas 
+          ref="graphBarMosfetCanvas" 
+          :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px;`" 
+          :height="computedCanvasLayout.graphBarMosfetCanvas.height" 
+          :width="computedCanvasLayout.graphBarMosfetCanvas.width"
+        ></canvas>
+      </div>
     </div>
 
   </div>
@@ -58,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef, onBeforeUnmount, computed, Ref } from 'vue'
+import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 'vue'
 import { incrementCircuit } from '../functions/incrementCircuit'
 import { circuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
@@ -68,27 +84,42 @@ import useBreakpoints from '../composables/useBreakpoints'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
-const computeCanvasWidth = computed(() => {
-  if (xs.value) {
-    return '100vw'
-  } else {
-    return showGraphBar.value ? '82vw' : '100vw'
-  }
-})
-const computeCanvasHeight = computed(() => {
-  if (xs.value) {
-    return showGraphBar.value ? '80vh' : '100vh'
-  } else {
-    return '100vh'
-  }
-})
+const computedCanvasLayout = computed(() => {
 
-const computeSmallCanvasStyles = computed(() => {
-  if (xs.value) {
-    return 'display: flex; height: 20vh; justify-content: center'
-  } else {
-    return 'flex-direction: column; width: 18vw'
+  const mainCanvas = xs.value ? 
+  {
+    width: screenWidth.value - 30,
+    height: showGraphBar.value ? screenHeight.value - 30 - 150 : screenHeight.value - 30
+  } :
+  {
+    width: showGraphBar.value ? screenWidth.value - 30 - 400 : screenWidth.value - 30,
+    height: screenHeight.value - 30
+  }
 
+  const graphBarChartCanvas = xs.value ? 
+  {
+    width: showGraphBar.value ? (screenWidth.value - 30) / 2 : 0,
+    height: showGraphBar.value ? 145 : 0
+  } :
+  {
+    width: showGraphBar.value ? 395 : 0,
+    height: showGraphBar.value ? (screenHeight.value - 30) / 2 : 0
+  }
+
+  const graphBarMosfetCanvas = xs.value ? 
+  {
+    width: showGraphBar.value ? (screenWidth.value - 30) / 2 : 0,
+    height: showGraphBar.value ? 145 : 0
+  } :
+  {
+    width: showGraphBar.value ? 395 : 0,
+    height: showGraphBar.value ? (screenHeight.value - 30) / 2 : 0
+  }
+
+  return {
+    mainCanvas,
+    graphBarChartCanvas,
+    graphBarMosfetCanvas
   }
 })
 
