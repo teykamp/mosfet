@@ -79,35 +79,38 @@ import useBreakpoints from '../composables/useBreakpoints'
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
 const computedCanvasLayout = computed(() => {
+  const padding = 30
+  const bottomGraphHeight = 150
+  const sideGraphWidth = 400
 
   const mainCanvas = xs.value ? 
   {
-    width: screenWidth.value - 30,
-    height: showGraphBar.value ? screenHeight.value - 30 - 150 : screenHeight.value - 30
+    width: screenWidth.value - padding,
+    height: showGraphBar.value ? screenHeight.value - padding - bottomGraphHeight + 5 : screenHeight.value - padding
   } :
   {
-    width: showGraphBar.value ? screenWidth.value - 30 - 400 : screenWidth.value - 30,
-    height: screenHeight.value - 30
+    width: showGraphBar.value ? screenWidth.value - padding - sideGraphWidth + 5 : screenWidth.value - padding,
+    height: screenHeight.value - padding
   }
 
   const graphBarChartCanvas = xs.value ? 
   {
-    width: showGraphBar.value ? (screenWidth.value - 30) / 2 : 0,
-    height: showGraphBar.value ? 145 : 0
+    width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
+    height: showGraphBar.value ? bottomGraphHeight : 0
   } :
   {
-    width: showGraphBar.value ? 395 : 0,
-    height: showGraphBar.value ? (screenHeight.value - 30) / 2 : 0
+    width: showGraphBar.value ? sideGraphWidth : 0,
+    height: showGraphBar.value ? (screenHeight.value - padding) / 2 : 0
   }
 
   const graphBarMosfetCanvas = xs.value ? 
   {
-    width: showGraphBar.value ? (screenWidth.value - 30) / 2 : 0,
-    height: showGraphBar.value ? 145 : 0
+    width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
+    height: showGraphBar.value ? bottomGraphHeight : 0
   } :
   {
-    width: showGraphBar.value ? 395 : 0,
-    height: showGraphBar.value ? (screenHeight.value - 30) / 2 : 0
+    width: showGraphBar.value ? sideGraphWidth : 0,
+    height: showGraphBar.value ? (screenHeight.value - padding) / 2 : 0
   }
 
   return {
