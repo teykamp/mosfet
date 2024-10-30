@@ -44,8 +44,9 @@
     }">
       <canvas
         ref="canvas"
-        @mousedown="mainCheckDrag"
+        @mousedown="checkDrag"
         :style="`width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
+        class="main"
       ></canvas>
 
       <div :style="{
@@ -54,13 +55,15 @@
       }">
         <canvas
           ref="graphBarChartCanvas"
-          @mousedown="chartCheckDrag"
+          @mousedown="checkDrag"
           :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; visibility: ${showGraphBar ? 'visible' : 'hidden'}`"
+          class="chart"
         ></canvas>
         <canvas
           ref="graphBarMosfetCanvas"
-          @mousedown="mosfetCheckDrag"
+          @mousedown="checkDrag"
           :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; visibility: ${showGraphBar ? 'visible' : 'hidden'}`"
+          class="mosfet"
         ></canvas>
       </div>
     </div>
@@ -77,7 +80,6 @@ import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
-import { canvasId } from '../types'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -162,12 +164,6 @@ const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
 
-// const logMouseLocation = (event: MouseEvent) => {
-//   const mousePos = getMousePos(event)
-//   console.log("mouse x: ", mousePos.mouseX, "y: ", mousePos.mouseY)
-//   console.log(event.target)
-// }
-
 type DefinedCircuits = keyof typeof circuits
 const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
@@ -211,35 +207,28 @@ const anySlidersDragging = (): boolean => {
   return flag
 }
 
-const makeCheckDrag = (canvasId: canvasId = 'main'): ((event: MouseEvent) => void) => {
+const checkDrag = (event: MouseEvent) => {
+  console.log(event.target)
+  console.log((event.target as HTMLElement).className)
+  const { mouseX, mouseY } = getMousePos(event)
+  circuit.value.allSliders.forEach(slider => {
+    if (slider.canvasId == (event.target as HTMLElement).className) {
+      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+    }
+  })
 
-  const checkDrag = (event: MouseEvent) => {
-    const { mouseX, mouseY } = getMousePos(event)
-    circuit.value.allSliders.forEach(slider => {
-      if (slider.canvasId == canvasId) {
-        slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+  if (!anySlidersDragging()) {
+    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+      if (mosfet.canvasId == (event.target as HTMLElement).className) {
+        mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
       }
     })
-
-    if (!anySlidersDragging()) {
-      Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-        if (mosfet.canvasId == canvasId) {
-          mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
-        }
-      })
-    }
-
-    drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
-    document.addEventListener('mousemove', drag)
-    document.addEventListener('mouseup', mouseUp)
   }
 
-  return checkDrag
+  drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
+  document.addEventListener('mousemove', drag)
+  document.addEventListener('mouseup', mouseUp)
 }
-
-const mainCheckDrag = makeCheckDrag('main')
-const mosfetCheckDrag = makeCheckDrag('mosfet')
-const chartCheckDrag = makeCheckDrag('chart')
 
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
@@ -261,7 +250,7 @@ const drag = (event: MouseEvent) => {
 const mouseUp = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  if (!anySlidersDragging()) {
+  if (!anySlidersDragging() && (event.target as HTMLElement).className == 'main') {
     circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
