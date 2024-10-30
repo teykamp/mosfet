@@ -233,7 +233,7 @@ const mouseUp = (event: MouseEvent) => {
           mosfet.selected.value = !mosfet.selected.value
         }
         mosfet.selectedFocus.value = true
-        circuit.value.setSelectedDevice(mosfet, graphBarMosfetCanvas.value?.width, graphBarMosfetCanvas.value?.height)
+        circuit.value.setSelectedDevice(mosfet, graphBarMosfetCtx.value, graphBarChartCtx.value)
       } else {
         mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
       }

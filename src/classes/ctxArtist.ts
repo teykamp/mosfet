@@ -31,6 +31,10 @@ export class CtxArtist {
         return this.transformations[this.transformations.length - 1].value
     }
 
+    // protected draw?():void // virtual method, to be implemented by child classes
+
+    // protected copy?():void // virtual method, to be implemented by child classes
+
     getAnchorPoint(name: string): Point {
         if (this.anchorPoints[name] == undefined) {
             console.log("Cannot find anchor point", name, "on CtxArtist")

@@ -12,7 +12,7 @@ import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
 import { Chart } from "./chart"
-import { GLOBAL_LINE_THICKNESS, vddVoltage } from "../constants"
+import { vddVoltage } from "../constants"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
@@ -27,12 +27,14 @@ export class Mosfet extends CtxArtist{
     Vs: Ref<Node>
     Vd: Ref<Node>
     Vb: Ref<Node>
+    gndNode: Ref<Node>
     mouseDownInsideSelectionArea = false
     selected: Ref<boolean> = ref(true)
     selectedFocus: Ref<boolean> = ref(false)
     chartVisibility: Visibility = Visibility.Hidden
     vgsChart: Chart
     vdsChart: Chart
+    boundingBox: TectonicPoint[]
     static chartWidth = 200
     static chartHeight = 120
     static chartLocations = {
@@ -74,6 +76,7 @@ export class Mosfet extends CtxArtist{
         this.Vs = Vs
         this.Vd = Vd
         this.Vb = Vb
+        this.gndNode = gnd
 
         this.anchorPoints = {
             "Vg": {x: 60, y: 0},
@@ -104,6 +107,34 @@ export class Mosfet extends CtxArtist{
             this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility)
             this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
+
+        this.boundingBox = [
+            new TectonicPoint(this.transformations, {x: -100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 0, y: -100}),
+            new TectonicPoint(this.transformations, {x: 0, y: 100}),
+        ]
+    }
+
+    copy(): Mosfet {
+        const newMosfet = new Mosfet(
+            [ref(new TransformationMatrix()) as Ref<TransformationMatrix>],
+            this.mosfetType,
+            0,
+            0,
+            this.Vg,
+            this.Vs,
+            this.Vd,
+            this.Vb,
+            this.gndNode,
+            undefined,
+            undefined,
+            (this.mosfetType == 'nmos') == (this.transformationMatrix.isMirrored),
+            undefined,
+            undefined,
+            "deviceOrigin"
+        )
+        return newMosfet
     }
 
     draw(ctx: CanvasRenderingContext2D) {

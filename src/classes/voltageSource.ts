@@ -6,6 +6,7 @@ import { ref, Ref } from 'vue'
 import { AngleSlider } from "./angleSlider"
 import { drawCirclesFillSolid, drawLinesFillSolid } from "../functions/drawFuncs"
 import { Node } from "./node"
+import { TectonicPoint } from "./tectonicPlate"
 
 export class VoltageSource extends CtxArtist{
     voltageDrop: AngleSlider
@@ -15,6 +16,7 @@ export class VoltageSource extends CtxArtist{
     current: number // in Amps
     fixedAt: 'gnd' | 'vdd'
     isDuplicate: boolean = false
+    boundingBox: TectonicPoint[]
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false) {
         super(parentTransformations, (new TransformationMatrix()).translate(origin).mirror(mirror, false).scale(1/30))
@@ -33,6 +35,26 @@ export class VoltageSource extends CtxArtist{
             "Vplus": {x: 0, y: -60},
             "Vminus": {x: 0, y: 60},
         }
+
+        this.boundingBox = [
+            new TectonicPoint(this.transformations, {x: -100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 0, y: -100}),
+            new TectonicPoint(this.transformations, {x: 0, y: 100}),
+        ]
+    }
+
+    copy(): VoltageSource {
+        const newVoltageSource = new VoltageSource(
+            [ref(new TransformationMatrix()) as Ref<TransformationMatrix>],
+            {x: 0, y: 0},
+            this.vminus,
+            this.vplus,
+            this.voltageDrop.displayText,
+            this.fixedAt,
+            (this.fixedAt == 'gnd') == (this.transformationMatrix.isMirrored) // has not been checked; may be wrong logic
+        )
+        return newVoltageSource
     }
 
     draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {

@@ -1,6 +1,6 @@
 import { Visibility, Point } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
-import { Ref } from 'vue'
+import { ref, Ref } from 'vue'
 import { toSiPrefix } from "../functions/toSiPrefix"
 import { getTickLabelList } from '../functions/getTickLabelList'
 import { drawLinesFillSolid } from "../functions/drawFuncs"
@@ -10,6 +10,7 @@ import { Node } from "./node"
 import { CtxSlider } from "./ctxSlider"
 import { drawGrid } from "../globalState"
 import { LRUCache } from 'lru-cache'
+import { TectonicPoint } from "./tectonicPlate"
 
 export class Chart extends CtxSlider{
     points: Point[]
@@ -50,7 +51,7 @@ export class Chart extends CtxSlider{
     yTicks: number[] = []
     xScale: number = 0
     yScale: number = 0
-
+    boundingBox: TectonicPoint[]
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
         const fromNode = gnd
@@ -92,6 +93,39 @@ export class Chart extends CtxSlider{
         this.originalMaxValue = maxValue
         this.temporaryMinValue = this.minValue
         this.temporaryMaxValue = this.maxValue
+
+        this.boundingBox = [
+            new TectonicPoint(this.transformations, {x: -100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 0, y: -100}),
+            new TectonicPoint(this.transformations, {x: 0, y: 100}),
+        ]
+    }
+
+    copy(): Chart {
+        const newChart = new Chart(
+            [ref(new TransformationMatrix()) as Ref<TransformationMatrix>],
+            this.mosfetType,
+            this.chartType,
+            0,
+            0,
+            this.Vg,
+            this.Vs,
+            this.Vd,
+            this.Vb,
+            this.fromNode, // gnd
+            this.maxValue,
+            this.xAxisLabel,
+            this.yAxisLabel,
+            this.xUnit,
+            this.yUnit,
+            this.xScaleType,
+            this.yScaleType,
+            this.width,
+            this.height,
+            this.visibility
+        )
+        return newChart
     }
 
     draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {
@@ -103,6 +137,8 @@ export class Chart extends CtxSlider{
         } else {
             this.transformationMatrix.transformCanvas(ctx)
         }
+
+        console.log("chart value: ", this.value)
 
         const axisLineThickness = this.localLineThickness / 2
         const tickLineThickness = this.localLineThickness / 4
