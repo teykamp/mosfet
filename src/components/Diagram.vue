@@ -49,20 +49,21 @@
         class="main"
       ></canvas>
 
-      <div :style="{
+      <div
+      :style="{
         display: 'flex',
         flexDirection: xs ? 'row' : 'column',
       }">
         <canvas
           ref="graphBarChartCanvas"
           @mousedown="checkDrag"
-          :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; visibility: ${showGraphBar ? 'visible' : 'hidden'}`"
+          :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
           class="chart"
         ></canvas>
         <canvas
           ref="graphBarMosfetCanvas"
           @mousedown="checkDrag"
-          :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; visibility: ${showGraphBar ? 'visible' : 'hidden'}`"
+          :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
           class="mosfet"
         ></canvas>
       </div>
@@ -258,7 +259,7 @@ const mouseUp = (event: MouseEvent) => {
           mosfet.selected.value = !mosfet.selected.value
         }
         mosfet.selectedFocus.value = true
-        circuit.value.setSelectedDevice(mosfet, graphBarMosfetCtx.value, graphBarChartCtx.value)
+        circuit.value.setSelectedDevice(mosfet)
       } else {
         mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
       }

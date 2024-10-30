@@ -89,6 +89,10 @@ export class Circuit extends CtxArtist {
         if (drawGrid.value) {
             this.drawGrid(ctx)
         }
+        if (graphBarMosfetCtx.canvas.width == 0 || graphBarMosfetCtx.canvas.height == 0 || graphBarChartCtx.canvas.width == 0 || graphBarChartCtx.canvas.height == 0) {
+            return
+        }
+
         if (this.selectedDevice) {
             this.selectedDevice.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarMosfetCtx, [
                     new TectonicPoint(this.transformations, {x: -130, y: 0}),
@@ -115,13 +119,7 @@ export class Circuit extends CtxArtist {
         ctx.restore()
     }
 
-    setSelectedDevice(device: Mosfet | VoltageSource, graphBarMosfetCtx: CanvasRenderingContext2D | null, graphBarChartCtx: CanvasRenderingContext2D | null) {
-        if (!graphBarMosfetCtx || !graphBarChartCtx) {
-            console.log("aborting setting selected device")
-            this.selectedDevice = null
-            return
-        }
-
+    setSelectedDevice(device: Mosfet | VoltageSource) {
         this.selectedDevice = device.copy('mosfet')
         this.selectedDevice.isDuplicate = true
 
