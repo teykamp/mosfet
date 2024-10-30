@@ -1,4 +1,4 @@
-import { Point, Visibility } from "../types"
+import { canvasId, Point, Visibility } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { between } from "../functions/extraMath"
@@ -16,6 +16,7 @@ export class CtxSlider extends CtxArtist{
     maxValue: number
     value: number // a number between minValue and maxValue
     drivenNode: 'fromNode' | 'toNode'
+    canvasId: canvasId
 
     preciseDragging: boolean = false
     temporaryMinValue: number
@@ -24,7 +25,7 @@ export class CtxSlider extends CtxArtist{
     valueRateOfChange: number = 0
 
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, visibility: Visibility = Visibility.Visible) {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, visibility: Visibility = Visibility.Visible, canvasId: canvasId = 'main') {
         super(parentTransformations, localTransformationMatrix)
 
         this.visibility = visibility
@@ -37,6 +38,7 @@ export class CtxSlider extends CtxArtist{
         this.temporaryMaxValue = maxValue
         this.previousValue = minValue
         this.drivenNode = drivenNode
+        this.canvasId = canvasId
     }
 
     draw(ctx: CanvasRenderingContext2D) {

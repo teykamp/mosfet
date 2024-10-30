@@ -1,4 +1,4 @@
-import { Point } from "../types"
+import { canvasId, Point } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { GLOBAL_LINE_THICKNESS } from "../constants"
 import { computed, ComputedRef, ref, Ref } from "vue"
@@ -8,12 +8,13 @@ export class CtxArtist {
     transformations: Ref<TransformationMatrix>[] = []
     anchorPoints: {[name: string]: Point} = {}
     _transformationMatrix: ComputedRef<TransformationMatrix>
+    canvasId: canvasId
 
     static textTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static circuitTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static allCtxArtists: CtxArtist[] = []
 
-    constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix()) {
+    constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), canvasId: canvasId = 'main') {
         // this.transformations: [ ref(topLevelTM), ref(circuitTM), ref(mosfetTM), ref(angleSliderTM), ref(thisTM) ]
         // if you change the last element of this.transformations[this.transformations.length - 1], it will propagate down to all children
         parentTransformations.forEach(transformation => {this.transformations.push(transformation)}) // make a shallow copy of the array
@@ -21,6 +22,7 @@ export class CtxArtist {
         this._transformationMatrix = computed(() => { return foldl<Ref<TransformationMatrix>, TransformationMatrix>((x, result) => result.multiply(x.value), new TransformationMatrix(), this.transformations) })
 
         CtxArtist.allCtxArtists.push(this)
+        this.canvasId = canvasId
     }
 
     get transformationMatrix(): TransformationMatrix {

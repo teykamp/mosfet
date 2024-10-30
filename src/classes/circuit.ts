@@ -122,11 +122,11 @@ export class Circuit extends CtxArtist {
             return
         }
 
-        this.selectedDevice = device.copy()
+        this.selectedDevice = device.copy('mosfet')
         this.selectedDevice.isDuplicate = true
 
         if (this.selectedDevice instanceof Mosfet) {
-            this.selectedDeviceCharts = [this.selectedDevice.vgsChart.copy(), this.selectedDevice.vdsChart.copy()]
+            this.selectedDeviceCharts = [this.selectedDevice.vgsChart.copy('chart'), this.selectedDevice.vdsChart.copy('chart')]
         } else {
             this.selectedDeviceCharts = []
         }

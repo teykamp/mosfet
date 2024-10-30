@@ -1,4 +1,4 @@
-import { Visibility, Point } from "../types"
+import { Visibility, Point, canvasId } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
 import { toSiPrefix } from "../functions/toSiPrefix"
@@ -53,12 +53,12 @@ export class Chart extends CtxSlider{
     yScale: number = 0
     boundingBox: TectonicPoint[]
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible, canvasId: canvasId = 'main') {
         const fromNode = gnd
         const toNode = chartType == 'Vgs' ? Vg : Vd
         const drivenNode: 'fromNode' | 'toNode' = 'toNode'
 
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, visibility)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, visibility, canvasId)
         if (this.transformationMatrix.isMirrored) {
             this.transformations[this.transformations.length - 1].value.mirror(true, false, true)
         }
@@ -102,7 +102,7 @@ export class Chart extends CtxSlider{
         ]
     }
 
-    copy(): Chart {
+    copy(canvasId: canvasId = 'main'): Chart {
         const newChart = new Chart(
             [ref(new TransformationMatrix()) as Ref<TransformationMatrix>],
             this.mosfetType,
@@ -123,7 +123,8 @@ export class Chart extends CtxSlider{
             this.yScaleType,
             this.width,
             this.height,
-            this.visibility
+            this.visibility,
+            canvasId
         )
         return newChart
     }
@@ -137,8 +138,6 @@ export class Chart extends CtxSlider{
         } else {
             this.transformationMatrix.transformCanvas(ctx)
         }
-
-        console.log("chart value: ", this.value)
 
         const axisLineThickness = this.localLineThickness / 2
         const tickLineThickness = this.localLineThickness / 4

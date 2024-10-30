@@ -1,4 +1,4 @@
-import { Visibility, SchematicEffect, Line, Point, Circle } from "../types"
+import { Visibility, SchematicEffect, Line, Point, Circle, canvasId } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { AngleSlider } from "./angleSlider"
@@ -47,8 +47,8 @@ export class Mosfet extends CtxArtist{
         "deviceOrigin": {x: 0, y: 0},
     }
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate") {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, mosfetType == 'pmos'))
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate", canvasId: canvasId = 'main') {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, mosfetType == 'pmos'), canvasId)
 
         this.mosfetType = mosfetType
         this.schematicEffects = {
@@ -94,17 +94,17 @@ export class Mosfet extends CtxArtist{
 
         // maybe can be condensed down to one case
         if (this.mosfetType == 'nmos') {
-            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility)
-            this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility)
+            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility, canvasId)
+            this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility, canvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility, canvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility, canvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         }
         else {
-            this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility)
-            this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility)
+            this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility, canvasId)
+            this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility, canvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility, canvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility, canvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
 
@@ -116,7 +116,7 @@ export class Mosfet extends CtxArtist{
         ]
     }
 
-    copy(): Mosfet {
+    copy(canvasId: canvasId = 'main'): Mosfet {
         const newMosfet = new Mosfet(
             [ref(new TransformationMatrix()) as Ref<TransformationMatrix>],
             this.mosfetType,
@@ -132,7 +132,8 @@ export class Mosfet extends CtxArtist{
             (this.mosfetType == 'nmos') == (this.transformationMatrix.isMirrored),
             undefined,
             undefined,
-            "deviceOrigin"
+            "deviceOrigin",
+            canvasId
         )
         return newMosfet
     }

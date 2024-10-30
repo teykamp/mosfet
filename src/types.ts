@@ -22,6 +22,8 @@ export enum RelativeDirection {
   Down,
 }
 
+export type canvasId = 'main' | 'mosfet' | 'chart'
+
 export type BoundingBox = {
   topLeft: TectonicPoint
   topRight: TectonicPoint
