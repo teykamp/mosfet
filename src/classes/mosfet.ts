@@ -12,7 +12,7 @@ import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
 import { Chart } from "./chart"
-import { vddVoltage } from "../constants"
+import { GLOBAL_LINE_THICKNESS, vddVoltage } from "../constants"
 
 export class Mosfet extends CtxArtist{
     mosfetType: 'nmos' | 'pmos'
@@ -41,7 +41,8 @@ export class Mosfet extends CtxArtist{
         "gate": {x: Mosfet.chartWidth / 2 + 120, y: 0},
         "voltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 0},
         "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 100},
-        "mirrorDriver": {x: Mosfet.chartWidth / 2 + 110, y: -this.chartHeight - 20}
+        "mirrorDriver": {x: Mosfet.chartWidth / 2 + 110, y: -this.chartHeight - 20},
+        "deviceOrigin": {x: 0, y: 0},
     }
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate") {
@@ -156,6 +157,7 @@ export class Mosfet extends CtxArtist{
         const forwardCurrentScaled = this.getForwardCurrentScaled()
         const gateColor = this.getGateColorFromForwardCurrent()
 
+        // const lineThickness = this.isDuplicate ? GLOBAL_LINE_THICKNESS : this.localLineThickness
         drawLinesFillSolid(ctx, bodyLines, this.localLineThickness, 'black')
         drawLinesFillSolid(ctx, gateLines, this.localLineThickness, gateColor)
         drawCirclesFillSolid(ctx, gateCircles, this.localLineThickness, gateColor)
@@ -183,7 +185,7 @@ export class Mosfet extends CtxArtist{
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
 
-        if (this.selected.value) {
+        if (this.selected.value && !this.isDuplicate) {
             this.vgsChart.draw(ctx)
             this.vdsChart.draw(ctx)
         }

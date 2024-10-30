@@ -22,6 +22,7 @@ export class Circuit extends CtxArtist {
       voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
     }
     selectedDevice: Mosfet | VoltageSource | null = null
+    selectedDeviceBoundingBox: TectonicPoint[] = []
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
     originalTextTransformationMatrix: TransformationMatrix
@@ -59,7 +60,7 @@ export class Circuit extends CtxArtist {
     draw(ctx: CanvasRenderingContext2D, graphBarMosfetCtx: CanvasRenderingContext2D, graphBarChartCtx: CanvasRenderingContext2D) {
         ctx.save()
 
-        this.setScaleBasedOnBoundingBox()
+        this.setScaleBasedOnBoundingBox(ctx)
         this.transformationMatrix.transformCanvas(ctx)
 
         // set static transformation matrices for the circuit
@@ -87,31 +88,48 @@ export class Circuit extends CtxArtist {
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
             voltageSource.draw(ctx)
         })
-        if (this.selectedDevice) {
-            this.selectedDevice.draw(graphBarMosfetCtx)
-        }
         if (drawGrid.value) {
             this.drawGrid(ctx)
+        }
+        if (this.selectedDevice) {
+            const tfs = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarMosfetCtx, this.selectedDeviceBoundingBox)
+
+            CtxArtist.textTransformationMatrix = (tfs[1].multiply(tfs[0])).scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
+            this.selectedDevice.transformations[0].value.relativeScale = CtxArtist.textTransformationMatrix.relativeScale * schematicScale
+
+            this.selectedDevice.draw(graphBarMosfetCtx)
+            if (this.selectedDevice instanceof Mosfet) {
+                this.selectedDevice.vgsChart.draw(graphBarChartCtx)
+                this.selectedDevice.vdsChart.draw(graphBarChartCtx)
+            }
+            // this.schematic.draw(graphBarMosfetCtx)
         }
 
         ctx.restore()
     }
 
-    setSelectedDevice(device: Mosfet | VoltageSource) {
-        // this.selectedDevice = device
-        // this.selectedDevice = JSON.parse(JSON.stringify(device))
-        // this.selectedDevice = structuredClone(device)
-        // if (device instanceof Mosfet) {
-        //     this.selectedDevice = {...device} as Mosfet // shallow copy
-        // } else if (device instanceof VoltageSource) {
-        //     this.selectedDevice = {...device} as VoltageSource // shallow copy
-        // } else {
-        //     console.log("Error assigning selected device to either Mosfet or VoltageSource object")
-        // }
+    setSelectedDevice(device: Mosfet | VoltageSource, canvasWidth: number | undefined, canvasHeight: number | undefined) {
+        if (!canvasWidth || !canvasHeight) {
+            console.log("aborting setting selected device")
+            this.selectedDevice = null
+            return
+        }
 
+        const deviceWidth = 16
+        const deviceHeight = 16
+        const scale = Math.min(canvasWidth / deviceWidth, canvasHeight / deviceHeight)
+
+        this.selectedDeviceBoundingBox = [
+            new TectonicPoint(device.transformations, {x: -100, y: 0}),
+            new TectonicPoint(device.transformations, {x: 100, y: 0}),
+            new TectonicPoint(device.transformations, {x: 0, y: -100}),
+            new TectonicPoint(device.transformations, {x: 0, y: 100}),
+        ]
+
+        // replace with .copy() methods on Mosfet and VoltageSource classes
         if (device instanceof Mosfet) {
             this.selectedDevice = new Mosfet(
-                [ref((new TransformationMatrix()).translate({x: 100, y: 100}).scale(60)) as Ref<TransformationMatrix>],
+                [ref((new TransformationMatrix()).translate({x: canvasWidth / 2, y: canvasHeight / 2}).scale(scale)) as Ref<TransformationMatrix>],
                 device.mosfetType,
                 0,
                 0,
@@ -120,10 +138,17 @@ export class Circuit extends CtxArtist {
                 device.Vd,
                 device.Vb,
                 this.nodes[gndNodeId],
+                undefined,
+                undefined,
+                (device.mosfetType == 'nmos') == (device.transformationMatrix.isMirrored),
+                undefined,
+                undefined,
+                "deviceOrigin"
+
             )
         } else if (device instanceof VoltageSource) {
             this.selectedDevice = new VoltageSource(
-                [ref((new TransformationMatrix()).translate({x: 100, y: 100}).scale(30)) as Ref<TransformationMatrix>],
+                [ref((new TransformationMatrix()).translate({x: 100, y: 100}).scale(scale)) as Ref<TransformationMatrix>],
                 {x: 0, y: 0},
                 device.vminus,
                 device.vplus,
@@ -140,7 +165,7 @@ export class Circuit extends CtxArtist {
     }
 
     resetSelectedDevice() {
-        this.selectedDevice = null // may need to delete selectedDevice instead of just setting it to null, to free up memory
+        this.selectedDevice = null
     }
 
     makeListOfSliders(): CtxSlider[] {
@@ -191,21 +216,28 @@ export class Circuit extends CtxArtist {
         drawCirclesFillSolid(ctx, this.boundingBox.map((point: TectonicPoint) => {return {center: point.toPoint(), outerDiameter: 2}}), 0.2, "purple")
     }
 
-    setScaleBasedOnBoundingBox() {
-        const left =   Math.min(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().x))
-        const right =  Math.max(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().x))
-        const top =    Math.min(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().y))
-        const bottom = Math.max(...this.boundingBox.map((point: TectonicPoint) => point.toPoint().y))
+    calculateTransformationMatrixBasedOnBoundingBox(ctx: CanvasRenderingContext2D, boundingBox: TectonicPoint[] = this.boundingBox): TransformationMatrix[] {
+        const left =   Math.min(...boundingBox.map((point: TectonicPoint) => point.toPoint().x))
+        const right =  Math.max(...boundingBox.map((point: TectonicPoint) => point.toPoint().x))
+        const top =    Math.min(...boundingBox.map((point: TectonicPoint) => point.toPoint().y))
+        const bottom = Math.max(...boundingBox.map((point: TectonicPoint) => point.toPoint().y))
 
         const height = Math.abs(top - bottom)
         const width = Math.abs(right - left)
         const origin = {x: left + width / 2, y: top + height / 2}
 
-        const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height)
-        const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2}
+        const scale = Math.min((ctx.canvas.width / canvasDpi.value) / width, (ctx.canvas.height / canvasDpi.value) / height)
+        const extraShift = {x: ((ctx.canvas.width / canvasDpi.value) / scale - width) / 2, y: ((ctx.canvas.height / canvasDpi.value) / scale - height) / 2}
 
-        this.transformations[0].value = (new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift)
-        this.transformations[1].value = (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2})
+        const newTransformationMatrix1 = (new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift)
+        const newTransformationMatrix2 = (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2})
+        return [newTransformationMatrix1, newTransformationMatrix2]
+    }
+
+    setScaleBasedOnBoundingBox(ctx: CanvasRenderingContext2D) {
+        const tfs = this.calculateTransformationMatrixBasedOnBoundingBox(ctx)
+        this.transformations[0].value = tfs[0]
+        this.transformations[1].value = tfs[1]
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
     }
 }
