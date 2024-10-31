@@ -32,19 +32,17 @@ export class Schematic extends CtxArtist{
         const transformations = [ref(new TransformationMatrix()) as Ref<TransformationMatrix>, ref(new TransformationMatrix()) as Ref<TransformationMatrix>]
         const newSchematic = new Schematic(
             transformations,
-            [],
-            [],
-            // this.gndSymbols.map(symbol => symbol.copy(transformations)),
-            // this.vddSymbols.map(symbol => symbol.copy(transformations)),
+            // this.gndSymbols,
+            // this.vddSymbols,
+            this.gndSymbols.map(symbol => symbol.copy(transformations)),
+            this.vddSymbols.map(symbol => symbol.copy(transformations)),
             [], // ignore the parasitic capacitors
             this.mosfets,
             this.nodes,
             this.wires
         )
-        newSchematic.gndSymbols = this.gndSymbols.map(symbol => symbol.copy(newSchematic.transformations)),
-        newSchematic.vddSymbols = this.vddSymbols.map(symbol => symbol.copy(newSchematic.transformations)),
 
-        newSchematic.wires.forEach((wire: Wire) => {wire.voltageDisplayLocations = []})
+        // newSchematic.wires.forEach((wire: Wire) => {wire.voltageDisplayLocations = []})
         return newSchematic
     }
 
