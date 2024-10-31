@@ -2,7 +2,7 @@ import { FlattenedSchematicEffect, Point, SchematicEffect, Wire } from "../types
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ParasiticCapacitor } from "./parasiticCapacitor"
-import { ref, Ref } from "vue"
+import { Ref } from "vue"
 import { drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } from "../functions/drawFuncs"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
@@ -28,21 +28,15 @@ export class Schematic extends CtxArtist{
         this.wires = wires
     }
 
-    copy(): Schematic {
-        const transformations = [ref(new TransformationMatrix()) as Ref<TransformationMatrix>, ref(new TransformationMatrix()) as Ref<TransformationMatrix>]
+    copy(parentTransformation: Ref<TransformationMatrix>): Schematic {
         const newSchematic = new Schematic(
-            transformations,
-            // this.gndSymbols,
-            // this.vddSymbols,
-            this.gndSymbols.map(symbol => symbol.copy(transformations)),
-            this.vddSymbols.map(symbol => symbol.copy(transformations)),
+            [parentTransformation].concat(this.transformations),
+            this.gndSymbols.map(symbol => symbol.copy(parentTransformation)),
+            this.vddSymbols.map(symbol => symbol.copy(parentTransformation)),
             [], // ignore the parasitic capacitors
             this.mosfets,
             this.nodes,
-            // node: Ref<Node>,
-            // lines: TectonicLine[],
-            // voltageDisplayLabel: string,
-            // voltageDisplayLocations: TectonicPoint[],
+            // ignore the labels on wires
             this.wires.map((wire: Wire) => {return {node: wire.node, lines: wire.lines, voltageDisplayLabel: "", voltageDisplayLocations: []}})
         )
 

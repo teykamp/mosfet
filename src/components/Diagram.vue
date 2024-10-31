@@ -119,26 +119,6 @@ const computedCanvasLayout = computed(() => {
     height: (screenHeight.value - padding) / 2
   }
 
-  // const graphBarChartCanvas = xs.value ?
-  // {
-  //   width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
-  //   height: showGraphBar.value ? bottomGraphHeight : 0
-  // } :
-  // {
-  //   width: showGraphBar.value ? sideGraphWidth : 0,
-  //   height: showGraphBar.value ? (screenHeight.value - padding) / 2 : 0
-  // }
-
-  // const graphBarMosfetCanvas = xs.value ?
-  // {
-  //   width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
-  //   height: showGraphBar.value ? bottomGraphHeight : 0
-  // } :
-  // {
-  //   width: showGraphBar.value ? sideGraphWidth : 0,
-  //   height: showGraphBar.value ? (screenHeight.value - padding) / 2 : 0
-  // }
-
   return {
     mainCanvas,
     graphBarChartCanvas,
@@ -294,7 +274,8 @@ const draw = () => {
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
 
   updateSlidersBasedOnNodeVoltages()
-  circuit.value.draw(ctx.value as CanvasRenderingContext2D, graphBarMosfetCtx.value as CanvasRenderingContext2D, graphBarChartCtx.value as CanvasRenderingContext2D)
+  circuit.value.draw(ctx.value as CanvasRenderingContext2D)
+  // circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
 }
 
 const animate = (timestamp: number) => {

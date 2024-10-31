@@ -23,13 +23,9 @@ export class GndSymbol extends CtxArtist{
         ctx.stroke()
     }
 
-    copy(parentTransformations: Ref<TransformationMatrix>[] | undefined): GndSymbol {
-        let newTransformations: Ref<TransformationMatrix>[] = parentTransformations ? parentTransformations : []
-        for (let i = 2; i <= this.transformations.length - 1; i++) {
-            newTransformations = newTransformations.concat(this.transformations[i])
-        }
+    copy(parentTransformation: Ref<TransformationMatrix>): GndSymbol {
         const newGndSymbol = new GndSymbol(
-            newTransformations,
+            [parentTransformation].concat(this.transformations),
             {x: 0, y: 0}
         )
         return newGndSymbol
@@ -53,13 +49,9 @@ export class VddSymbol extends CtxArtist{
         ctx.stroke()
     }
 
-    copy(parentTransformations: Ref<TransformationMatrix>[] | undefined): VddSymbol {
-        let newTransformations: Ref<TransformationMatrix>[] = parentTransformations ? parentTransformations : []
-        for (let i = 2; i <= this.transformations.length - 1; i++) {
-            newTransformations = newTransformations.concat(this.transformations[i])
-        }
+    copy(parentTransformation: Ref<TransformationMatrix>): VddSymbol {
         const newVddSymbol = new VddSymbol(
-            newTransformations,
+            [parentTransformation].concat(this.transformations),
             {x: 0, y: 0}
         )
         return newVddSymbol

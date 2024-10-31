@@ -30,6 +30,7 @@ export class Circuit extends CtxArtist {
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
     originalTextTransformationMatrix: TransformationMatrix
+    circuitCopy: CircuitCopy | null
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height)
@@ -52,6 +53,8 @@ export class Circuit extends CtxArtist {
         this.originalTextTransformationMatrix = textTransformationMatrix
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
+        this.circuitCopy = this.copy(ref(new TransformationMatrix()) as Ref<TransformationMatrix>) // make a copy of self
+
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
@@ -61,7 +64,22 @@ export class Circuit extends CtxArtist {
         return this.makeListOfSliders()
     }
 
-    draw(ctx: CanvasRenderingContext2D, graphBarMosfetCtx: CanvasRenderingContext2D, graphBarChartCtx: CanvasRenderingContext2D) {
+    copy(parentTransformation: Ref<TransformationMatrix>): CircuitCopy | null {
+        const newCircuit = new CircuitCopy(
+            {x: 0, y: 0},
+            1,
+            1,
+            this.schematic.copy(parentTransformation),
+            Object.fromEntries(Object.entries(this.devices.mosfets).map(([name, mosfet]: [string, Mosfet]) => [name, mosfet.copy(parentTransformation, 'mosfet')])),
+            Object.fromEntries(Object.entries(this.devices.voltageSources).map(([name, voltageSource]: [string, VoltageSource]) => [name, voltageSource.copy(parentTransformation, 'mosfet')])),
+            this.nodes,
+            this.textTransformationMatrix
+        )
+        newCircuit.transformations[0] = parentTransformation
+        return newCircuit
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
         ctx.save()
 
         this.setScaleBasedOnBoundingBox(ctx)
@@ -81,6 +99,7 @@ export class Circuit extends CtxArtist {
             TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardLocation({x: 0, y: 0})})
         }
 
+        console.log(this.schematic)
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
             mosfet.draw(ctx)
@@ -91,53 +110,11 @@ export class Circuit extends CtxArtist {
         if (drawGrid.value) {
             this.drawGrid(ctx)
         }
-        if (graphBarMosfetCtx.canvas.width == 0 || graphBarMosfetCtx.canvas.height == 0 || graphBarChartCtx.canvas.width == 0 || graphBarChartCtx.canvas.height == 0) {
-            return
-        }
-
-        // if (this.selectedDevice) {
-        //     this.selectedDevice.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarMosfetCtx, [
-        //             new TectonicPoint(this.transformations, {x: -130, y: 0}),
-        //             new TectonicPoint(this.transformations, {x: 130, y: 0}),
-        //             new TectonicPoint(this.transformations, {x: 0, y: -100}),
-        //             new TectonicPoint(this.transformations, {x: 0, y: 100}),
-        //     ]).scale(schematicScale)
-        //     CtxArtist.textTransformationMatrix.relativeScale = this.selectedDevice.transformationMatrix.relativeScale
-        //     this.selectedDevice.draw(graphBarMosfetCtx)
-
-        //     if (this.selectedSchematic) {
-        //         this.selectedSchematic.transformations[0].value = this.selectedDevice.transformations[0].value as TransformationMatrix
-        //         this.selectedSchematic.transformations[1].value.translation = {x: -this.selectedSchematicOrigin.toPoint().x, y: -this.selectedSchematicOrigin.toPoint().y}
-        //         this.selectedSchematic.draw(graphBarMosfetCtx)
-        //     }
-
-        //     this.selectedDeviceCharts.forEach((chart: Chart) => {
-        //         chart.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarChartCtx, [
-        //             new TectonicPoint(this.transformations, {x: -150, y: 0}),
-        //             new TectonicPoint(this.transformations, {x: 150, y: 0}),
-        //             new TectonicPoint(this.transformations, {x: 0, y: -150}),
-        //             new TectonicPoint(this.transformations, {x: 0, y: 150}),
-        //         ])
-        //         CtxArtist.textTransformationMatrix.relativeScale = chart.transformationMatrix.relativeScale
-        //         chart.draw(graphBarChartCtx)
-        //     })
-        // }
-
         ctx.restore()
     }
 
     setSelectedDevice(device: Mosfet | VoltageSource) {
-        this.selectedDevice = device.copy('mosfet')
-        this.selectedDevice.isDuplicate = true
 
-        if (this.selectedDevice instanceof Mosfet) {
-            this.selectedDeviceCharts = [this.selectedDevice.vgsChart.copy('chart'), this.selectedDevice.vdsChart.copy('chart')]
-        } else {
-            this.selectedDeviceCharts = []
-        }
-
-        this.selectedSchematic = this.schematic.copy()
-        this.selectedSchematicOrigin = new TectonicPoint(device.transformations, {x: 0, y: 0})
     }
 
     resetSelectedDevice() {
@@ -219,5 +196,11 @@ export class Circuit extends CtxArtist {
         // set static transformation matrices for the circuit
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
+    }
+}
+
+class CircuitCopy extends Circuit {
+    override copy(): CircuitCopy | null {
+        return null
     }
 }

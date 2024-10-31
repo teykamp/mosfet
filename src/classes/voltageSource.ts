@@ -44,9 +44,9 @@ export class VoltageSource extends CtxArtist{
         ]
     }
 
-    copy(canvasId: canvasId = 'main'): VoltageSource {
+    copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): VoltageSource {
         const newVoltageSource = new VoltageSource(
-            [ref(new TransformationMatrix()) as Ref<TransformationMatrix>],
+            [parentTransformation].concat(this.transformations),
             {x: 0, y: 0},
             this.vminus,
             this.vplus,
