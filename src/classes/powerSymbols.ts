@@ -27,12 +27,13 @@ export class GndSymbol extends CtxArtist{
         console.log("logging")
         console.log(this.transformations.map(m => m.value.matrix.values))
         let newTransformations: Ref<TransformationMatrix>[] = parentTransformations ? parentTransformations : []
-        for (let i = this.transformations.length - 1; i >= 3; i--) {
+        for (let i = 2; i <= this.transformations.length - 1; i++) {
             newTransformations = newTransformations.concat(this.transformations[i])
         }
         const newGndSymbol = new GndSymbol(
             newTransformations,
-            this.transformations[this.transformations.length - 1].value.translation
+            {x: 0, y: 0}
+            // this.transformations[this.transformations.length - 1].value.translation
         )
         return newGndSymbol
     }
@@ -57,12 +58,13 @@ export class VddSymbol extends CtxArtist{
 
     copy(parentTransformations: Ref<TransformationMatrix>[] | undefined): VddSymbol {
         let newTransformations: Ref<TransformationMatrix>[] = parentTransformations ? parentTransformations : []
-        for (let i = this.transformations.length - 1; i >= 3; i--) {
+        for (let i = 2; i <= this.transformations.length - 1; i++) {
             newTransformations = newTransformations.concat(this.transformations[i])
         }
         const newVddSymbol = new VddSymbol(
             newTransformations,
-            this.transformations[this.transformations.length - 1].value.translation
+            {x: 0, y: 0}
+            // this.transformations[this.transformations.length - 1].value.translation
         )
         return newVddSymbol
     }
