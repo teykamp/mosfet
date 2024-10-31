@@ -2,7 +2,7 @@ import { FlattenedSchematicEffect, Point, SchematicEffect, Wire } from "../types
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ParasiticCapacitor } from "./parasiticCapacitor"
-import { Ref } from "vue"
+import { ref, Ref } from "vue"
 import { drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } from "../functions/drawFuncs"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
@@ -26,6 +26,26 @@ export class Schematic extends CtxArtist{
         this.mosfets = mosfets
         this.nodes = nodes
         this.wires = wires
+    }
+
+    copy(): Schematic {
+        const transformations = [ref(new TransformationMatrix()) as Ref<TransformationMatrix>, ref(new TransformationMatrix()) as Ref<TransformationMatrix>]
+        const newSchematic = new Schematic(
+            transformations,
+            [],
+            [],
+            // this.gndSymbols.map(symbol => symbol.copy(transformations)),
+            // this.vddSymbols.map(symbol => symbol.copy(transformations)),
+            [], // ignore the parasitic capacitors
+            this.mosfets,
+            this.nodes,
+            this.wires
+        )
+        newSchematic.gndSymbols = this.gndSymbols.map(symbol => symbol.copy(newSchematic.transformations)),
+        newSchematic.vddSymbols = this.vddSymbols.map(symbol => symbol.copy(newSchematic.transformations)),
+
+        newSchematic.wires.forEach((wire: Wire) => {wire.voltageDisplayLocations = []})
+        return newSchematic
     }
 
     draw(ctx: CanvasRenderingContext2D) {

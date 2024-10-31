@@ -25,6 +25,8 @@ export class Circuit extends CtxArtist {
     selectedDevice: Mosfet | VoltageSource | null = null
     selectedDeviceBoundingBox: TectonicPoint[] = []
     selectedDeviceCharts: Chart[] = []
+    selectedSchematic: Schematic | null = null
+    selectedSchematicOrigin: TectonicPoint = new TectonicPoint([], {x: 0, y: 0})
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
     originalTextTransformationMatrix: TransformationMatrix
@@ -103,6 +105,13 @@ export class Circuit extends CtxArtist {
             CtxArtist.textTransformationMatrix.relativeScale = this.selectedDevice.transformationMatrix.relativeScale
             this.selectedDevice.draw(graphBarMosfetCtx)
 
+            if (this.selectedSchematic) {
+                console.log(this.selectedSchematicOrigin.toPoint())
+                this.selectedSchematic.transformations[0].value = this.selectedDevice.transformations[0].value as TransformationMatrix
+                this.selectedSchematic.transformations[1].value.translation = {x: -this.selectedSchematicOrigin.toPoint().x, y: -this.selectedSchematicOrigin.toPoint().y}
+                this.selectedSchematic.draw(graphBarMosfetCtx)
+            }
+
             this.selectedDeviceCharts.forEach((chart: Chart) => {
                 chart.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarChartCtx, [
                     new TectonicPoint(this.transformations, {x: -150, y: 0}),
@@ -113,7 +122,6 @@ export class Circuit extends CtxArtist {
                 CtxArtist.textTransformationMatrix.relativeScale = chart.transformationMatrix.relativeScale
                 chart.draw(graphBarChartCtx)
             })
-            // this.schematic.draw(graphBarMosfetCtx)
         }
 
         ctx.restore()
@@ -128,10 +136,15 @@ export class Circuit extends CtxArtist {
         } else {
             this.selectedDeviceCharts = []
         }
+
+        this.selectedSchematic = this.schematic.copy()
+        this.selectedSchematicOrigin = new TectonicPoint(device.transformations, {x: 0, y: 0})
     }
 
     resetSelectedDevice() {
         this.selectedDevice = null
+        this.selectedDeviceCharts = []
+        this.selectedSchematic = null
     }
 
     makeListOfSliders(): CtxSlider[] {
