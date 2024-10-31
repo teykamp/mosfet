@@ -45,7 +45,7 @@
       <canvas
         ref="canvas"
         @mousedown="checkDrag"
-        :style="`width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
+        :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
         class="main"
       ></canvas>
 
@@ -57,13 +57,13 @@
         <canvas
           ref="graphBarChartCanvas"
           @mousedown="checkDrag"
-          :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
           class="chart"
         ></canvas>
         <canvas
           ref="graphBarMosfetCanvas"
           @mousedown="checkDrag"
-          :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
           class="mosfet"
         ></canvas>
       </div>
@@ -88,8 +88,6 @@ const computedCanvasLayout = computed(() => {
   const padding = 30
   const bottomGraphHeight = screenHeight.value / 4
   const sideGraphWidth = screenWidth.value / 4
-
-  console.log(showGraphBar.value)
 
   const mainCanvas = xs.value ?
   {
@@ -209,8 +207,6 @@ const anySlidersDragging = (): boolean => {
 }
 
 const checkDrag = (event: MouseEvent) => {
-  console.log(event.target)
-  console.log((event.target as HTMLElement).className)
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {

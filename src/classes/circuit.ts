@@ -106,7 +106,6 @@ export class Circuit extends CtxArtist {
             this.selectedDevice.draw(graphBarMosfetCtx)
 
             if (this.selectedSchematic) {
-                console.log(this.selectedSchematicOrigin.toPoint())
                 this.selectedSchematic.transformations[0].value = this.selectedDevice.transformations[0].value as TransformationMatrix
                 this.selectedSchematic.transformations[1].value.translation = {x: -this.selectedSchematicOrigin.toPoint().x, y: -this.selectedSchematicOrigin.toPoint().y}
                 this.selectedSchematic.draw(graphBarMosfetCtx)

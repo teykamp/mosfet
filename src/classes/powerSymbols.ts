@@ -1,7 +1,7 @@
 import { Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
-import { ref, Ref } from "vue"
+import { Ref } from "vue"
 
 export class GndSymbol extends CtxArtist{
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], origin: Point) {
@@ -24,8 +24,6 @@ export class GndSymbol extends CtxArtist{
     }
 
     copy(parentTransformations: Ref<TransformationMatrix>[] | undefined): GndSymbol {
-        console.log("logging")
-        console.log(this.transformations.map(m => m.value.matrix.values))
         let newTransformations: Ref<TransformationMatrix>[] = parentTransformations ? parentTransformations : []
         for (let i = 2; i <= this.transformations.length - 1; i++) {
             newTransformations = newTransformations.concat(this.transformations[i])
@@ -33,7 +31,6 @@ export class GndSymbol extends CtxArtist{
         const newGndSymbol = new GndSymbol(
             newTransformations,
             {x: 0, y: 0}
-            // this.transformations[this.transformations.length - 1].value.translation
         )
         return newGndSymbol
     }
@@ -64,7 +61,6 @@ export class VddSymbol extends CtxArtist{
         const newVddSymbol = new VddSymbol(
             newTransformations,
             {x: 0, y: 0}
-            // this.transformations[this.transformations.length - 1].value.translation
         )
         return newVddSymbol
     }

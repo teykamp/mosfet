@@ -39,7 +39,11 @@ export class Schematic extends CtxArtist{
             [], // ignore the parasitic capacitors
             this.mosfets,
             this.nodes,
-            this.wires
+            // node: Ref<Node>,
+            // lines: TectonicLine[],
+            // voltageDisplayLabel: string,
+            // voltageDisplayLocations: TectonicPoint[],
+            this.wires.map((wire: Wire) => {return {node: wire.node, lines: wire.lines, voltageDisplayLabel: "", voltageDisplayLocations: []}})
         )
 
         // newSchematic.wires.forEach((wire: Wire) => {wire.voltageDisplayLocations = []})
