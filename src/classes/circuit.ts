@@ -95,33 +95,33 @@ export class Circuit extends CtxArtist {
             return
         }
 
-        if (this.selectedDevice) {
-            this.selectedDevice.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarMosfetCtx, [
-                    new TectonicPoint(this.transformations, {x: -130, y: 0}),
-                    new TectonicPoint(this.transformations, {x: 130, y: 0}),
-                    new TectonicPoint(this.transformations, {x: 0, y: -100}),
-                    new TectonicPoint(this.transformations, {x: 0, y: 100}),
-            ]).scale(schematicScale)
-            CtxArtist.textTransformationMatrix.relativeScale = this.selectedDevice.transformationMatrix.relativeScale
-            this.selectedDevice.draw(graphBarMosfetCtx)
+        // if (this.selectedDevice) {
+        //     this.selectedDevice.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarMosfetCtx, [
+        //             new TectonicPoint(this.transformations, {x: -130, y: 0}),
+        //             new TectonicPoint(this.transformations, {x: 130, y: 0}),
+        //             new TectonicPoint(this.transformations, {x: 0, y: -100}),
+        //             new TectonicPoint(this.transformations, {x: 0, y: 100}),
+        //     ]).scale(schematicScale)
+        //     CtxArtist.textTransformationMatrix.relativeScale = this.selectedDevice.transformationMatrix.relativeScale
+        //     this.selectedDevice.draw(graphBarMosfetCtx)
 
-            if (this.selectedSchematic) {
-                this.selectedSchematic.transformations[0].value = this.selectedDevice.transformations[0].value as TransformationMatrix
-                this.selectedSchematic.transformations[1].value.translation = {x: -this.selectedSchematicOrigin.toPoint().x, y: -this.selectedSchematicOrigin.toPoint().y}
-                this.selectedSchematic.draw(graphBarMosfetCtx)
-            }
+        //     if (this.selectedSchematic) {
+        //         this.selectedSchematic.transformations[0].value = this.selectedDevice.transformations[0].value as TransformationMatrix
+        //         this.selectedSchematic.transformations[1].value.translation = {x: -this.selectedSchematicOrigin.toPoint().x, y: -this.selectedSchematicOrigin.toPoint().y}
+        //         this.selectedSchematic.draw(graphBarMosfetCtx)
+        //     }
 
-            this.selectedDeviceCharts.forEach((chart: Chart) => {
-                chart.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarChartCtx, [
-                    new TectonicPoint(this.transformations, {x: -150, y: 0}),
-                    new TectonicPoint(this.transformations, {x: 150, y: 0}),
-                    new TectonicPoint(this.transformations, {x: 0, y: -150}),
-                    new TectonicPoint(this.transformations, {x: 0, y: 150}),
-                ])
-                CtxArtist.textTransformationMatrix.relativeScale = chart.transformationMatrix.relativeScale
-                chart.draw(graphBarChartCtx)
-            })
-        }
+        //     this.selectedDeviceCharts.forEach((chart: Chart) => {
+        //         chart.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(graphBarChartCtx, [
+        //             new TectonicPoint(this.transformations, {x: -150, y: 0}),
+        //             new TectonicPoint(this.transformations, {x: 150, y: 0}),
+        //             new TectonicPoint(this.transformations, {x: 0, y: -150}),
+        //             new TectonicPoint(this.transformations, {x: 0, y: 150}),
+        //         ])
+        //         CtxArtist.textTransformationMatrix.relativeScale = chart.transformationMatrix.relativeScale
+        //         chart.draw(graphBarChartCtx)
+        //     })
+        // }
 
         ctx.restore()
     }
