@@ -108,7 +108,7 @@ const useNmosSingle = () => {
         ]
     )
 
-    circuit.circuitCopy = circuit.copy()
+    circuit.finishSetup()
     return circuit
 }
 export default useNmosSingle

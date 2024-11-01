@@ -1,4 +1,4 @@
-import { Point } from "../types"
+import { Point, Visibility } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
@@ -14,6 +14,7 @@ import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
+import { AngleSlider } from "./angleSlider"
 
 export class Circuit extends CtxArtist {
     boundingBox: TectonicPoint[]
@@ -53,14 +54,22 @@ export class Circuit extends CtxArtist {
         this.originalTextTransformationMatrix = textTransformationMatrix
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
-        this.circuitCopy = this.copy() // make a copy of self
-        if (this.circuitCopy) { // will not be executed on the copy itself
-            this.allSliders
-        }
+        this.circuitCopy = this.copy()
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
+    }
+
+    assignKeysToDevices() {
+        Object.entries(this.devices.mosfets).forEach(([key, mosfet]: [string, Mosfet]) => {mosfet.key = key})
+        Object.entries(this.devices.voltageSources).forEach(([key, voltageSource]: [string, VoltageSource]) => {voltageSource.key = key})
+    }
+
+    finishSetup() {
+        this.assignKeysToDevices()
+        this.circuitCopy = this.copy()
+        this.circuitCopy?.assignKeysToDevices()
     }
 
     get allSliders(): CtxSlider[] {
@@ -126,12 +135,41 @@ export class Circuit extends CtxArtist {
             new TectonicPoint(device.transformations, {x: 0, y: -100}),
             new TectonicPoint(device.transformations, {x: 0, y: 100}),
         ]
+
+        if (!this.circuitCopy) {
+            return
+        }
+
+        if (device instanceof Mosfet) {
+            const mosfet = this.circuitCopy.devices.mosfets[device.key]
+            mosfet.vgs.visibility = device.vgs.visibility
+            mosfet.vds.visibility = device.vds.visibility
+            mosfet.vgsChart.visibility = device.vgsChart.visibility
+            mosfet.vdsChart.visibility = device.vdsChart.visibility
+        } else if (device instanceof VoltageSource) {
+            const voltageSource = this.circuitCopy.devices.voltageSources[device.key]
+            voltageSource.voltageDrop.visibility = device.voltageDrop.visibility
+        }
     }
 
     resetSelectedDevice() {
         this.selectedDevice = null
         this.selectedDeviceCharts = []
         this.selectedSchematic = null
+
+        if (!this.circuitCopy) {
+            return
+        }
+        this.circuitCopy.allSliders.forEach((slider: CtxSlider) => {slider.visibility = Visibility.Hidden})
+        // Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
+        //     mosfet.vgs.visibility = Visibility.Hidden
+        //     mosfet.vds.visibility = Visibility.Hidden
+        //     mosfet.vgsChart.visibility = Visibility.Hidden
+        //     mosfet.vdsChart.visibility = Visibility.Hidden
+        // })
+        // Object.values(this.circuitCopy.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
+        //     voltageSource.voltageDrop.visibility = Visibility.Hidden
+        // })
     }
 
     makeListOfSliders(): CtxSlider[] {

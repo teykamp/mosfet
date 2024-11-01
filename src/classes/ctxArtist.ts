@@ -9,6 +9,7 @@ export class CtxArtist {
     anchorPoints: {[name: string]: Point} = {}
     _transformationMatrix: ComputedRef<TransformationMatrix>
     canvasId: canvasId
+    key: string = ""
 
     static textTransformationMatrix: TransformationMatrix = new TransformationMatrix()
     static circuitTransformationMatrix: TransformationMatrix = new TransformationMatrix()

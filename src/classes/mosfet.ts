@@ -135,8 +135,8 @@ export class Mosfet extends CtxArtist{
             undefined,
             undefined,
             (this.mosfetType == 'nmos') == (this.transformationMatrix.isMirrored),
-            undefined,
-            undefined,
+            this.vgs.visibility,
+            this.vds.visibility,
             "deviceOrigin",
             canvasId
         )
