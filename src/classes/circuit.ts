@@ -33,8 +33,8 @@ export class Circuit extends CtxArtist {
     circuitCopy: CircuitCopy | null
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
-        const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height)
-        const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2}
+        // const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height) // TODO: Can probably delete, since this gets set elsewhere
+        // const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2} // TODO: Can probably delete, since this gets set elsewhere
         super([ref((new TransformationMatrix())/*.scale(canvasDpi.value * scale).translate(extraShift)*/) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
 
         this.boundingBox = [
@@ -54,6 +54,9 @@ export class Circuit extends CtxArtist {
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
         this.circuitCopy = this.copy() // make a copy of self
+        if (this.circuitCopy) { // will not be executed on the copy itself
+            this.allSliders
+        }
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
@@ -153,11 +156,15 @@ export class Circuit extends CtxArtist {
         if (this.selectedDevice instanceof VoltageSource) {
             allSliders.push(this.selectedDevice.voltageDrop)
         }
-        return allSliders
+        if (this.circuitCopy) {
+            return allSliders.concat(this.circuitCopy.allSliders)
+        } else {
+            return allSliders
+        }
     }
 
     drawGrid(ctx: CanvasRenderingContext2D) {
-        CtxArtist.circuitTransformationMatrix.transformCanvas(ctx)
+        this.transformationMatrix.transformCanvas(ctx)
         const topLeftCornerOfCanvasInLocalReferenceFrame = this.transformationMatrix.inverse().transformPoint({x: 0, y: 0})
         const bottomRightCornerOfCanvasInLocalReferenceFrame = this.transformationMatrix.inverse().transformPoint({ x: canvasSize.value.width * canvasDpi.value, y: canvasSize.value.height * canvasDpi.value})
         for (let xPosition = Math.floor(topLeftCornerOfCanvasInLocalReferenceFrame.x); xPosition <= Math.ceil(bottomRightCornerOfCanvasInLocalReferenceFrame.x); xPosition += 1) {
@@ -207,10 +214,6 @@ export class Circuit extends CtxArtist {
         // set static transformation matrices for the circuit
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
-        console.log("original")
-        console.log(this.transformations.map(tf => tf.value.matrix.values))
-        console.log(this.devices.mosfets["M1"].transformations.map(tf => tf.value.matrix.values))
-        console.log(this)
     }
 }
 
@@ -219,14 +222,6 @@ class CircuitCopy extends Circuit {
         return null
     }
     override setCtxArtistScale() {
-        // this.transformations[1].value = this.transformations[0].value.inverse()//.translate({x: 5000, y: 5000})
-        // // // // this.transformations[0].value = this.devices.mosfets["M1"].transformations[1].value.inverse().multiply(this.transformations[0].value)
-        // this.devices.mosfets["M1"].transformations[2].value = this.devices.mosfets["M1"].transformations[1].value.inverse()
-        // this.transformations[0].value = this.transformations[0].value.multiply(this.devices.mosfets["M1"].transformations[1].value.inverse())
-        console.log("----------------------")
-        console.log(this.devices.mosfets["M1"].transformations[1].value.matrix.values)
-        console.log(this.transformations.map(tf => tf.value.matrix.values))
-        console.log(this.devices.mosfets["M1"].transformations.map(tf => tf.value.matrix.values))
         console.log(this)
     }
 }
