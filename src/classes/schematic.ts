@@ -30,7 +30,7 @@ export class Schematic extends CtxArtist{
 
     copy(parentTransformation: Ref<TransformationMatrix>): Schematic {
         const newSchematic = new Schematic(
-            [parentTransformation].concat(this.transformations),
+            [parentTransformation].concat(this.transformations.slice(1)),
             this.gndSymbols.map(symbol => symbol.copy(parentTransformation)),
             this.vddSymbols.map(symbol => symbol.copy(parentTransformation)),
             [], // ignore the parasitic capacitors

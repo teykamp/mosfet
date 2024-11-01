@@ -118,7 +118,7 @@ export class Mosfet extends CtxArtist{
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Mosfet {
         const newMosfet = new Mosfet(
-            [parentTransformation].concat(this.transformations),
+            [parentTransformation].concat(this.transformations.slice(1)),
             this.mosfetType,
             0,
             0,

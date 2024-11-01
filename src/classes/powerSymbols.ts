@@ -25,7 +25,7 @@ export class GndSymbol extends CtxArtist{
 
     copy(parentTransformation: Ref<TransformationMatrix>): GndSymbol {
         const newGndSymbol = new GndSymbol(
-            [parentTransformation].concat(this.transformations),
+            [parentTransformation].concat(this.transformations.slice(1)),
             {x: 0, y: 0}
         )
         return newGndSymbol
@@ -51,7 +51,7 @@ export class VddSymbol extends CtxArtist{
 
     copy(parentTransformation: Ref<TransformationMatrix>): VddSymbol {
         const newVddSymbol = new VddSymbol(
-            [parentTransformation].concat(this.transformations),
+            [parentTransformation].concat(this.transformations.slice(1)),
             {x: 0, y: 0}
         )
         return newVddSymbol
