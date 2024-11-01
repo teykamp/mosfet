@@ -135,6 +135,8 @@ export class Mosfet extends CtxArtist{
             "deviceOrigin",
             canvasId
         )
+        newMosfet.isDuplicate = true
+        newMosfet.transformations[newMosfet.transformations.length - 1].value = new TransformationMatrix()
         return newMosfet
     }
 

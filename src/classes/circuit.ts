@@ -35,7 +35,7 @@ export class Circuit extends CtxArtist {
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height)
         const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2}
-        super([ref((new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift)) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
+        super([ref((new TransformationMatrix())/*.scale(canvasDpi.value * scale).translate(extraShift)*/) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
 
         this.boundingBox = [
             new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
@@ -53,7 +53,7 @@ export class Circuit extends CtxArtist {
         this.originalTextTransformationMatrix = textTransformationMatrix
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
-        this.circuitCopy = this.copy(ref(new TransformationMatrix()) as Ref<TransformationMatrix>) // make a copy of self
+        this.circuitCopy = this.copy() // make a copy of self
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
@@ -64,11 +64,12 @@ export class Circuit extends CtxArtist {
         return this.makeListOfSliders()
     }
 
-    copy(parentTransformation: Ref<TransformationMatrix>): CircuitCopy | null {
+    copy(): CircuitCopy | null {
+        const parentTransformation = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
         const newCircuit = new CircuitCopy(
             {x: 0, y: 0},
-            1,
-            1,
+            10,
+            10,
             this.schematic.copy(parentTransformation),
             Object.fromEntries(Object.entries(this.devices.mosfets).map(([name, mosfet]: [string, Mosfet]) => [name, mosfet.copy(parentTransformation, 'mosfet')])),
             Object.fromEntries(Object.entries(this.devices.voltageSources).map(([name, voltageSource]: [string, VoltageSource]) => [name, voltageSource.copy(parentTransformation, 'mosfet')])),
@@ -99,7 +100,6 @@ export class Circuit extends CtxArtist {
             TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardLocation({x: 0, y: 0})})
         }
 
-        console.log(this.schematic)
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
             mosfet.draw(ctx)
@@ -114,7 +114,15 @@ export class Circuit extends CtxArtist {
     }
 
     setSelectedDevice(device: Mosfet | VoltageSource) {
-
+        if (!this.circuitCopy) {
+            return
+        }
+        this.circuitCopy.boundingBox = [
+            new TectonicPoint(device.transformations, {x: -100, y: 0}),
+            new TectonicPoint(device.transformations, {x: 100, y: 0}),
+            new TectonicPoint(device.transformations, {x: 0, y: -100}),
+            new TectonicPoint(device.transformations, {x: 0, y: 100}),
+        ]
     }
 
     resetSelectedDevice() {
@@ -189,18 +197,36 @@ export class Circuit extends CtxArtist {
     }
 
     setScaleBasedOnBoundingBox(ctx: CanvasRenderingContext2D, boundingBox: TectonicPoint[] = this.boundingBox) {
-        this.transformations[0].value = new TransformationMatrix()
-        this.transformations[1].value = this.calculateTransformationMatrixBasedOnBoundingBox(ctx, boundingBox)
+        this.transformations[1].value = new TransformationMatrix()
+        this.transformations[0].value = this.calculateTransformationMatrixBasedOnBoundingBox(ctx, boundingBox)
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
+        this.setCtxArtistScale()
+    }
 
+    setCtxArtistScale() {
         // set static transformation matrices for the circuit
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
+        console.log("original")
+        console.log(this.transformations.map(tf => tf.value.matrix.values))
+        console.log(this.devices.mosfets["M1"].transformations.map(tf => tf.value.matrix.values))
+        console.log(this)
     }
 }
 
 class CircuitCopy extends Circuit {
     override copy(): CircuitCopy | null {
         return null
+    }
+    override setCtxArtistScale() {
+        // this.transformations[1].value = this.transformations[0].value.inverse()//.translate({x: 5000, y: 5000})
+        // // // // this.transformations[0].value = this.devices.mosfets["M1"].transformations[1].value.inverse().multiply(this.transformations[0].value)
+        this.transformations[0].value = this.transformations[0].value.multiply(this.devices.mosfets["M1"].transformations[1].value.inverse())
+        // this.devices.mosfets["M1"].transformations[2].value = this.devices.mosfets["M1"].transformations[1].value.inverse()
+        console.log("----------------------")
+        console.log(this.devices.mosfets["M1"].transformations[1].value.matrix.values)
+        console.log(this.transformations.map(tf => tf.value.matrix.values))
+        console.log(this.devices.mosfets["M1"].transformations.map(tf => tf.value.matrix.values))
+        console.log(this)
     }
 }

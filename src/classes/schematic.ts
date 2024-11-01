@@ -39,7 +39,6 @@ export class Schematic extends CtxArtist{
             // ignore the labels on wires
             this.wires.map((wire: Wire) => {return {node: wire.node, lines: wire.lines, voltageDisplayLabel: "", voltageDisplayLocations: []}})
         )
-
         // newSchematic.wires.forEach((wire: Wire) => {wire.voltageDisplayLocations = []})
         return newSchematic
     }

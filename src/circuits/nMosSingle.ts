@@ -108,6 +108,7 @@ const useNmosSingle = () => {
         ]
     )
 
+    circuit.circuitCopy = circuit.copy()
     return circuit
 }
 export default useNmosSingle

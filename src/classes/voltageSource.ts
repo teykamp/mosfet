@@ -55,6 +55,7 @@ export class VoltageSource extends CtxArtist{
             (this.fixedAt == 'gnd') == (this.transformationMatrix.isMirrored), // has not been checked; may be wrong logic
             canvasId
         )
+        newVoltageSource.transformations[newVoltageSource.transformations.length - 1].value = new TransformationMatrix()
         return newVoltageSource
     }
 

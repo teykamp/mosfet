@@ -137,7 +137,7 @@ let previousTimestamp = 0
 
 const sideBar = ref<HTMLElement | null>(null)
 const showSideBar = ref(false)
-const showGraphBar = ref(false)
+const showGraphBar = ref(true)
 
 const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
@@ -275,7 +275,7 @@ const draw = () => {
 
   updateSlidersBasedOnNodeVoltages()
   circuit.value.draw(ctx.value as CanvasRenderingContext2D)
-  // circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
+  circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
 }
 
 const animate = (timestamp: number) => {
