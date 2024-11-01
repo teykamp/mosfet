@@ -230,6 +230,7 @@ const useNmosDiffPair = () => {
         ]
     )
 
+    circuit.circuitCopy = circuit.copy()
     return circuit
 }
 export default useNmosDiffPair

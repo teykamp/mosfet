@@ -221,8 +221,8 @@ class CircuitCopy extends Circuit {
     override setCtxArtistScale() {
         // this.transformations[1].value = this.transformations[0].value.inverse()//.translate({x: 5000, y: 5000})
         // // // // this.transformations[0].value = this.devices.mosfets["M1"].transformations[1].value.inverse().multiply(this.transformations[0].value)
-        this.transformations[0].value = this.transformations[0].value.multiply(this.devices.mosfets["M1"].transformations[1].value.inverse())
         // this.devices.mosfets["M1"].transformations[2].value = this.devices.mosfets["M1"].transformations[1].value.inverse()
+        this.transformations[0].value = this.transformations[0].value.multiply(this.devices.mosfets["M1"].transformations[1].value.inverse())
         console.log("----------------------")
         console.log(this.devices.mosfets["M1"].transformations[1].value.matrix.values)
         console.log(this.transformations.map(tf => tf.value.matrix.values))

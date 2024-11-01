@@ -431,6 +431,8 @@ const useNmos9TransistorOpAmp = () => {
             },
         ]
     )
+
+    circuit.circuitCopy = circuit.copy()
     return circuit
 }
 export default useNmos9TransistorOpAmp

@@ -107,6 +107,7 @@ const usePmosSingle = () => {
         ]
     )
 
+    circuit.circuitCopy = circuit.copy()
     return circuit
 }
 export default usePmosSingle

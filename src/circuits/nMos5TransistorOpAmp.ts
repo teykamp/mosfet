@@ -310,6 +310,7 @@ const useNmos5TransistorOpAmp = (): Circuit => {
         ]
     )
 
+    circuit.circuitCopy = circuit.copy()
     return circuit
 }
 export default useNmos5TransistorOpAmp
