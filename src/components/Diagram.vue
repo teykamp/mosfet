@@ -57,13 +57,13 @@
         <canvas
           ref="graphBarChartCanvas"
           @mousedown="checkDrag"
-          :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
           class="chart"
         ></canvas>
         <canvas
           ref="graphBarMosfetCanvas"
           @mousedown="checkDrag"
-          :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
           class="mosfet"
         ></canvas>
       </div>
@@ -88,6 +88,7 @@ const computedCanvasLayout = computed(() => {
   const padding = 30
   const bottomGraphHeight = screenHeight.value / 4
   const sideGraphWidth = screenWidth.value / 4
+  const borderWidth = 2
 
   const mainCanvas = xs.value ?
   {
@@ -101,28 +102,29 @@ const computedCanvasLayout = computed(() => {
 
   const graphBarChartCanvas = xs.value ?
   {
-    width: (screenWidth.value - padding) / 2,
+    width: (screenWidth.value - padding) / 2 - borderWidth,
     height: bottomGraphHeight
   } :
   {
     width: sideGraphWidth,
-    height: (screenHeight.value - padding) / 2
+    height: (screenHeight.value - padding) / 2 - borderWidth
   }
 
   const graphBarMosfetCanvas = xs.value ?
   {
-    width: (screenWidth.value - padding) / 2,
+    width: (screenWidth.value - padding) / 2 - borderWidth,
     height: bottomGraphHeight
   } :
   {
     width: sideGraphWidth,
-    height: (screenHeight.value - padding) / 2
+    height: (screenHeight.value - padding) / 2 - borderWidth
   }
 
   return {
     mainCanvas,
     graphBarChartCanvas,
-    graphBarMosfetCanvas
+    graphBarMosfetCanvas,
+    borderWidth
   }
 })
 

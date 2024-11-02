@@ -114,6 +114,7 @@ export class Circuit extends CtxArtist {
 
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
+            console.log(this)
             mosfet.draw(ctx)
         })
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
@@ -234,8 +235,11 @@ export class Circuit extends CtxArtist {
         const width = Math.abs(right - left)
         const origin = {x: left + width / 2, y: top + height / 2}
 
-        const scale = Math.min((ctx.canvas.width / canvasDpi.value) / width, (ctx.canvas.height / canvasDpi.value) / height)
-        const extraShift = {x: ((ctx.canvas.width / canvasDpi.value) / scale - width) / 2, y: ((ctx.canvas.height / canvasDpi.value) / scale - height) / 2}
+        const canvasWidth = Math.max(ctx.canvas.width, 1)
+        const canvasHeight = Math.max(ctx.canvas.height, 1)
+
+        const scale = Math.min((canvasWidth / canvasDpi.value) / width, (canvasHeight / canvasDpi.value) / height)
+        const extraShift = {x: ((canvasWidth / canvasDpi.value) / scale - width) / 2, y: ((canvasHeight / canvasDpi.value) / scale - height) / 2}
 
         const transformationMatrix = (new TransformationMatrix()).scale(canvasDpi.value * scale).translate(extraShift).translate({x: -origin.x + width / 2, y: -origin.y + height / 2})
         return transformationMatrix
@@ -259,7 +263,5 @@ class CircuitCopy extends Circuit {
     override copy(): CircuitCopy | null {
         return null
     }
-    override setCtxArtistScale() {
-        console.log(this)
-    }
+    override setCtxArtistScale() {}
 }
