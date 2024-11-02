@@ -133,7 +133,6 @@ export class Circuit extends CtxArtist {
             ]
         )
         this.selectedDeviceCharts.forEach((chart: Chart) => {
-            console.log(chart)
             chart.draw(ctx)
         })
     }
