@@ -159,16 +159,16 @@ export class Mosfet extends CtxArtist{
             ctx.arc(0, 0, 200, 0, 2 * Math.PI)
             ctx.fill()
         }
-        else if (this.selected.value && !this.isDuplicate) {
-            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
-            backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
-            backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')
-            backgroundGradient.addColorStop(0.8, 'rgba(255, 0, 0, 0.2)')
-            backgroundGradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
-            ctx.fillStyle = backgroundGradient
-            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
-            ctx.fill()
-        }
+        // else if (this.selected.value && !this.isDuplicate) {
+        //     const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
+        //     backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
+        //     backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')
+        //     backgroundGradient.addColorStop(0.8, 'rgba(255, 0, 0, 0.2)')
+        //     backgroundGradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
+        //     ctx.fillStyle = backgroundGradient
+        //     ctx.arc(0, 0, 200, 0, 2 * Math.PI)
+        //     ctx.fill()
+        // }
 
         const bodyLines: Line[] = [
             {start: {x: 0, y: 20}, end: {x: 0, y: 59}},

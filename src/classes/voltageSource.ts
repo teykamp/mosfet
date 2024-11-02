@@ -4,7 +4,7 @@ import { TransformationMatrix } from "./transformationMatrix"
 import { toRadians } from "../functions/extraMath"
 import { ref, Ref } from 'vue'
 import { AngleSlider } from "./angleSlider"
-import { drawCirclesFillSolid, drawLinesFillSolid } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid, getLineLength } from "../functions/drawFuncs"
 import { Node } from "./node"
 import { TectonicPoint } from "./tectonicPlate"
 
@@ -17,6 +17,8 @@ export class VoltageSource extends CtxArtist{
     fixedAt: 'gnd' | 'vdd'
     isDuplicate: boolean = false
     boundingBox: TectonicPoint[]
+    selectedFocus: Ref<boolean> = ref(false)
+    mouseDownInsideSelectionArea = false
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false, canvasId: canvasId = 'main') {
         super(parentTransformations, (new TransformationMatrix()).translate(origin).mirror(mirror, false).scale(1/30), canvasId)
@@ -68,6 +70,17 @@ export class VoltageSource extends CtxArtist{
             this.transformationMatrix.transformCanvas(ctx)
         }
 
+        if (this.selectedFocus.value && !this.isDuplicate) {
+            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
+            backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
+            backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
+            backgroundGradient.addColorStop(0.8, 'rgba(0, 0, 255, 0.2)')
+            backgroundGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
+            ctx.fillStyle = backgroundGradient
+            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
+            ctx.fill()
+        }
+
         const radius = 30
         const symbolSize = 11
         const symbolHeight = 10
@@ -91,5 +104,11 @@ export class VoltageSource extends CtxArtist{
         drawCirclesFillSolid(ctx, circles, this.localLineThickness, 'black')
 
         this.voltageDrop.draw(ctx)
+    }
+
+    checkSelectionArea(mousePosition: Point): boolean {
+        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
+        const radius = 60
+        return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
     }
 }

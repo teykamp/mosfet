@@ -81,6 +81,8 @@ import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
+import { VoltageSource } from '../classes/voltageSource'
+import { Mosfet } from '../classes/mosfet'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -197,9 +199,14 @@ const checkDrag = (event: MouseEvent) => {
   })
 
   if (!anySlidersDragging()) {
-    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+    Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
       if (mosfet.canvasId == (event.target as HTMLElement).className) {
         mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
+      }
+    })
+    Object.values(circuit.value.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
+      if (voltageSource.canvasId == (event.target as HTMLElement).className) {
+        voltageSource.mouseDownInsideSelectionArea = voltageSource.checkSelectionArea({x: mouseX, y: mouseY})
       }
     })
   }
@@ -242,6 +249,15 @@ const mouseUp = (event: MouseEvent) => {
         mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
       }
       mosfet.mouseDownInsideSelectionArea = false
+    })
+    Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
+      if (voltageSource.mouseDownInsideSelectionArea && voltageSource.checkSelectionArea({x: mouseX, y: mouseY})) {
+        voltageSource.selectedFocus.value = true
+        circuit.value.setSelectedDevice(voltageSource)
+      } else {
+        voltageSource.selectedFocus.value = false // unselect everything when you click somewhere else
+      }
+      voltageSource.mouseDownInsideSelectionArea = false
     })
   }
 
