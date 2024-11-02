@@ -319,6 +319,9 @@ const animate = (timestamp: number) => {
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
   })
+  Object.values(circuit.value.circuitCopy!.devices.mosfets).forEach(mosfet => {
+    mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
+  })
   Object.values(circuit.value.schematic.parasiticCapacitors).forEach(capacitor => {
     capacitor.currentDots.updateDotPositionBasedOnTimestamp(capacitor.node.value.netCurrent, timeDifference)
   })
