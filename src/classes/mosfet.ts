@@ -41,6 +41,7 @@ export class Mosfet extends CtxArtist{
         "base": {x: -Mosfet.chartWidth / 2 - 100, y: 0},
         "lowerBase": {x: -Mosfet.chartWidth / 2 - 100, y: 100},
         "gate": {x: Mosfet.chartWidth / 2 + 120, y: 0},
+        "furtherGate": {x: Mosfet.chartWidth / 2 + 150, y: 0},
         "voltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 0},
         "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 100},
         "mirrorDriver": {x: Mosfet.chartWidth / 2 + 110, y: -this.chartHeight - 20},

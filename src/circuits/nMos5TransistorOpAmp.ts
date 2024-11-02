@@ -213,10 +213,10 @@ const useNmos5TransistorOpAmp = (): Circuit => {
     circuit.schematic = new Schematic(
         circuit.transformations,
         [
-            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
             new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
-            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
-            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
+            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("gnd")),
         ],
         [
             new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("SourceSupply")),
@@ -237,6 +237,9 @@ const useNmos5TransistorOpAmp = (): Circuit => {
                 node: circuit.nodes[gndNodeId],
                 lines: [
                     new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("gnd")),
+                    new TectonicLine(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("gnd")),
+                    new TectonicLine(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("gnd")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []

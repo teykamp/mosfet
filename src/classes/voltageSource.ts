@@ -32,8 +32,10 @@ export class VoltageSource extends CtxArtist{
         this.current = 0 // Amps
 
         this.anchorPoints = {
-            "Vplus": {x: 0, y: -60},
-            "Vminus": {x: 0, y: 60},
+            "Vplus": {x: 0, y: -30},
+            "Vminus": {x: 0, y: 30},
+            "vdd": {x: 0, y: -60},
+            "gnd": {x: 0, y: 60},
         }
 
         this.boundingBox = [
@@ -73,8 +75,8 @@ export class VoltageSource extends CtxArtist{
         ctx.lineWidth = this.localLineThickness
 
         const majorLines: Line[] = [
-            {start: {x: 0, y: radius}, end: {x: 0, y: 60}},
-            {start: {x: 0, y: -radius}, end: {x: 0, y: -60}},
+            // {start: {x: 0, y: radius}, end: {x: 0, y: 60}},
+            // {start: {x: 0, y: -radius}, end: {x: 0, y: -60}},
         ]
         const minorLines: Line[] = [
             {start: {x: symbolSize / 2, y: -symbolHeight}, end: {x: -symbolSize / 2, y: -symbolHeight}},

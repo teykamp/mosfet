@@ -159,10 +159,10 @@ const useNmosDiffPair = () => {
     circuit.schematic = new Schematic(
         circuit.transformations,
         [
-            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
             new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
-            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
-            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
+            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("gnd")),
         ],
         [
             new VddSymbol(...circuit.devices.mosfets["M1"].getAnchorPointWithTransformations("DrainSupply")),
@@ -176,6 +176,9 @@ const useNmosDiffPair = () => {
                 node: circuit.nodes[gndNodeId],
                 lines: [
                     new TectonicLine(circuit.transformations, {x: 0, y: 8}, circuit.transformations, {x: 0, y: 9}),
+                    new TectonicLine(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("gnd")),
+                    new TectonicLine(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("gnd")),
+                    new TectonicLine(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("gnd")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
