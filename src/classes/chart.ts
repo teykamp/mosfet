@@ -102,9 +102,9 @@ export class Chart extends CtxSlider{
         ]
     }
 
-    copy(canvasId: canvasId = 'main'): Chart {
+    copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Chart {
         const newChart = new Chart(
-            [ref(new TransformationMatrix()) as Ref<TransformationMatrix>],
+            [parentTransformation],
             this.mosfetType,
             this.chartType,
             0,

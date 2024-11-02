@@ -83,6 +83,7 @@ import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, 
 import useBreakpoints from '../composables/useBreakpoints'
 import { VoltageSource } from '../classes/voltageSource'
 import { Mosfet } from '../classes/mosfet'
+import { Chart } from '../classes/chart'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -295,6 +296,7 @@ const draw = () => {
   circuit.value.draw(ctx.value as CanvasRenderingContext2D)
   if (circuit.value.anyDevicesSelected) {
     circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
+    circuit.value.drawSelectedDeviceCharts(graphBarChartCtx.value as CanvasRenderingContext2D)
   }
 }
 

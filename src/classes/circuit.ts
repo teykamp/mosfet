@@ -22,11 +22,9 @@ export class Circuit extends CtxArtist {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
       voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
     }
-    selectedDevice: Mosfet | VoltageSource | null = null
-    selectedDeviceBoundingBox: TectonicPoint[] = []
     selectedDeviceCharts: Chart[] = []
-    selectedSchematic: Schematic | null = null
-    selectedSchematicOrigin: TectonicPoint = new TectonicPoint([], {x: 0, y: 0})
+    selectedDeviceChartsTransformationMatrix: Ref<TransformationMatrix> = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
+
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
     originalTextTransformationMatrix: TransformationMatrix
@@ -125,6 +123,21 @@ export class Circuit extends CtxArtist {
         ctx.restore()
     }
 
+    drawSelectedDeviceCharts(ctx: CanvasRenderingContext2D) {
+        this.selectedDeviceChartsTransformationMatrix.value = this.calculateTransformationMatrixBasedOnBoundingBox(ctx,
+            [
+                new TectonicPoint(this.transformations, {x: -120, y: 0}),
+                new TectonicPoint(this.transformations, {x: 120, y: 0}),
+                new TectonicPoint(this.transformations, {x: 0, y: -120}),
+                new TectonicPoint(this.transformations, {x: 0, y: 120}),
+            ]
+        )
+        this.selectedDeviceCharts.forEach((chart: Chart) => {
+            console.log(chart)
+            chart.draw(ctx)
+        })
+    }
+
     setSelectedDevice(device: Mosfet | VoltageSource) {
         if (!this.circuitCopy) {
             return
@@ -145,8 +158,11 @@ export class Circuit extends CtxArtist {
             const mosfet = this.circuitCopy.devices.mosfets[device.key]
             mosfet.vgs.visibility = device.vgs.visibility
             mosfet.vds.visibility = device.vds.visibility
-            mosfet.vgsChart.visibility = device.vgsChart.visibility
-            mosfet.vdsChart.visibility = device.vdsChart.visibility
+            mosfet.vgsChart.visibility = Visibility.Hidden // do not draw the charts
+            mosfet.vdsChart.visibility = Visibility.Hidden // do not draw the charts
+
+            this.selectedDeviceCharts = [device.vgsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart'), device.vdsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart')]
+
         } else if (device instanceof VoltageSource) {
             const voltageSource = this.circuitCopy.devices.voltageSources[device.key]
             voltageSource.voltageDrop.visibility = device.voltageDrop.visibility
@@ -154,9 +170,7 @@ export class Circuit extends CtxArtist {
     }
 
     resetSelectedDevice() {
-        this.selectedDevice = null
         this.selectedDeviceCharts = []
-        this.selectedSchematic = null
         this.anyDevicesSelected = false
 
         if (!this.circuitCopy) {
@@ -183,19 +197,13 @@ export class Circuit extends CtxArtist {
             allSliders.push(mosfet.vgsChart)
             allSliders.push(mosfet.vdsChart)
         }
-        if (this.selectedDevice instanceof Mosfet) {
-            allSliders.push(this.selectedDevice.vgs)
-            allSliders.push(this.selectedDevice.vds)
-            allSliders.push(this.selectedDeviceCharts[0])
-            allSliders.push(this.selectedDeviceCharts[1])
-        }
         for (const voltageSourceId in this.devices.voltageSources) {
             const voltageSource = this.devices.voltageSources[voltageSourceId]
             allSliders.push(voltageSource.voltageDrop)
         }
-        if (this.selectedDevice instanceof VoltageSource) {
-            allSliders.push(this.selectedDevice.voltageDrop)
-        }
+
+        this.selectedDeviceCharts.forEach((chart: Chart) => {allSliders.push(chart)})
+
         if (this.circuitCopy) {
             return allSliders.concat(this.circuitCopy.allSliders)
         } else {
