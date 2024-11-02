@@ -83,7 +83,6 @@ import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, 
 import useBreakpoints from '../composables/useBreakpoints'
 import { VoltageSource } from '../classes/voltageSource'
 import { Mosfet } from '../classes/mosfet'
-import { Chart } from '../classes/chart'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
 
@@ -296,7 +295,7 @@ const draw = () => {
 
   updateSlidersBasedOnNodeVoltages()
   circuit.value.draw(ctx.value as CanvasRenderingContext2D)
-  if (circuit.value.anyDevicesSelected) {
+  if (circuit.value.anyDevicesSelected && showSideBar) {
     CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale / schematicScale
     circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
     // CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale

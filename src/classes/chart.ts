@@ -1,6 +1,6 @@
 import { Visibility, Point, canvasId } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
-import { ref, Ref } from 'vue'
+import { Ref } from 'vue'
 import { toSiPrefix } from "../functions/toSiPrefix"
 import { getTickLabelList } from '../functions/getTickLabelList'
 import { drawLinesFillSolid } from "../functions/drawFuncs"
