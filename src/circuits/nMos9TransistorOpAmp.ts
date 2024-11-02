@@ -314,9 +314,9 @@ const useNmos9TransistorOpAmp = () => {
             new GndSymbol(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
             new GndSymbol(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("SourceSupply")),
             new GndSymbol(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("SourceSupply")),
-            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus")),
-            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus")),
-            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus")),
+            new GndSymbol(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("gnd")),
+            new GndSymbol(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("gnd")),
         ],
         [
             new VddSymbol(...circuit.devices.mosfets["M3"].getAnchorPointWithTransformations("SourceSupply")),
@@ -334,6 +334,9 @@ const useNmos9TransistorOpAmp = () => {
                     new TectonicLine(...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["Mb"].getAnchorPointWithTransformations("SourceSupply")),
                     new TectonicLine(...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M7"].getAnchorPointWithTransformations("SourceSupply")),
                     new TectonicLine(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Vs"), ...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("SourceSupply")),
+                    new TectonicLine(...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["Vb"].getAnchorPointWithTransformations("gnd")),
+                    new TectonicLine(...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["V1"].getAnchorPointWithTransformations("gnd")),
+                    new TectonicLine(...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("Vminus"), ...circuit.devices.voltageSources["V2"].getAnchorPointWithTransformations("gnd")),
                 ],
                 voltageDisplayLabel: "",
                 voltageDisplayLocations: []
@@ -431,6 +434,8 @@ const useNmos9TransistorOpAmp = () => {
             },
         ]
     )
+
+    circuit.finishSetup()
     return circuit
 }
 export default useNmos9TransistorOpAmp

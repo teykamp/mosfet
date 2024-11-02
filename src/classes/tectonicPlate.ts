@@ -42,7 +42,8 @@ export class TectonicPoint extends CtxArtist {
     }
 
     toPoint(): Point {
-        return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.point)
+        // return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.point)
+        return this.transformations[0].value.inverse().multiply(this.transformationMatrix).transformPoint(this.point)
     }
 }
 

@@ -22,6 +22,14 @@ export class GndSymbol extends CtxArtist{
         ctx.lineTo(0, 0)
         ctx.stroke()
     }
+
+    copy(parentTransformation: Ref<TransformationMatrix>): GndSymbol {
+        const newGndSymbol = new GndSymbol(
+            [parentTransformation].concat(this.transformations.slice(1)),
+            {x: 0, y: 0}
+        )
+        return newGndSymbol
+    }
 }
 
 export class VddSymbol extends CtxArtist{
@@ -39,5 +47,13 @@ export class VddSymbol extends CtxArtist{
         ctx.moveTo(symbolSize / 2, 0)
         ctx.lineTo(-symbolSize / 2, 0)
         ctx.stroke()
+    }
+
+    copy(parentTransformation: Ref<TransformationMatrix>): VddSymbol {
+        const newVddSymbol = new VddSymbol(
+            [parentTransformation].concat(this.transformations.slice(1)),
+            {x: 0, y: 0}
+        )
+        return newVddSymbol
     }
 }

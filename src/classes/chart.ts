@@ -1,4 +1,4 @@
-import { Visibility, Point } from "../types"
+import { Visibility, Point, canvasId } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { Ref } from 'vue'
 import { toSiPrefix } from "../functions/toSiPrefix"
@@ -10,6 +10,7 @@ import { Node } from "./node"
 import { CtxSlider } from "./ctxSlider"
 import { drawGrid } from "../globalState"
 import { LRUCache } from 'lru-cache'
+import { TectonicPoint } from "./tectonicPlate"
 
 export class Chart extends CtxSlider{
     points: Point[]
@@ -50,14 +51,14 @@ export class Chart extends CtxSlider{
     yTicks: number[] = []
     xScale: number = 0
     yScale: number = 0
+    boundingBox: TectonicPoint[]
 
-
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible) {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible, canvasId: canvasId = 'main') {
         const fromNode = gnd
         const toNode = chartType == 'Vgs' ? Vg : Vd
         const drivenNode: 'fromNode' | 'toNode' = 'toNode'
 
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, visibility)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, visibility, canvasId)
         if (this.transformationMatrix.isMirrored) {
             this.transformations[this.transformations.length - 1].value.mirror(true, false, true)
         }
@@ -92,6 +93,40 @@ export class Chart extends CtxSlider{
         this.originalMaxValue = maxValue
         this.temporaryMinValue = this.minValue
         this.temporaryMaxValue = this.maxValue
+
+        this.boundingBox = [
+            new TectonicPoint(this.transformations, {x: -100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 100, y: 0}),
+            new TectonicPoint(this.transformations, {x: 0, y: -100}),
+            new TectonicPoint(this.transformations, {x: 0, y: 100}),
+        ]
+    }
+
+    copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Chart {
+        const newChart = new Chart(
+            [parentTransformation],
+            this.mosfetType,
+            this.chartType,
+            0,
+            0,
+            this.Vg,
+            this.Vs,
+            this.Vd,
+            this.Vb,
+            this.fromNode, // gnd
+            this.maxValue,
+            this.xAxisLabel,
+            this.yAxisLabel,
+            this.xUnit,
+            this.yUnit,
+            this.xScaleType,
+            this.yScaleType,
+            this.width,
+            this.height,
+            this.visibility,
+            canvasId
+        )
+        return newChart
     }
 
     draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {

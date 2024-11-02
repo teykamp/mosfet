@@ -1,4 +1,4 @@
-import { Point, RelativeDirection, Visibility } from "../types"
+import { canvasId, Point, RelativeDirection, Visibility } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toSiPrefix } from "../functions/toSiPrefix"
 import { between, toRadians } from "../functions/extraMath"
@@ -13,8 +13,8 @@ export class AngleSlider extends CtxSlider{
     displayText: string
     displayTextLocation: RelativeDirection
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility) {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, drivenNode, minValue, maxValue, visibility)
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, canvasId: canvasId = 'main') {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, drivenNode, minValue, maxValue, visibility, canvasId)
 
         this.radius = radius
         this.originalRadius = radius

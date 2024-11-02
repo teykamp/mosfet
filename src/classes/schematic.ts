@@ -28,6 +28,21 @@ export class Schematic extends CtxArtist{
         this.wires = wires
     }
 
+    copy(parentTransformation: Ref<TransformationMatrix>): Schematic {
+        const newSchematic = new Schematic(
+            [parentTransformation].concat(this.transformations.slice(1)),
+            this.gndSymbols.map(symbol => symbol.copy(parentTransformation)),
+            this.vddSymbols.map(symbol => symbol.copy(parentTransformation)),
+            [], // ignore the parasitic capacitors
+            this.mosfets,
+            this.nodes,
+            // ignore the labels on wires
+            this.wires.map((wire: Wire) => {return {node: wire.node, lines: wire.lines, voltageDisplayLabel: "", voltageDisplayLocations: []}})
+        )
+        // newSchematic.wires.forEach((wire: Wire) => {wire.voltageDisplayLocations = []})
+        return newSchematic
+    }
+
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
 

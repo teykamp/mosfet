@@ -45,22 +45,26 @@
       <canvas
         ref="canvas"
         @mousedown="checkDrag"
-        :style="`width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
+        :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
+        class="main"
       ></canvas>
 
-      <div :style="{
+      <div
+      :style="{
         display: 'flex',
         flexDirection: xs ? 'row' : 'column',
       }">
         <canvas
           ref="graphBarChartCanvas"
-          @mousedown="logMouseLocation"
-          :style="`background-color: yellow; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px;`"
+          @mousedown="checkDrag"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          class="chart"
         ></canvas>
         <canvas
           ref="graphBarMosfetCanvas"
-          @mousedown="logMouseLocation"
-          :style="`background-color: green; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px;`"
+          @mousedown="checkDrag"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          class="mosfet"
         ></canvas>
       </div>
     </div>
@@ -77,13 +81,18 @@ import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
+import { VoltageSource } from '../classes/voltageSource'
+import { Mosfet } from '../classes/mosfet'
+import { CtxArtist } from '../classes/ctxArtist'
+import { schematicScale } from '../constants'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
 const computedCanvasLayout = computed(() => {
   const padding = 30
-  const bottomGraphHeight = 150
-  const sideGraphWidth = 400
+  const bottomGraphHeight = screenHeight.value / 4
+  const sideGraphWidth = screenWidth.value / 4
+  const borderWidth = 2
 
   const mainCanvas = xs.value ?
   {
@@ -97,28 +106,29 @@ const computedCanvasLayout = computed(() => {
 
   const graphBarChartCanvas = xs.value ?
   {
-    width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
-    height: showGraphBar.value ? bottomGraphHeight : 0
+    width: (screenWidth.value - padding) / 2 - borderWidth,
+    height: bottomGraphHeight
   } :
   {
-    width: showGraphBar.value ? sideGraphWidth : 0,
-    height: showGraphBar.value ? (screenHeight.value - padding) / 2 : 0
+    width: sideGraphWidth,
+    height: (screenHeight.value - padding) / 2 - borderWidth
   }
 
   const graphBarMosfetCanvas = xs.value ?
   {
-    width: showGraphBar.value ? (screenWidth.value - padding) / 2 : 0,
-    height: showGraphBar.value ? bottomGraphHeight : 0
+    width: (screenWidth.value - padding) / 2 - borderWidth,
+    height: bottomGraphHeight
   } :
   {
-    width: showGraphBar.value ? sideGraphWidth : 0,
-    height: showGraphBar.value ? (screenHeight.value - padding) / 2 : 0
+    width: sideGraphWidth,
+    height: (screenHeight.value - padding) / 2 - borderWidth
   }
 
   return {
     mainCanvas,
     graphBarChartCanvas,
-    graphBarMosfetCanvas
+    graphBarMosfetCanvas,
+    borderWidth
   }
 })
 
@@ -133,16 +143,10 @@ let previousTimestamp = 0
 
 const sideBar = ref<HTMLElement | null>(null)
 const showSideBar = ref(false)
-const showGraphBar = ref(false)
+const showGraphBar = ref(true)
 
 const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
-}
-
-const logMouseLocation = (event: MouseEvent) => {
-  const mousePos = getMousePos(event)
-  console.log("mouse x: ", mousePos.mouseX, "y: ", mousePos.mouseY)
-  console.log(event.target)
 }
 
 type DefinedCircuits = keyof typeof circuits
@@ -191,12 +195,21 @@ const anySlidersDragging = (): boolean => {
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
-    slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+    if (slider.canvasId == (event.target as HTMLElement).className) {
+      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+    }
   })
 
   if (!anySlidersDragging()) {
-    Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
-      mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
+    Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
+      if (mosfet.canvasId == (event.target as HTMLElement).className) {
+        mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
+      }
+    })
+    Object.values(circuit.value.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
+      if (voltageSource.canvasId == (event.target as HTMLElement).className) {
+        voltageSource.mouseDownInsideSelectionArea = voltageSource.checkSelectionArea({x: mouseX, y: mouseY})
+      }
     })
   }
 
@@ -225,7 +238,7 @@ const drag = (event: MouseEvent) => {
 const mouseUp = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  if (!anySlidersDragging()) {
+  if (!anySlidersDragging() && (event.target as HTMLElement).className == 'main') {
     circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
@@ -238,6 +251,15 @@ const mouseUp = (event: MouseEvent) => {
         mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
       }
       mosfet.mouseDownInsideSelectionArea = false
+    })
+    Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
+      if (voltageSource.mouseDownInsideSelectionArea && voltageSource.checkSelectionArea({x: mouseX, y: mouseY})) {
+        voltageSource.selectedFocus.value = true
+        circuit.value.setSelectedDevice(voltageSource)
+      } else {
+        voltageSource.selectedFocus.value = false // unselect everything when you click somewhere else
+      }
+      voltageSource.mouseDownInsideSelectionArea = false
     })
   }
 
@@ -272,7 +294,14 @@ const draw = () => {
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
 
   updateSlidersBasedOnNodeVoltages()
-  circuit.value.draw(ctx.value as CanvasRenderingContext2D, graphBarMosfetCtx.value as CanvasRenderingContext2D, graphBarChartCtx.value as CanvasRenderingContext2D)
+  circuit.value.draw(ctx.value as CanvasRenderingContext2D)
+  if (circuit.value.anyDevicesSelected && showSideBar) {
+    CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale / schematicScale
+    circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
+    // CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale
+    circuit.value.drawSelectedDeviceCharts(graphBarChartCtx.value as CanvasRenderingContext2D)
+    // CtxArtist.textTransformationMatrix.relativeScale = circuit.value.transformationMatrix.relativeScale
+  }
 }
 
 const animate = (timestamp: number) => {
@@ -287,6 +316,9 @@ const animate = (timestamp: number) => {
   incrementCircuit(circuit.value, timeDifference)
 
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+    mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
+  })
+  Object.values(circuit.value.circuitCopy!.devices.mosfets).forEach(mosfet => {
     mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
   })
   Object.values(circuit.value.schematic.parasiticCapacitors).forEach(capacitor => {
