@@ -124,7 +124,7 @@ export class Circuit extends CtxArtist {
     }
 
     drawSelectedDeviceCharts(ctx: CanvasRenderingContext2D) {
-        this.selectedDeviceChartsTransformationMatrix.value = this.calculateTransformationMatrixBasedOnBoundingBox(ctx,
+        const chartTransformationMatrix = this.calculateTransformationMatrixBasedOnBoundingBox(ctx,
             [
                 new TectonicPoint(this.transformations, {x: -120, y: 0}),
                 new TectonicPoint(this.transformations, {x: 120, y: 0}),
@@ -132,6 +132,8 @@ export class Circuit extends CtxArtist {
                 new TectonicPoint(this.transformations, {x: 0, y: 120}),
             ]
         )
+        this.selectedDeviceChartsTransformationMatrix.value = chartTransformationMatrix
+        CtxArtist.textTransformationMatrix.relativeScale = chartTransformationMatrix.relativeScale
         this.selectedDeviceCharts.forEach((chart: Chart) => {
             chart.draw(ctx)
         })
@@ -142,10 +144,10 @@ export class Circuit extends CtxArtist {
             return
         }
         this.circuitCopy.boundingBox = [
-            new TectonicPoint(device.transformations, {x: -100, y: 0}),
-            new TectonicPoint(device.transformations, {x: 100, y: 0}),
-            new TectonicPoint(device.transformations, {x: 0, y: -100}),
-            new TectonicPoint(device.transformations, {x: 0, y: 100}),
+            new TectonicPoint(device.transformations, {x: -120, y: 0}),
+            new TectonicPoint(device.transformations, {x: 120, y: 0}),
+            new TectonicPoint(device.transformations, {x: 0, y: -120}),
+            new TectonicPoint(device.transformations, {x: 0, y: 120}),
         ]
         this.anyDevicesSelected = true
 
