@@ -14,7 +14,6 @@ import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
-import { AngleSlider } from "./angleSlider"
 
 export class Circuit extends CtxArtist {
     boundingBox: TectonicPoint[]
@@ -32,6 +31,7 @@ export class Circuit extends CtxArtist {
     textTransformationMatrix: TransformationMatrix
     originalTextTransformationMatrix: TransformationMatrix
     circuitCopy: CircuitCopy | null
+    anyDevicesSelected: boolean = false
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         // const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height) // TODO: Can probably delete, since this gets set elsewhere
@@ -114,7 +114,6 @@ export class Circuit extends CtxArtist {
 
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
-            console.log(this)
             mosfet.draw(ctx)
         })
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
@@ -136,6 +135,7 @@ export class Circuit extends CtxArtist {
             new TectonicPoint(device.transformations, {x: 0, y: -100}),
             new TectonicPoint(device.transformations, {x: 0, y: 100}),
         ]
+        this.anyDevicesSelected = true
 
         if (!this.circuitCopy) {
             return
@@ -157,6 +157,7 @@ export class Circuit extends CtxArtist {
         this.selectedDevice = null
         this.selectedDeviceCharts = []
         this.selectedSchematic = null
+        this.anyDevicesSelected = false
 
         if (!this.circuitCopy) {
             return

@@ -29,7 +29,7 @@ export class Mosfet extends CtxArtist{
     Vb: Ref<Node>
     gndNode: Ref<Node>
     mouseDownInsideSelectionArea = false
-    selected: Ref<boolean> = ref(true)
+    selected: Ref<boolean> = ref(false)
     selectedFocus: Ref<boolean> = ref(false)
     chartVisibility: Visibility = Visibility.Hidden
     vgsChart: Chart

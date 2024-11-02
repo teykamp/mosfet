@@ -277,7 +277,9 @@ const draw = () => {
 
   updateSlidersBasedOnNodeVoltages()
   circuit.value.draw(ctx.value as CanvasRenderingContext2D)
-  circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
+  if (circuit.value.anyDevicesSelected) {
+    circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
+  }
 }
 
 const animate = (timestamp: number) => {
