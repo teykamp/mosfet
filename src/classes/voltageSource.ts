@@ -1,14 +1,13 @@
 import { canvasId, Circle, Line, Point, SchematicEffect, Visibility } from "../types"
-import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toRadians } from "../functions/extraMath"
 import { ref, Ref } from 'vue'
 import { AngleSlider } from "./angleSlider"
-import { drawCirclesFillSolid, drawLinesFillSolid, getLineLength } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid } from "../functions/drawFuncs"
 import { Node } from "./node"
-import { TectonicPoint } from "./tectonicPlate"
+import { Device } from "./device"
 
-export class VoltageSource extends CtxArtist{
+export class VoltageSource extends Device{
     voltageDrop: AngleSlider
     vplus: Ref<Node>
     vminus: Ref<Node>
@@ -16,7 +15,6 @@ export class VoltageSource extends CtxArtist{
     current: number // in Amps
     fixedAt: 'gnd' | 'vdd'
     isDuplicate: boolean = false
-    boundingBox: TectonicPoint[]
     selectedFocus: Ref<boolean> = ref(false)
     mouseDownInsideSelectionArea = false
 
@@ -39,13 +37,6 @@ export class VoltageSource extends CtxArtist{
             "vdd": {x: 0, y: -60},
             "gnd": {x: 0, y: 60},
         }
-
-        this.boundingBox = [
-            new TectonicPoint(this.transformations, {x: -100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 0, y: -100}),
-            new TectonicPoint(this.transformations, {x: 0, y: 100}),
-        ]
     }
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): VoltageSource {
@@ -104,11 +95,5 @@ export class VoltageSource extends CtxArtist{
         drawCirclesFillSolid(ctx, circles, this.localLineThickness, 'black')
 
         this.voltageDrop.draw(ctx)
-    }
-
-    checkSelectionArea(mousePosition: Point): boolean {
-        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
-        const radius = 60
-        return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
     }
 }

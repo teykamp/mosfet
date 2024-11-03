@@ -1,20 +1,20 @@
 import { Visibility, SchematicEffect, Line, Point, Circle, canvasId } from "../types"
-import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { AngleSlider } from "./angleSlider"
 import { ref, Ref } from 'vue'
 import { ekvNmosNoUnits, ekvPmosNoUnits } from "../functions/ekvModel"
 import { between, toRadians } from "../functions/extraMath"
 import { toSiPrefix } from "../functions/toSiPrefix"
-import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, getLineLength, makeStandardGradient } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } from "../functions/drawFuncs"
 import { interpolateInferno } from "d3"
 import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
 import { Chart } from "./chart"
 import { vddVoltage } from "../constants"
+import { Device } from "./device"
 
-export class Mosfet extends CtxArtist{
+export class Mosfet extends Device{
     mosfetType: 'nmos' | 'pmos'
     isDuplicate: boolean = false
     // mirror: boolean
@@ -34,7 +34,6 @@ export class Mosfet extends CtxArtist{
     chartVisibility: Visibility = Visibility.Hidden
     vgsChart: Chart
     vdsChart: Chart
-    boundingBox: TectonicPoint[]
     static chartWidth = 200
     static chartHeight = 120
     static chartLocations = {
@@ -113,13 +112,6 @@ export class Mosfet extends CtxArtist{
             this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility, chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
-
-        this.boundingBox = [
-            new TectonicPoint(this.transformations, {x: -100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 0, y: -100}),
-            new TectonicPoint(this.transformations, {x: 0, y: 100}),
-        ]
     }
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Mosfet {
@@ -243,12 +235,6 @@ export class Mosfet extends CtxArtist{
     }
     get forwardCurrent(): number { // in Amps
         return this.getMosfetForwardCurrent()
-    }
-
-    checkSelectionArea(mousePosition: Point): boolean {
-        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
-        const radius = 60
-        return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
     }
 
     setMinAndMaxValue() {

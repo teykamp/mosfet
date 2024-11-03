@@ -22,7 +22,9 @@ export class Circuit extends CtxArtist {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
       voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
     }
+
     selectedDeviceCharts: Chart[] = []
+    selectedDeviceChartsBoundingBox: TectonicPoint[]
     selectedDeviceChartsTransformationMatrix: Ref<TransformationMatrix> = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
 
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
@@ -53,6 +55,13 @@ export class Circuit extends CtxArtist {
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
         this.circuitCopy = this.copy()
+
+        this.selectedDeviceChartsBoundingBox = [
+            new TectonicPoint(this.transformations, {x: -120, y: 0}),
+            new TectonicPoint(this.transformations, {x: 120, y: 0}),
+            new TectonicPoint(this.transformations, {x: 0, y: -120}),
+            new TectonicPoint(this.transformations, {x: 0, y: 120}),
+        ]
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
@@ -124,14 +133,7 @@ export class Circuit extends CtxArtist {
     }
 
     drawSelectedDeviceCharts(ctx: CanvasRenderingContext2D) {
-        const chartTransformationMatrix = this.calculateTransformationMatrixBasedOnBoundingBox(ctx,
-            [
-                new TectonicPoint(this.transformations, {x: -120, y: 0}),
-                new TectonicPoint(this.transformations, {x: 120, y: 0}),
-                new TectonicPoint(this.transformations, {x: 0, y: -120}),
-                new TectonicPoint(this.transformations, {x: 0, y: 120}),
-            ]
-        )
+        const chartTransformationMatrix = this.calculateTransformationMatrixBasedOnBoundingBox(ctx, this.selectedDeviceChartsBoundingBox)
         this.selectedDeviceChartsTransformationMatrix.value = chartTransformationMatrix
         CtxArtist.textTransformationMatrix.relativeScale = chartTransformationMatrix.relativeScale
         this.selectedDeviceCharts.forEach((chart: Chart) => {
@@ -143,12 +145,7 @@ export class Circuit extends CtxArtist {
         if (!this.circuitCopy) {
             return
         }
-        this.circuitCopy.boundingBox = [
-            new TectonicPoint(device.transformations, {x: -120, y: 0}),
-            new TectonicPoint(device.transformations, {x: 120, y: 0}),
-            new TectonicPoint(device.transformations, {x: 0, y: -120}),
-            new TectonicPoint(device.transformations, {x: 0, y: 120}),
-        ]
+        this.circuitCopy.boundingBox = device.boundingBox
         this.anyDevicesSelected = true
 
         if (!this.circuitCopy) {
@@ -178,15 +175,6 @@ export class Circuit extends CtxArtist {
             return
         }
         this.circuitCopy.allSliders.forEach((slider: CtxSlider) => {slider.visibility = Visibility.Hidden})
-        // Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
-        //     mosfet.vgs.visibility = Visibility.Hidden
-        //     mosfet.vds.visibility = Visibility.Hidden
-        //     mosfet.vgsChart.visibility = Visibility.Hidden
-        //     mosfet.vdsChart.visibility = Visibility.Hidden
-        // })
-        // Object.values(this.circuitCopy.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
-        //     voltageSource.voltageDrop.visibility = Visibility.Hidden
-        // })
     }
 
     makeListOfSliders(): CtxSlider[] {
@@ -262,8 +250,7 @@ export class Circuit extends CtxArtist {
         this.setCtxArtistScale()
     }
 
-    setCtxArtistScale() {
-        // set static transformation matrices for the circuit
+    setCtxArtistScale() {  // set static transformation matrices for the circuit
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
     }
