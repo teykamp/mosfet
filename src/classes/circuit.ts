@@ -32,6 +32,7 @@ export class Circuit extends CtxArtist {
     originalTextTransformationMatrix: TransformationMatrix
     circuitCopy: CircuitCopy | null
     anyDevicesSelected: boolean = false
+    moveTectonicPlatesWhileDragging: boolean = true
 
     constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         // const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height) // TODO: Can probably delete, since this gets set elsewhere
@@ -83,6 +84,16 @@ export class Circuit extends CtxArtist {
         return this.makeListOfSliders()
     }
 
+    get anySlidersDragging() {
+        let flag = false
+        this.allSliders.forEach(slider => {
+            if (slider.dragging) {
+                flag = true
+            }
+            })
+        return flag
+    }
+
     copy(): CircuitCopy | null {
         const parentTransformation = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
         const newCircuit = new CircuitCopy(
@@ -106,15 +117,9 @@ export class Circuit extends CtxArtist {
         this.transformationMatrix.transformCanvas(ctx)
 
         if (moveNodesInResponseToCircuitState.value) {
-            // let slidersDragging = false
-            // this.allSliders.forEach((slider: CtxSlider) => {
-            //     if (slider.dragging) {
-            //         slidersDragging = true
-            //     }
-            // })
-            // if (!slidersDragging) {
+            if (!this.anySlidersDragging || this.moveTectonicPlatesWhileDragging) {
                 TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
-            // }
+            }
         } else {
             TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardLocation({x: 0, y: 0})})
         }

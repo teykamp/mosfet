@@ -182,16 +182,6 @@ const getMousePos = (event: MouseEvent) => {
   return { mouseX, mouseY }
 }
 
-const anySlidersDragging = (): boolean => {
-  let flag = false
-  circuit.value.allSliders.forEach(slider => {
-    if (slider.dragging) {
-      flag = true
-    }
-  })
-  return flag
-}
-
 const checkDrag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
@@ -200,7 +190,7 @@ const checkDrag = (event: MouseEvent) => {
     }
   })
 
-  if (!anySlidersDragging()) {
+  if (!circuit.value.anySlidersDragging) {
     Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
       if (mosfet.canvasId == (event.target as HTMLElement).className) {
         mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
@@ -238,7 +228,7 @@ const drag = (event: MouseEvent) => {
 const mouseUp = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  if (!anySlidersDragging() && (event.target as HTMLElement).className == 'main') {
+  if (!circuit.value.anySlidersDragging && (event.target as HTMLElement).className == 'main') {
     circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
