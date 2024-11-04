@@ -27,4 +27,17 @@ export class Device extends CtxArtist{
         const radius = 60
         return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
     }
+
+    drawSelectedHalo(ctx: CanvasRenderingContext2D) {
+        if (this.selectedFocus.value && !this.isDuplicate) {
+            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
+            backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
+            backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
+            backgroundGradient.addColorStop(0.8, 'rgba(0, 0, 255, 0.2)')
+            backgroundGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
+            ctx.fillStyle = backgroundGradient
+            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
+            ctx.fill()
+        }
+    }
 }

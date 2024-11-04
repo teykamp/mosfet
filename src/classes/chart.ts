@@ -53,7 +53,7 @@ export class Chart extends CtxSlider{
     yScale: number = 0
     boundingBox: TectonicPoint[]
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = Visibility.Visible, canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
         const fromNode = gnd
         const toNode = chartType == 'Vgs' ? Vg : Vd
         const drivenNode: 'fromNode' | 'toNode' = 'toNode'
@@ -129,15 +129,11 @@ export class Chart extends CtxSlider{
         return newChart
     }
 
-    draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {
-        if (this.visibility == Visibility.Hidden) {
+    draw(ctx: CanvasRenderingContext2D) {
+        if (this.visibility == 'hidden') {
             return
         }
-        if (transformationMatrix !== undefined) {
-            transformationMatrix.transformCanvas(ctx)
-        } else {
-            this.transformationMatrix.transformCanvas(ctx)
-        }
+        this.transformationMatrix.transformCanvas(ctx)
 
         const axisLineThickness = this.localLineThickness / 2
         const tickLineThickness = this.localLineThickness / 4

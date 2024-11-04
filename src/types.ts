@@ -9,18 +9,7 @@ export type Point = {
   y: number
 }
 
-export enum Visibility {
-  Hidden,
-  Locked,
-  Visible
-}
-
-export enum RelativeDirection {
-  Right,
-  Left,
-  Up,
-  Down,
-}
+export type Visibility = 'hidden' | 'locked' | 'visible'
 
 export type canvasId = 'main' | 'mosfet' | 'chart'
 

@@ -31,7 +31,7 @@ export class Mosfet extends Device{
     mouseDownInsideSelectionArea = false
     selected: Ref<boolean> = ref(false)
     selectedFocus: Ref<boolean> = ref(false)
-    chartVisibility: Visibility = Visibility.Hidden
+    chartVisibility: Visibility = 'hidden'
     vgsChart: Chart
     vdsChart: Chart
     static chartWidth = 200
@@ -47,7 +47,7 @@ export class Mosfet extends Device{
         "deviceOrigin": {x: 0, y: 0},
     }
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate", canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = 'visible', vdsVisibility: Visibility = 'visible', chartLocation: keyof typeof Mosfet.chartLocations = "gate", canvasId: canvasId = 'main') {
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, mosfetType == 'pmos'), canvasId)
 
         this.mosfetType = mosfetType
@@ -140,27 +140,7 @@ export class Mosfet extends Device{
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
-
-        if (this.selectedFocus.value && !this.isDuplicate) {
-            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
-            backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
-            backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
-            backgroundGradient.addColorStop(0.8, 'rgba(0, 0, 255, 0.2)')
-            backgroundGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
-            ctx.fillStyle = backgroundGradient
-            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
-            ctx.fill()
-        }
-        // else if (this.selected.value && !this.isDuplicate) {
-        //     const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
-        //     backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
-        //     backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')
-        //     backgroundGradient.addColorStop(0.8, 'rgba(255, 0, 0, 0.2)')
-        //     backgroundGradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
-        //     ctx.fillStyle = backgroundGradient
-        //     ctx.arc(0, 0, 200, 0, 2 * Math.PI)
-        //     ctx.fill()
-        // }
+        this.drawSelectedHalo(ctx)
 
         const bodyLines: Line[] = [
             {start: {x: 0, y: 20}, end: {x: 0, y: 59}},

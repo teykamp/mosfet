@@ -1,4 +1,3 @@
-import { Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
@@ -133,8 +132,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerVoltageSource'
         ),
         "M1": new Mosfet(
@@ -150,8 +149,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             true,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'voltageSource'
         ),
         "M2": new Mosfet(
@@ -167,8 +166,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'voltageSource'
         ),
         "M3": new Mosfet(
@@ -184,8 +183,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerBase'
         ),
         "M4": new Mosfet(
@@ -201,8 +200,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             true,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerBase'
         ),
         "M5": new Mosfet(
@@ -218,8 +217,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'mirrorDriver'
         ),
         "M6": new Mosfet(
@@ -235,8 +234,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             true,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'mirrorDriver'
         ),
         "M7": new Mosfet(
@@ -252,8 +251,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerBase'
         ),
         "M8": new Mosfet(
@@ -269,8 +268,8 @@ const useNmos9TransistorOpAmp = () => {
             undefined,
             undefined,
             true,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerBase'
         ),
     }

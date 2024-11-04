@@ -1,4 +1,4 @@
-import { Point, Visibility } from "../types"
+import { Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
@@ -161,8 +161,8 @@ export class Circuit extends CtxArtist {
             const mosfet = this.circuitCopy.devices.mosfets[device.key]
             mosfet.vgs.visibility = device.vgs.visibility
             mosfet.vds.visibility = device.vds.visibility
-            mosfet.vgsChart.visibility = Visibility.Hidden // do not draw the charts
-            mosfet.vdsChart.visibility = Visibility.Hidden // do not draw the charts
+            mosfet.vgsChart.visibility = 'hidden' // do not draw the charts
+            mosfet.vdsChart.visibility = 'hidden' // do not draw the charts
 
             this.selectedDeviceCharts = [device.vgsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart'), device.vdsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart')]
 
@@ -179,7 +179,7 @@ export class Circuit extends CtxArtist {
         if (!this.circuitCopy) {
             return
         }
-        this.circuitCopy.allSliders.forEach((slider: CtxSlider) => {slider.visibility = Visibility.Hidden})
+        this.circuitCopy.allSliders.forEach((slider: CtxSlider) => {slider.visibility = 'hidden'})
     }
 
     makeListOfSliders(): CtxSlider[] {
