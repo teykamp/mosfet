@@ -127,9 +127,11 @@ export class Circuit extends CtxArtist {
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
             mosfet.draw(ctx)
+            // setTimeout((device: Mosfet, ctx: CanvasRenderingContext2D) => {device.draw(ctx)}, 0, mosfet, ctx)
         })
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
             voltageSource.draw(ctx)
+            // setTimeout((device: VoltageSource, ctx: CanvasRenderingContext2D) => {device.draw(ctx)}, 0, voltageSource, ctx)
         })
         if (drawGrid.value) {
             this.drawGrid(ctx)
@@ -258,6 +260,35 @@ export class Circuit extends CtxArtist {
     setCtxArtistScale() {  // set static transformation matrices for the circuit
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
+    }
+
+    nodeVoltagesToJson(): string {
+        const nodeVoltages = Object.fromEntries(Object.entries(this.nodes).map(
+            ([name, nodeRef]: [string, Ref<Node>]): [string, number] => {
+                return [name, nodeRef.value.voltage]
+            }
+        ))
+        const json = JSON.stringify(nodeVoltages)
+        return json
+    }
+
+    fixedNodeVoltagesToJson(): string {
+        const nodeVoltages = Object.fromEntries(Object.entries(this.nodes).filter(
+            ([_, nodeRef]: [string, Ref<Node>]): boolean => {
+                return nodeRef.value.fixed
+            }
+        ).map(
+            ([name, nodeRef]: [string, Ref<Node>]): [string, number] => {
+                return [name, nodeRef.value.voltage]
+            }
+        ))
+        const json = JSON.stringify(nodeVoltages)
+        return json
+    }
+
+    nodeVoltagesFromJson(json: string) {
+        const nodeVoltages: { [name: string]: number; } = JSON.parse(json)
+        Object.entries(nodeVoltages).forEach(([name, voltage]: [string, number]) => {this.nodes[name].value.voltage = voltage})
     }
 }
 

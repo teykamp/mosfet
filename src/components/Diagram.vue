@@ -150,7 +150,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 type DefinedCircuits = keyof typeof circuits
-const currentCircuit = ref<DefinedCircuits>('nMosSingle')
+const currentCircuit = ref<DefinedCircuits>('nMosDiffPair')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
@@ -278,32 +278,47 @@ const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | Can
   return true
 }
 
+if (!window.Worker) {
+  console.log('Your browser doesn\'t support web workers.');
+}
+
+// const worker = new Worker('src/workers/incrementCircuitWorker.ts');
+const worker = new Worker(new URL('../workers/incrementCircuitWorker.ts', import.meta.url), { type: 'module' })
+worker.onmessage = (event: MessageEvent<string>) => {
+  circuit.value.nodeVoltagesFromJson(event.data)
+}
+
 const draw = () => {
   if (!setUpCtx(canvas, ctx, canvasSize)) return
   if (!setUpCtx(graphBarMosfetCanvas, graphBarMosfetCtx, graphBarMosfetCanvasSize)) return
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
 
+  // console.log(circuit.value.nodes)
+  const json = circuit.value.fixedNodeVoltagesToJson()
+  worker.postMessage(json)
+
   updateSlidersBasedOnNodeVoltages()
   circuit.value.draw(ctx.value as CanvasRenderingContext2D)
+
+  // draw the graph bar canvases if active
   if (circuit.value.anyDevicesSelected && showSideBar) {
     CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale / schematicScale
     circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
-    // CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale
     circuit.value.drawSelectedDeviceCharts(graphBarChartCtx.value as CanvasRenderingContext2D)
-    // CtxArtist.textTransformationMatrix.relativeScale = circuit.value.transformationMatrix.relativeScale
   }
 }
 
 const animate = (timestamp: number) => {
   const timeDifference = timestamp - previousTimestamp
   previousTimestamp = timestamp
+  // console.log("delta t = ", timeDifference, "ms")
 
   circuit.value.allSliders.forEach((slider) => {
     slider.adjustPreciseSlider(timeDifference)
-    updateNodeVoltagesBasedOnSliders()
   })
+  updateNodeVoltagesBasedOnSliders()
 
-  incrementCircuit(circuit.value, timeDifference)
+  // incrementCircuit(circuit.value, timeDifference)
 
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
