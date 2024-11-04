@@ -13,7 +13,7 @@ import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 
 
 const useNmos9TransistorOpAmp = () => {
-    const circuit: Circuit = new Circuit({x: 10, y: -2}, 50, 30)
+    const circuit: Circuit = new Circuit('nMos9TransistorOpAmp', {x: 10, y: -2}, 50, 30)
 
     //////////////////////////////
     ///          NODES         ///

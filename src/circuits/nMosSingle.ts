@@ -13,7 +13,7 @@ import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 
 const useNmosSingle = () => {
-    const circuit: Circuit = new Circuit({x: 0, y: -3}, 10, 20)
+    const circuit: Circuit = new Circuit('nMosSingle', {x: 0, y: -3}, 10, 20)
 
     //////////////////////////////
     ///          NODES         ///

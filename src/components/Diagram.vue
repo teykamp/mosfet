@@ -75,8 +75,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 'vue'
-import { incrementCircuit } from '../functions/incrementCircuit'
-import { circuits } from '../circuits/circuits'
+import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
@@ -149,13 +148,22 @@ const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
 
-type DefinedCircuits = keyof typeof circuits
 const currentCircuit = ref<DefinedCircuits>('nMosDiffPair')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
 
+if (!window.Worker) {
+  console.log('Your browser doesn\'t support web workers.');
+}
+
+const worker = new Worker(new URL('../workers/incrementCircuitWorker.ts', import.meta.url), { type: 'module' })
+worker.onmessage = (event: MessageEvent<string>) => {
+  circuit.value.nodeVoltagesFromJson(event.data)
+}
+
 const setCircuit = (newCircuit: DefinedCircuits) => {
+  worker.postMessage(JSON.stringify({'circuit': newCircuit}))
   currentCircuit.value = newCircuit
   circuit.value = circuits[newCircuit]
 }
@@ -278,22 +286,11 @@ const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | Can
   return true
 }
 
-if (!window.Worker) {
-  console.log('Your browser doesn\'t support web workers.');
-}
-
-// const worker = new Worker('src/workers/incrementCircuitWorker.ts');
-const worker = new Worker(new URL('../workers/incrementCircuitWorker.ts', import.meta.url), { type: 'module' })
-worker.onmessage = (event: MessageEvent<string>) => {
-  circuit.value.nodeVoltagesFromJson(event.data)
-}
-
 const draw = () => {
   if (!setUpCtx(canvas, ctx, canvasSize)) return
   if (!setUpCtx(graphBarMosfetCanvas, graphBarMosfetCtx, graphBarMosfetCanvasSize)) return
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
 
-  // console.log(circuit.value.nodes)
   const json = circuit.value.fixedNodeVoltagesToJson()
   worker.postMessage(json)
 

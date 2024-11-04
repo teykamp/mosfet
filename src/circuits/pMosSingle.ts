@@ -13,7 +13,7 @@ import { getPointAlongPath } from '../functions/drawFuncs'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 
 const usePmosSingle = () => {
-    const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
+    const circuit: Circuit = new Circuit('pMosSingle', {x: 0, y: 3}, 10, 20)
 
     //////////////////////////////
     ///          NODES         ///

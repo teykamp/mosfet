@@ -12,7 +12,7 @@ import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 
 const useNmos5TransistorOpAmp = (): Circuit => {
-    const circuit: Circuit = new Circuit({x: 0, y: 0}, 25, 28)
+    const circuit: Circuit = new Circuit('nMos5TransistorOpAmp', {x: 0, y: 0}, 25, 28)
 
     //////////////////////////////
     ///          NODES         ///

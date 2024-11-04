@@ -1,11 +1,20 @@
-import { circuits } from "../circuits/circuits"
+import { circuits, DefinedCircuits } from "../circuits/circuits"
+import { Circuit, CircuitCopy } from "../classes/circuit"
 import { incrementCircuit } from "../functions/incrementCircuit"
 
-let circuit = circuits["nMosDiffPair"].copy()!
+const circuitCopies: {[key: string]: Circuit} = Object.fromEntries(Object.entries(circuits).map(([key, myCircuit]: [string, Circuit]): [string, CircuitCopy] => {return [key, myCircuit.copy()!]}))
+
+let currentCircuitName: DefinedCircuits = "nMosDiffPair"
+let circuit = circuitCopies[currentCircuitName]
 let incrementCircuitRunning = false
 let lastIncrementTimestamp = 0
 
 onmessage = function (event: MessageEvent<string>) {
+    const json: [DefinedCircuits, {[key: string]: number}] = JSON.parse(event.data)
+    if (json[0] != currentCircuitName) {
+        circuit = circuitCopies[json[0]]
+    }
+
     circuit.nodeVoltagesFromJson(event.data)
     if (!incrementCircuitRunning) { // the first time the message is called
         repeatIncrementCircuit()

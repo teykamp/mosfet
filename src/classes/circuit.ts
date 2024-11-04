@@ -14,8 +14,10 @@ import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
+import { DefinedCircuits } from "../circuits/circuits"
 
 export class Circuit extends CtxArtist {
+    name: DefinedCircuits
     boundingBox: TectonicPoint[]
     schematic: Schematic // how to draw the circuit
     devices: {
@@ -34,11 +36,12 @@ export class Circuit extends CtxArtist {
     anyDevicesSelected: boolean = false
     moveTectonicPlatesWhileDragging: boolean = true
 
-    constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
+    constructor(name: DefinedCircuits, origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
         // const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height) // TODO: Can probably delete, since this gets set elsewhere
         // const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2} // TODO: Can probably delete, since this gets set elsewhere
         super([ref((new TransformationMatrix())/*.scale(canvasDpi.value * scale).translate(extraShift)*/) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
 
+        this.name = name
         this.boundingBox = [
             new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
             new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y - height / 2}),
@@ -97,6 +100,7 @@ export class Circuit extends CtxArtist {
     copy(): CircuitCopy | null {
         const parentTransformation = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
         const newCircuit = new CircuitCopy(
+            this.name,
             {x: 0, y: 0},
             10,
             10,
@@ -268,7 +272,7 @@ export class Circuit extends CtxArtist {
                 return [name, nodeRef.value.voltage]
             }
         ))
-        const json = JSON.stringify(nodeVoltages)
+        const json = JSON.stringify([this.name, nodeVoltages])
         return json
     }
 
@@ -282,17 +286,18 @@ export class Circuit extends CtxArtist {
                 return [name, nodeRef.value.voltage]
             }
         ))
-        const json = JSON.stringify(nodeVoltages)
+        const json = JSON.stringify([this.name, nodeVoltages])
         return json
     }
 
     nodeVoltagesFromJson(json: string) {
-        const nodeVoltages: { [name: string]: number; } = JSON.parse(json)
+        console.log(json)
+        const nodeVoltages: { [name: string]: number; } = JSON.parse(json)[1]
         Object.entries(nodeVoltages).forEach(([name, voltage]: [string, number]) => {this.nodes[name].value.voltage = voltage})
     }
 }
 
-class CircuitCopy extends Circuit {
+export class CircuitCopy extends Circuit {
     override copy(): CircuitCopy | null {
         return null
     }
