@@ -14,13 +14,7 @@ onmessage = function (event: MessageEvent<string>) {
         currentCircuitName = json[0]
     }
 
-    if (circuit.nodeVoltagesFromJson(event.data)) {
-        // reset node capacitances
-        for (const nodeId in circuit.nodes) {
-            const node = circuit.nodes[nodeId].value
-            node.capacitance = node.originalCapacitance
-        }
-    }
+    circuit.nodeVoltagesFromJson(event.data)
 
     postMessage(circuit.nodeVoltagesToJson())
 }

@@ -266,6 +266,13 @@ export class Circuit extends CtxArtist {
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
     }
 
+    resetNodeCapacitance() {
+        for (const nodeId in this.nodes) {
+            const node = this.nodes[nodeId].value
+            node.capacitance = node.originalCapacitance
+        }
+    }
+
     nodeVoltagesToJson(): string {
         const nodeVoltages = Object.fromEntries(Object.entries(this.nodes).map(
             ([name, nodeRef]: [string, Ref<Node>]): [string, number] => {
@@ -290,7 +297,7 @@ export class Circuit extends CtxArtist {
         return json
     }
 
-    nodeVoltagesFromJson(json: string): boolean {
+    nodeVoltagesFromJson(json: string) {
         const parsedJson: [DefinedCircuits, {[key: string]: number}] = JSON.parse(json)
 
         // when switching circuits, the circuit incrementing worker may still be sending values for the previous circuit,
@@ -307,7 +314,10 @@ export class Circuit extends CtxArtist {
                 nonRailVoltagesUpdated = true
             }
         })
-        return nonRailVoltagesUpdated
+
+        if (nonRailVoltagesUpdated) {
+            this.resetNodeCapacitance()
+        }
     }
 }
 
