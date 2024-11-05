@@ -3,16 +3,15 @@ import { Circuit, CircuitCopy } from "../classes/circuit"
 import { incrementCircuit } from "../functions/incrementCircuit"
 
 const circuitCopies: {[key: string]: Circuit} = Object.fromEntries(Object.entries(circuits).map(([key, myCircuit]: [string, Circuit]): [string, CircuitCopy] => {return [key, myCircuit.copy()!]}))
-
 let currentCircuitName: DefinedCircuits = "nMosDiffPair"
 let circuit = circuitCopies[currentCircuitName]
-let incrementCircuitRunning = false
 let lastIncrementTimestamp = 0
 
 onmessage = function (event: MessageEvent<string>) {
     const json: [DefinedCircuits, {[key: string]: number}] = JSON.parse(event.data)
     if (json[0] != currentCircuitName) {
         circuit = circuitCopies[json[0]]
+        currentCircuitName = json[0]
     }
 
     if (circuit.nodeVoltagesFromJson(event.data)) {

@@ -163,7 +163,6 @@ worker.onmessage = (event: MessageEvent<string>) => {
 }
 
 const setCircuit = (newCircuit: DefinedCircuits) => {
-  worker.postMessage(JSON.stringify({'circuit': newCircuit}))
   currentCircuit.value = newCircuit
   circuit.value = circuits[newCircuit]
 }

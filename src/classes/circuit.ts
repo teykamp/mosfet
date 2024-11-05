@@ -291,8 +291,16 @@ export class Circuit extends CtxArtist {
     }
 
     nodeVoltagesFromJson(json: string): boolean {
+        const parsedJson: [DefinedCircuits, {[key: string]: number}] = JSON.parse(json)
+
+        // when switching circuits, the circuit incrementing worker may still be sending values for the previous circuit,
+        // so we should ignore data unless it pertains to the circuit at hand.
+        if (parsedJson[0] != this.name) {
+            return false
+        }
+
         let nonRailVoltagesUpdated = false
-        const nodeVoltages: { [name: string]: number; } = JSON.parse(json)[1]
+        const nodeVoltages: { [name: string]: number; } = parsedJson[1]
         Object.entries(nodeVoltages).forEach(([name, voltage]: [string, number]) => {
             this.nodes[name].value.voltage = voltage
             if (!([gndNodeId, vddNodeId].includes(name))) {
