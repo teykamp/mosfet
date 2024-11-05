@@ -219,12 +219,6 @@ const checkDrag = (event: MouseEvent) => {
 const drag = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  // reset node capacitances
-  for (const nodeId in circuit.value.nodes) {
-    const node = circuit.value.nodes[nodeId].value
-    node.capacitance = node.originalCapacitance
-  }
-
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
     slider.dragSlider({x: mouseX, y: mouseY})

@@ -15,11 +15,14 @@ onmessage = function (event: MessageEvent<string>) {
         circuit = circuitCopies[json[0]]
     }
 
-    circuit.nodeVoltagesFromJson(event.data)
-    if (!incrementCircuitRunning) { // the first time the message is called
-        repeatIncrementCircuit()
-        incrementCircuitRunning = true
+    if (circuit.nodeVoltagesFromJson(event.data)) {
+        // reset node capacitances
+        for (const nodeId in circuit.nodes) {
+            const node = circuit.nodes[nodeId].value
+            node.capacitance = node.originalCapacitance
+        }
     }
+
     postMessage(circuit.nodeVoltagesToJson())
 }
 
@@ -32,6 +35,8 @@ const repeatIncrementCircuit = () => {
 
 const printTimeElapsed = () => {
     const timestamp = Date.now();
-    console.log("Elapsed time = ", (timestamp - lastIncrementTimestamp).toFixed(0))
+    // console.log("Elapsed time = ", (timestamp - lastIncrementTimestamp).toFixed(0))
     lastIncrementTimestamp = timestamp
 }
+
+repeatIncrementCircuit()

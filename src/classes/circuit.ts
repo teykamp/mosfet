@@ -6,7 +6,7 @@ import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
-import { schematicScale } from "../constants"
+import { gndNodeId, schematicScale, vddNodeId } from "../constants"
 import { canvasSize } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
@@ -290,10 +290,16 @@ export class Circuit extends CtxArtist {
         return json
     }
 
-    nodeVoltagesFromJson(json: string) {
-        console.log(json)
+    nodeVoltagesFromJson(json: string): boolean {
+        let nonRailVoltagesUpdated = false
         const nodeVoltages: { [name: string]: number; } = JSON.parse(json)[1]
-        Object.entries(nodeVoltages).forEach(([name, voltage]: [string, number]) => {this.nodes[name].value.voltage = voltage})
+        Object.entries(nodeVoltages).forEach(([name, voltage]: [string, number]) => {
+            this.nodes[name].value.voltage = voltage
+            if (!([gndNodeId, vddNodeId].includes(name))) {
+                nonRailVoltagesUpdated = true
+            }
+        })
+        return nonRailVoltagesUpdated
     }
 }
 
