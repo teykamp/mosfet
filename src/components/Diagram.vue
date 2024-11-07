@@ -1,9 +1,4 @@
 <template>
-  <!-- <Chart :points="circuit.devices.mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
-    v-bind:cornerToCornerGraph="true" />
-  <Chart :points="circuit.devices.mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
-    v-bind:cornerToCornerGraph="true" /> -->
-
   <div style="position: absolute; top: 10px; left: 10px;">
     <button @click.stop="showSideBar = !showSideBar">Menu</button>
   </div>
@@ -168,7 +163,6 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 }
 
 const updateSlidersBasedOnNodeVoltages = () => {
-  // Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => mosfet.setMinAndMaxValue())
   circuit.value.allSliders.forEach((slider: CtxSlider) => {
     slider.updateValueBasedOnNodeVoltages()
   })
@@ -301,15 +295,13 @@ const draw = () => {
 const animate = (timestamp: number) => {
   const timeDifference = timestamp - previousTimestamp
   previousTimestamp = timestamp
-  // console.log("delta t = ", timeDifference, "ms")
 
   circuit.value.allSliders.forEach((slider) => {
     slider.adjustPreciseSlider(timeDifference)
   })
   updateNodeVoltagesBasedOnSliders()
 
-  // incrementCircuit(circuit.value, timeDifference)
-
+  // update current dots on mosfets and capacitors
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
   })

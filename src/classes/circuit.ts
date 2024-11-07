@@ -37,9 +37,7 @@ export class Circuit extends CtxArtist {
     moveTectonicPlatesWhileDragging: boolean = true
 
     constructor(name: DefinedCircuits, origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
-        // const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height) // TODO: Can probably delete, since this gets set elsewhere
-        // const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2} // TODO: Can probably delete, since this gets set elsewhere
-        super([ref((new TransformationMatrix())/*.scale(canvasDpi.value * scale).translate(extraShift)*/) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
+        super([ref(new TransformationMatrix()) as Ref<TransformationMatrix>], new TransformationMatrix())
 
         this.name = name
         this.boundingBox = [
