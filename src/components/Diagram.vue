@@ -44,8 +44,8 @@
     }">
       <canvas
         ref="canvas"
-        @mousedown="checkDrag"
-        :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
+        @pointerdown="checkDrag"
+        :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px; touch-action: none`"
         class="main"
       ></canvas>
 
@@ -56,14 +56,14 @@
       }">
         <canvas
           ref="graphBarChartCanvas"
-          @mousedown="checkDrag"
-          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          @pointerdown="checkDrag"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="chart"
         ></canvas>
         <canvas
           ref="graphBarMosfetCanvas"
-          @mousedown="checkDrag"
-          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          @pointerdown="checkDrag"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="mosfet"
         ></canvas>
       </div>
@@ -180,7 +180,7 @@ const updateNodeVoltagesBasedOnSliders = () => {
   })
 }
 
-const getMousePos = (event: MouseEvent) => {
+const getMousePos = (event: PointerEvent) => {
   const myCanvas = event.target as HTMLCanvasElement
   if (!myCanvas) return { mouseX: 0, mouseY: 0 }
   const rect = myCanvas.getBoundingClientRect()
@@ -189,7 +189,7 @@ const getMousePos = (event: MouseEvent) => {
   return { mouseX, mouseY }
 }
 
-const checkDrag = (event: MouseEvent) => {
+const checkDrag = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
@@ -210,12 +210,12 @@ const checkDrag = (event: MouseEvent) => {
     })
   }
 
-  drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
-  document.addEventListener('mousemove', drag)
-  document.addEventListener('mouseup', mouseUp)
+  drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another PointerEvent to start dragging) (for click w/o drag)
+  document.addEventListener('pointermove', drag)
+  document.addEventListener('pointerup', mouseUp)
 }
 
-const drag = (event: MouseEvent) => {
+const drag = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
   // update slider values based on position
@@ -226,7 +226,7 @@ const drag = (event: MouseEvent) => {
   updateNodeVoltagesBasedOnSliders()
 }
 
-const mouseUp = (event: MouseEvent) => {
+const mouseUp = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
   if (!circuit.value.anySlidersDragging && (event.target as HTMLElement).className == 'main') {
@@ -258,8 +258,8 @@ const mouseUp = (event: MouseEvent) => {
     slider.releaseSlider()
   })
 
-  document.removeEventListener('mousemove', drag)
-  document.removeEventListener('mouseup', mouseUp)
+  document.removeEventListener('pointermove', drag)
+  document.removeEventListener('pointerup', mouseUp)
 }
 
 const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | CanvasRenderingContext2D>, myCanvasSize: Ref<{width: number, height: number}>): boolean => {
