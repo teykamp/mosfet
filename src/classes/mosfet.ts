@@ -213,7 +213,6 @@ export class Mosfet extends Device{
             this.selected.value = false
             this.vgsChart.visibility = 'hidden'
             this.vdsChart.visibility = 'hidden'
-            console.log(this.vgsChart)
         } else {
             this.selected.value = true
             this.vgsChart.visibility = this.vgs.visibility

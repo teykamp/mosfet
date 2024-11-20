@@ -211,7 +211,6 @@ export class Circuit extends CtxArtist {
 
     setSlidersActive(slidersActive: boolean) {
         const activateMosfetSliders = (mosfet: Mosfet) => {
-            console.log(mosfet)
             if (slidersActive) {
                 mosfet.vgs.visibility = 'visible'
                 mosfet.vds.visibility = 'visible'
@@ -235,12 +234,9 @@ export class Circuit extends CtxArtist {
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
             // Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selectedFocus) : []).forEach((mosfet: Mosfet) => {
 
-            console.log(mosfet)
             activateMosfetSliders(mosfet)
             if (mosfet.selectedFocus.value) {
                 if (this.circuitCopy) {
-                    console.log(mosfet.key)
-                    console.log(this.circuitCopy.devices.mosfets[mosfet.key])
                     activateMosfetSliders(this.circuitCopy.devices.mosfets[mosfet.key])
                 }
             }
