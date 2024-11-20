@@ -29,9 +29,8 @@ export class Mosfet extends Device{
     Vb: Ref<Node>
     gndNode: Ref<Node>
     mouseDownInsideSelectionArea = false
-    selected: Ref<boolean> = ref(false)
+    _selected: Ref<boolean> = ref(false)
     selectedFocus: Ref<boolean> = ref(false)
-    chartVisibility: Visibility = 'hidden'
     vgsChart: Chart
     vdsChart: Chart
     static chartWidth = 200
@@ -101,15 +100,15 @@ export class Mosfet extends Device{
         if (this.mosfetType == 'nmos') {
             this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility, canvasId)
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility, canvasId)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility, chartCanvasId)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility, chartCanvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         }
         else {
             this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility, canvasId)
             this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility, canvasId)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility, chartCanvasId)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility, chartCanvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
     }
@@ -133,6 +132,8 @@ export class Mosfet extends Device{
             "deviceOrigin",
             canvasId
         )
+        newMosfet.vgsChart.visibility = 'hidden'
+        newMosfet.vdsChart.visibility = 'hidden'
         newMosfet.isDuplicate = true
         newMosfet.transformations[newMosfet.transformations.length - 1].value = new TransformationMatrix()
         return newMosfet
@@ -197,14 +198,27 @@ export class Mosfet extends Device{
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
 
-        if (this.selected.value && !this.isDuplicate) {
+        // if (this.selected.value && !this.isDuplicate) {
             this.vgsChart.draw(ctx)
             this.vdsChart.draw(ctx)
-        }
+        // }
 
         // draw mosfet angle sliders
         this.vgs.draw(ctx)
         this.vds.draw(ctx)
+    }
+
+    toggleSelected() {
+        if (this.selected.value) {
+            this.selected.value = false
+            this.vgsChart.visibility = 'hidden'
+            this.vdsChart.visibility = 'hidden'
+            console.log(this.vgsChart)
+        } else {
+            this.selected.value = true
+            this.vgsChart.visibility = this.vgs.visibility
+            this.vdsChart.visibility = this.vds.visibility
+        }
     }
 
     get current(): number { // in Amps

@@ -15,6 +15,7 @@
       <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
       <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
         <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
+        <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" />
         <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
       </div>
       <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
@@ -73,7 +74,7 @@ import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { VoltageSource } from '../classes/voltageSource'
 import { Mosfet } from '../classes/mosfet'
@@ -143,7 +144,7 @@ const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
 
-const currentCircuit = ref<DefinedCircuits>('nMosDiffPair')
+const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
@@ -228,7 +229,8 @@ const mouseUp = (event: PointerEvent) => {
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
         if (mosfet.selectedFocus.value) {
-          mosfet.selected.value = !mosfet.selected.value
+          // mosfet.selected.value = !mosfet.selected.value
+          mosfet.toggleSelected()
         }
         mosfet.selectedFocus.value = true
         circuit.value.setSelectedDevice(mosfet)

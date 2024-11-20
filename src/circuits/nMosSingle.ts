@@ -67,8 +67,8 @@ const useNmosSingle = () => {
         )
     }
 
-    circuit.devices.mosfets["M1"].vgsChart.visibility = 'visible'
-    circuit.devices.mosfets["M1"].vdsChart.visibility = 'visible'
+    // circuit.devices.mosfets["M1"].vgsChart.visibility = 'visible'
+    // circuit.devices.mosfets["M1"].vdsChart.visibility = 'visible'
 
 
     //////////////////////////////

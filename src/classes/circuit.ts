@@ -157,10 +157,6 @@ export class Circuit extends CtxArtist {
         this.circuitCopy.boundingBox = device.boundingBox
         this.anyDevicesSelected = true
 
-        if (!this.circuitCopy) {
-            return
-        }
-
         if (device instanceof Mosfet) {
             const mosfet = this.circuitCopy.devices.mosfets[device.key]
             mosfet.vgs.visibility = device.vgs.visibility
@@ -168,7 +164,11 @@ export class Circuit extends CtxArtist {
             mosfet.vgsChart.visibility = 'hidden' // do not draw the charts
             mosfet.vdsChart.visibility = 'hidden' // do not draw the charts
 
+            // device.vgsChart.visibility = device.vgs.visibility
+            // device.vdsChart.visibility = device.vds.visibility
             this.selectedDeviceCharts = [device.vgsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart'), device.vdsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart')]
+            this.selectedDeviceCharts[0].visibility = device.vgs.visibility
+            this.selectedDeviceCharts[1].visibility = device.vds.visibility
 
         } else if (device instanceof VoltageSource) {
             const voltageSource = this.circuitCopy.devices.voltageSources[device.key]
