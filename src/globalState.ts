@@ -1,8 +1,8 @@
 import { Ref, ref } from "vue"
 
-export const moveNodesInResponseToCircuitState = ref(false)
+export const moveNodesInResponseToCircuitState = ref(true)
 export const drawGrid = ref(false)
-export const slidersActive = ref(false)
+export const slidersActive = ref(true)
 export const canvasDpi = ref(2)
 
 export const canvasSize = ref({
