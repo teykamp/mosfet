@@ -58,7 +58,7 @@ export class Chart extends CtxSlider{
         const toNode = chartType == 'Vgs' ? Vg : Vd
         const drivenNode: 'fromNode' | 'toNode' = 'toNode'
 
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, visibility, canvasId)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, 'hidden', visibility, canvasId)
         if (this.transformationMatrix.isMirrored) {
             this.transformations[this.transformations.length - 1].value.mirror(true, false, true)
         }

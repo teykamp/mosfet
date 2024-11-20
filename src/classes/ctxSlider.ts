@@ -8,6 +8,7 @@ import { preciseSliderTickRange } from "../constants"
 
 export class CtxSlider extends CtxArtist{
     visibility: Visibility
+    originalVisibility: Visibility
     fromNode: Ref<Node>
     toNode: Ref<Node>
     dragging: boolean = false
@@ -25,9 +26,10 @@ export class CtxSlider extends CtxArtist{
     valueRateOfChange: number = 0
 
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, originalVisibility: Visibility = 'visible', visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
         super(parentTransformations, localTransformationMatrix)
 
+        this.originalVisibility = originalVisibility
         this.visibility = visibility
         this.fromNode = fromNode
         this.toNode = toNode

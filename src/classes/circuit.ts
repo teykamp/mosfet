@@ -15,6 +15,7 @@ import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
 import { DefinedCircuits } from "../circuits/circuits"
+import { AngleSlider } from "./angleSlider"
 
 export class Circuit extends CtxArtist {
     name: DefinedCircuits
@@ -207,6 +208,60 @@ export class Circuit extends CtxArtist {
         } else {
             return allSliders
         }
+    }
+
+    setSlidersActive(slidersActive: boolean) {
+        Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selectedFocus) : []).forEach((mosfet: Mosfet) => {
+            if (slidersActive) {
+                mosfet.vgs.visibility = 'visible'
+                mosfet.vds.visibility = 'visible'
+                if ((mosfet.vgsChart.visibility == 'visible') || (mosfet.vgsChart.visibility == 'locked')) {
+                    mosfet.vgsChart.visibility = 'visible'
+                }
+                if ((mosfet.vdsChart.visibility == 'visible') || (mosfet.vdsChart.visibility == 'locked')) {
+                    mosfet.vdsChart.visibility = 'visible'
+                }
+            } else {
+                mosfet.vgs.visibility = mosfet.vgs.originalVisibility
+                mosfet.vds.visibility = mosfet.vds.originalVisibility
+                if ((mosfet.vgsChart.visibility == 'visible') || (mosfet.vgsChart.visibility == 'locked')) {
+                    mosfet.vgsChart.visibility = mosfet.vgs.visibility
+                }
+                if ((mosfet.vdsChart.visibility == 'visible') || (mosfet.vdsChart.visibility == 'locked')) {
+                    mosfet.vdsChart.visibility = mosfet.vds.visibility
+                }
+            }
+        })
+        Object.values(this.devices.voltageSources).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.voltageSources).filter((device: VoltageSource) => device.selectedFocus) : []).forEach((voltageSource: VoltageSource) => {
+            if (slidersActive) {
+                voltageSource.voltageDrop.visibility = 'visible'
+            } else {
+                voltageSource.voltageDrop.visibility = voltageSource.voltageDrop.originalVisibility
+            }
+        })
+
+        if (this.selectedDeviceCharts.length >= 2) {
+            if (slidersActive) {
+                if ((this.selectedDeviceCharts[0].visibility == 'visible') || (this.selectedDeviceCharts[0].visibility == 'locked')) {
+                    this.selectedDeviceCharts[0].visibility = 'visible'
+                }
+                if ((this.selectedDeviceCharts[1].visibility == 'visible') || (this.selectedDeviceCharts[1].visibility == 'locked')) {
+                    this.selectedDeviceCharts[1].visibility = 'visible'
+                }
+            } else {
+                const selectedDeviceList = Object.values(this.devices.mosfets).filter((mosfet: Mosfet) => mosfet.selectedFocus)
+                if (selectedDeviceList.length >= 1) {
+                    const selectedDevice = selectedDeviceList[0]
+                    if ((this.selectedDeviceCharts[0].visibility == 'visible') || (this.selectedDeviceCharts[0].visibility == 'locked')) {
+                        this.selectedDeviceCharts[0].visibility = (selectedDevice.vgs.visibility == 'hidden') ? 'locked' : selectedDevice.vgs.visibility
+                    }
+                    if ((this.selectedDeviceCharts[1].visibility == 'visible') || (this.selectedDeviceCharts[1].visibility == 'locked')) {
+                        this.selectedDeviceCharts[1].visibility = (selectedDevice.vds.visibility == 'hidden') ? 'locked' : selectedDevice.vds.visibility
+                    }
+                }
+            }
+        }
+
     }
 
     drawGrid(ctx: CanvasRenderingContext2D) {

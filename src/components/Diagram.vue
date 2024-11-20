@@ -15,7 +15,7 @@
       <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
       <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
         <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
-        <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" />
+        <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" @click="updateSlidersActive()"/>
         <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
       </div>
       <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
@@ -80,6 +80,7 @@ import { VoltageSource } from '../classes/voltageSource'
 import { Mosfet } from '../classes/mosfet'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
+import { Circuit } from '../classes/circuit'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -148,6 +149,10 @@ const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
+
+const updateSlidersActive = () => {
+  Object.values(circuits).forEach((circuit: Circuit) => {circuit.setSlidersActive(slidersActive.value)})
+}
 
 if (!window.Worker) {
   console.log('Your browser doesn\'t support web workers.');
