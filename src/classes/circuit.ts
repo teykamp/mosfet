@@ -15,7 +15,6 @@ import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
 import { DefinedCircuits } from "../circuits/circuits"
-import { AngleSlider } from "./angleSlider"
 
 export class Circuit extends CtxArtist {
     name: DefinedCircuits
@@ -211,7 +210,8 @@ export class Circuit extends CtxArtist {
     }
 
     setSlidersActive(slidersActive: boolean) {
-        Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selectedFocus) : []).forEach((mosfet: Mosfet) => {
+        const activateMosfetSliders = (mosfet: Mosfet) => {
+            console.log(mosfet)
             if (slidersActive) {
                 mosfet.vgs.visibility = 'visible'
                 mosfet.vds.visibility = 'visible'
@@ -231,12 +231,36 @@ export class Circuit extends CtxArtist {
                     mosfet.vdsChart.visibility = mosfet.vds.visibility
                 }
             }
+        }
+        Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
+            // Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selectedFocus) : []).forEach((mosfet: Mosfet) => {
+
+            console.log(mosfet)
+            activateMosfetSliders(mosfet)
+            if (mosfet.selectedFocus.value) {
+                if (this.circuitCopy) {
+                    console.log(mosfet.key)
+                    console.log(this.circuitCopy.devices.mosfets[mosfet.key])
+                    activateMosfetSliders(this.circuitCopy.devices.mosfets[mosfet.key])
+                }
+            }
         })
-        Object.values(this.devices.voltageSources).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.voltageSources).filter((device: VoltageSource) => device.selectedFocus) : []).forEach((voltageSource: VoltageSource) => {
+
+        const activateVoltageSourceSliders = (voltageSource: VoltageSource) => {
             if (slidersActive) {
                 voltageSource.voltageDrop.visibility = 'visible'
             } else {
                 voltageSource.voltageDrop.visibility = voltageSource.voltageDrop.originalVisibility
+            }
+        }
+
+        Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
+        // Object.values(this.devices.voltageSources).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.voltageSources).filter((device: VoltageSource) => device.selectedFocus) : []).forEach((voltageSource: VoltageSource) => {
+            activateVoltageSourceSliders(voltageSource)
+            if (voltageSource.selectedFocus.value) {
+                if (this.circuitCopy) {
+                    activateVoltageSourceSliders(this.circuitCopy.devices.voltageSources[voltageSource.key])
+                }
             }
         })
 
