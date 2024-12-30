@@ -1,9 +1,4 @@
 <template>
-  <!-- <Chart :points="circuit.devices.mosfets[0].vgs.data" xAxisLabel="Vgs" yAxisLabel="Current" xUnit="V" yUnit="A"
-    v-bind:cornerToCornerGraph="true" />
-  <Chart :points="circuit.devices.mosfets[0].vds.data" xAxisLabel="Vds" yAxisLabel="% Saturated Current" xUnit="V" yUnit="%"
-    v-bind:cornerToCornerGraph="true" /> -->
-
   <div style="position: absolute; top: 10px; left: 10px;">
     <button @click.stop="showSideBar = !showSideBar">Menu</button>
   </div>
@@ -20,6 +15,7 @@
       <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
       <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
         <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
+        <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" @click="updateSlidersActive()"/>
         <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
       </div>
       <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
@@ -44,8 +40,8 @@
     }">
       <canvas
         ref="canvas"
-        @mousedown="checkDrag"
-        :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px;`"
+        @pointerdown="checkDrag"
+        :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px; touch-action: none`"
         class="main"
       ></canvas>
 
@@ -56,14 +52,14 @@
       }">
         <canvas
           ref="graphBarChartCanvas"
-          @mousedown="checkDrag"
-          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          @pointerdown="checkDrag"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="chart"
         ></canvas>
         <canvas
           ref="graphBarMosfetCanvas"
-          @mousedown="checkDrag"
-          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}`"
+          @pointerdown="checkDrag"
+          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="mosfet"
         ></canvas>
       </div>
@@ -75,16 +71,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 'vue'
-import { incrementCircuit } from '../functions/incrementCircuit'
-import { circuits } from '../circuits/circuits'
+import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { VoltageSource } from '../classes/voltageSource'
 import { Mosfet } from '../classes/mosfet'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
+import { Circuit } from '../classes/circuit'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -149,11 +145,24 @@ const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
 
-type DefinedCircuits = keyof typeof circuits
 const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
+
+const updateSlidersActive = () => {
+  Object.values(circuits).forEach((circuit: Circuit) => {circuit.setSlidersActive(slidersActive.value)})
+}
+updateSlidersActive()
+
+if (!window.Worker) {
+  console.log('Your browser doesn\'t support web workers.');
+}
+
+const worker = new Worker(new URL('../workers/incrementCircuitWorker.ts', import.meta.url), { type: 'module' })
+worker.onmessage = (event: MessageEvent<string>) => {
+  circuit.value.nodeVoltagesFromJson(event.data)
+}
 
 const setCircuit = (newCircuit: DefinedCircuits) => {
   currentCircuit.value = newCircuit
@@ -161,7 +170,6 @@ const setCircuit = (newCircuit: DefinedCircuits) => {
 }
 
 const updateSlidersBasedOnNodeVoltages = () => {
-  // Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => mosfet.setMinAndMaxValue())
   circuit.value.allSliders.forEach((slider: CtxSlider) => {
     slider.updateValueBasedOnNodeVoltages()
   })
@@ -173,7 +181,7 @@ const updateNodeVoltagesBasedOnSliders = () => {
   })
 }
 
-const getMousePos = (event: MouseEvent) => {
+const getMousePos = (event: PointerEvent) => {
   const myCanvas = event.target as HTMLCanvasElement
   if (!myCanvas) return { mouseX: 0, mouseY: 0 }
   const rect = myCanvas.getBoundingClientRect()
@@ -182,17 +190,7 @@ const getMousePos = (event: MouseEvent) => {
   return { mouseX, mouseY }
 }
 
-const anySlidersDragging = (): boolean => {
-  let flag = false
-  circuit.value.allSliders.forEach(slider => {
-    if (slider.dragging) {
-      flag = true
-    }
-  })
-  return flag
-}
-
-const checkDrag = (event: MouseEvent) => {
+const checkDrag = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
@@ -200,7 +198,7 @@ const checkDrag = (event: MouseEvent) => {
     }
   })
 
-  if (!anySlidersDragging()) {
+  if (!circuit.value.anySlidersDragging) {
     Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
       if (mosfet.canvasId == (event.target as HTMLElement).className) {
         mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
@@ -213,19 +211,13 @@ const checkDrag = (event: MouseEvent) => {
     })
   }
 
-  drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another mouseEvent to start dragging) (for click w/o drag)
-  document.addEventListener('mousemove', drag)
-  document.addEventListener('mouseup', mouseUp)
+  drag(event) // move the slider to the current mouse coordinates immediately (do not wait for another PointerEvent to start dragging) (for click w/o drag)
+  document.addEventListener('pointermove', drag)
+  document.addEventListener('pointerup', mouseUp)
 }
 
-const drag = (event: MouseEvent) => {
+const drag = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
-
-  // reset node capacitances
-  for (const nodeId in circuit.value.nodes) {
-    const node = circuit.value.nodes[nodeId].value
-    node.capacitance = node.originalCapacitance
-  }
 
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
@@ -235,15 +227,16 @@ const drag = (event: MouseEvent) => {
   updateNodeVoltagesBasedOnSliders()
 }
 
-const mouseUp = (event: MouseEvent) => {
+const mouseUp = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
 
-  if (!anySlidersDragging() && (event.target as HTMLElement).className == 'main') {
+  if (!circuit.value.anySlidersDragging && (event.target as HTMLElement).className == 'main') {
     circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
         if (mosfet.selectedFocus.value) {
-          mosfet.selected.value = !mosfet.selected.value
+          // mosfet.selected.value = !mosfet.selected.value
+          mosfet.toggleSelected()
         }
         mosfet.selectedFocus.value = true
         circuit.value.setSelectedDevice(mosfet)
@@ -267,8 +260,8 @@ const mouseUp = (event: MouseEvent) => {
     slider.releaseSlider()
   })
 
-  document.removeEventListener('mousemove', drag)
-  document.removeEventListener('mouseup', mouseUp)
+  document.removeEventListener('pointermove', drag)
+  document.removeEventListener('pointerup', mouseUp)
 }
 
 const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | CanvasRenderingContext2D>, myCanvasSize: Ref<{width: number, height: number}>): boolean => {
@@ -293,14 +286,17 @@ const draw = () => {
   if (!setUpCtx(graphBarMosfetCanvas, graphBarMosfetCtx, graphBarMosfetCanvasSize)) return
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
 
+  const json = circuit.value.fixedNodeVoltagesToJson()
+  worker.postMessage(json)
+
   updateSlidersBasedOnNodeVoltages()
   circuit.value.draw(ctx.value as CanvasRenderingContext2D)
+
+  // draw the graph bar canvases if active
   if (circuit.value.anyDevicesSelected && showSideBar) {
     CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale / schematicScale
     circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
-    // CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale
     circuit.value.drawSelectedDeviceCharts(graphBarChartCtx.value as CanvasRenderingContext2D)
-    // CtxArtist.textTransformationMatrix.relativeScale = circuit.value.transformationMatrix.relativeScale
   }
 }
 
@@ -310,11 +306,10 @@ const animate = (timestamp: number) => {
 
   circuit.value.allSliders.forEach((slider) => {
     slider.adjustPreciseSlider(timeDifference)
-    updateNodeVoltagesBasedOnSliders()
   })
+  updateNodeVoltagesBasedOnSliders()
 
-  incrementCircuit(circuit.value, timeDifference)
-
+  // update current dots on mosfets and capacitors
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     mosfet.currentDots.updateDotPositionBasedOnTimestamp(mosfet.current, timeDifference)
   })

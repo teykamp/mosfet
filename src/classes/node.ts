@@ -10,6 +10,7 @@ export class Node {
     fixed: boolean // GND and VDD nodes are fixed, as are nodes that are being dragged
     historicVoltages: Queue<number>
     schematicEffects: FlattenedSchematicEffect[] = []
+    // hasBeenUpdatedBySlider: boolean = false
 
     constructor(initialVoltage: number, isPowerSupply: boolean) {
         const historicVoltages: Queue<number> = new Queue<number>()

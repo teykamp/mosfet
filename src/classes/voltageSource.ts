@@ -1,14 +1,13 @@
-import { canvasId, Circle, Line, Point, SchematicEffect, Visibility } from "../types"
-import { CtxArtist } from "./ctxArtist"
+import { canvasId, Circle, Line, Point, SchematicEffect } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toRadians } from "../functions/extraMath"
 import { ref, Ref } from 'vue'
 import { AngleSlider } from "./angleSlider"
-import { drawCirclesFillSolid, drawLinesFillSolid, getLineLength } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid } from "../functions/drawFuncs"
 import { Node } from "./node"
-import { TectonicPoint } from "./tectonicPlate"
+import { Device } from "./device"
 
-export class VoltageSource extends CtxArtist{
+export class VoltageSource extends Device{
     voltageDrop: AngleSlider
     vplus: Ref<Node>
     vminus: Ref<Node>
@@ -16,7 +15,6 @@ export class VoltageSource extends CtxArtist{
     current: number // in Amps
     fixedAt: 'gnd' | 'vdd'
     isDuplicate: boolean = false
-    boundingBox: TectonicPoint[]
     selectedFocus: Ref<boolean> = ref(false)
     mouseDownInsideSelectionArea = false
 
@@ -26,9 +24,9 @@ export class VoltageSource extends CtxArtist{
         this.vminus = vminus
         this.fixedAt = fixedAt
         if (fixedAt == 'gnd') {
-            this.voltageDrop = new AngleSlider(this.transformations, vminus, vplus, 'toNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible, canvasId)
+            this.voltageDrop = new AngleSlider(this.transformations, vminus, vplus, 'toNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, 'visible', canvasId)
         } else {
-            this.voltageDrop = new AngleSlider(this.transformations.concat([ref((new TransformationMatrix().mirror(false, true))) as Ref<TransformationMatrix>]), vminus, vplus, 'fromNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, Visibility.Visible, canvasId)
+            this.voltageDrop = new AngleSlider(this.transformations.concat([ref((new TransformationMatrix().mirror(false, true))) as Ref<TransformationMatrix>]), vminus, vplus, 'fromNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, 'visible', canvasId)
         }
         this.schematicEffects = {}
         this.current = 0 // Amps
@@ -39,13 +37,6 @@ export class VoltageSource extends CtxArtist{
             "vdd": {x: 0, y: -60},
             "gnd": {x: 0, y: 60},
         }
-
-        this.boundingBox = [
-            new TectonicPoint(this.transformations, {x: -100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 0, y: -100}),
-            new TectonicPoint(this.transformations, {x: 0, y: 100}),
-        ]
     }
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): VoltageSource {
@@ -63,23 +54,9 @@ export class VoltageSource extends CtxArtist{
         return newVoltageSource
     }
 
-    draw(ctx: CanvasRenderingContext2D, transformationMatrix: TransformationMatrix | undefined = undefined) {
-        if (transformationMatrix !== undefined) {
-            transformationMatrix.transformCanvas(ctx)
-        } else {
-            this.transformationMatrix.transformCanvas(ctx)
-        }
-
-        if (this.selectedFocus.value && !this.isDuplicate) {
-            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
-            backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
-            backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
-            backgroundGradient.addColorStop(0.8, 'rgba(0, 0, 255, 0.2)')
-            backgroundGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
-            ctx.fillStyle = backgroundGradient
-            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
-            ctx.fill()
-        }
+    draw(ctx: CanvasRenderingContext2D) {
+        this.transformationMatrix.transformCanvas(ctx)
+        this.drawSelectedHalo(ctx)
 
         const radius = 30
         const symbolSize = 11
@@ -104,11 +81,5 @@ export class VoltageSource extends CtxArtist{
         drawCirclesFillSolid(ctx, circles, this.localLineThickness, 'black')
 
         this.voltageDrop.draw(ctx)
-    }
-
-    checkSelectionArea(mousePosition: Point): boolean {
-        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
-        const radius = 60
-        return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
     }
 }

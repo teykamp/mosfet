@@ -1,4 +1,4 @@
-import { Point, Visibility } from "../types"
+import { Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
@@ -6,7 +6,7 @@ import { Schematic } from "./schematic"
 import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
-import { schematicScale } from "../constants"
+import { gndNodeId, schematicScale, vddNodeId } from "../constants"
 import { canvasSize } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
@@ -14,15 +14,19 @@ import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
 import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
+import { DefinedCircuits } from "../circuits/circuits"
 
 export class Circuit extends CtxArtist {
+    name: DefinedCircuits
     boundingBox: TectonicPoint[]
     schematic: Schematic // how to draw the circuit
     devices: {
       mosfets: {[name: string]: Mosfet}, // a dictionary mapping the names of the mosfets with Mosfet devices
       voltageSources: {[name: string]: VoltageSource}, // a dictionary mapping the names of the voltage sources with VoltageSource devices
     }
+
     selectedDeviceCharts: Chart[] = []
+    selectedDeviceChartsBoundingBox: TectonicPoint[]
     selectedDeviceChartsTransformationMatrix: Ref<TransformationMatrix> = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
 
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
@@ -30,12 +34,12 @@ export class Circuit extends CtxArtist {
     originalTextTransformationMatrix: TransformationMatrix
     circuitCopy: CircuitCopy | null
     anyDevicesSelected: boolean = false
+    moveTectonicPlatesWhileDragging: boolean = true
 
-    constructor(origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
-        // const scale = Math.min(canvasSize.value.width / width, canvasSize.value.height / height) // TODO: Can probably delete, since this gets set elsewhere
-        // const extraShift = {x: (canvasSize.value.width / scale - width) / 2, y: (canvasSize.value.height / scale - height) / 2} // TODO: Can probably delete, since this gets set elsewhere
-        super([ref((new TransformationMatrix())/*.scale(canvasDpi.value * scale).translate(extraShift)*/) as Ref<TransformationMatrix>], (new TransformationMatrix()).translate({x: -origin.x + width / 2, y: -origin.y + height / 2}))
+    constructor(name: DefinedCircuits, origin: Point, width: number, height: number, schematic: Schematic = new Schematic(), mosfets: {[name: string]: Mosfet} = {}, voltageSources: {[name: string]: VoltageSource} = {}, nodes: {[nodeId: string]: Ref<Node>} = {}, textTransformationMatrix = new TransformationMatrix()) {
+        super([ref(new TransformationMatrix()) as Ref<TransformationMatrix>], new TransformationMatrix())
 
+        this.name = name
         this.boundingBox = [
             new TectonicPoint(this.transformations, {x: origin.x - width / 2, y: origin.y - height / 2}),
             new TectonicPoint(this.transformations, {x: origin.x + width / 2, y: origin.y - height / 2}),
@@ -53,6 +57,13 @@ export class Circuit extends CtxArtist {
         this.textTransformationMatrix = this.transformationMatrix.scale(1 / schematicScale).multiply(this.originalTextTransformationMatrix)
 
         this.circuitCopy = this.copy()
+
+        this.selectedDeviceChartsBoundingBox = [
+            new TectonicPoint(this.transformations, {x: -120, y: 0}),
+            new TectonicPoint(this.transformations, {x: 120, y: 0}),
+            new TectonicPoint(this.transformations, {x: 0, y: -120}),
+            new TectonicPoint(this.transformations, {x: 0, y: 120}),
+        ]
 
         // set static transformation matrices for the circuit // must be applied during construction because it will be used immediately as other elements of the circuit are defined immediately after its definition
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
@@ -74,9 +85,20 @@ export class Circuit extends CtxArtist {
         return this.makeListOfSliders()
     }
 
+    get anySlidersDragging() {
+        let flag = false
+        this.allSliders.forEach(slider => {
+            if (slider.dragging) {
+                flag = true
+            }
+            })
+        return flag
+    }
+
     copy(): CircuitCopy | null {
         const parentTransformation = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
         const newCircuit = new CircuitCopy(
+            this.name,
             {x: 0, y: 0},
             10,
             10,
@@ -97,15 +119,9 @@ export class Circuit extends CtxArtist {
         this.transformationMatrix.transformCanvas(ctx)
 
         if (moveNodesInResponseToCircuitState.value) {
-            // let slidersDragging = false
-            // this.allSliders.forEach((slider: CtxSlider) => {
-            //     if (slider.dragging) {
-            //         slidersDragging = true
-            //     }
-            // })
-            // if (!slidersDragging) {
+            if (!this.anySlidersDragging || this.moveTectonicPlatesWhileDragging) {
                 TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
-            // }
+            }
         } else {
             TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardLocation({x: 0, y: 0})})
         }
@@ -113,9 +129,11 @@ export class Circuit extends CtxArtist {
         this.schematic.draw(ctx)
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
             mosfet.draw(ctx)
+            // setTimeout((device: Mosfet, ctx: CanvasRenderingContext2D) => {device.draw(ctx)}, 0, mosfet, ctx)
         })
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
             voltageSource.draw(ctx)
+            // setTimeout((device: VoltageSource, ctx: CanvasRenderingContext2D) => {device.draw(ctx)}, 0, voltageSource, ctx)
         })
         if (drawGrid.value) {
             this.drawGrid(ctx)
@@ -124,14 +142,7 @@ export class Circuit extends CtxArtist {
     }
 
     drawSelectedDeviceCharts(ctx: CanvasRenderingContext2D) {
-        const chartTransformationMatrix = this.calculateTransformationMatrixBasedOnBoundingBox(ctx,
-            [
-                new TectonicPoint(this.transformations, {x: -120, y: 0}),
-                new TectonicPoint(this.transformations, {x: 120, y: 0}),
-                new TectonicPoint(this.transformations, {x: 0, y: -120}),
-                new TectonicPoint(this.transformations, {x: 0, y: 120}),
-            ]
-        )
+        const chartTransformationMatrix = this.calculateTransformationMatrixBasedOnBoundingBox(ctx, this.selectedDeviceChartsBoundingBox)
         this.selectedDeviceChartsTransformationMatrix.value = chartTransformationMatrix
         CtxArtist.textTransformationMatrix.relativeScale = chartTransformationMatrix.relativeScale
         this.selectedDeviceCharts.forEach((chart: Chart) => {
@@ -143,26 +154,21 @@ export class Circuit extends CtxArtist {
         if (!this.circuitCopy) {
             return
         }
-        this.circuitCopy.boundingBox = [
-            new TectonicPoint(device.transformations, {x: -120, y: 0}),
-            new TectonicPoint(device.transformations, {x: 120, y: 0}),
-            new TectonicPoint(device.transformations, {x: 0, y: -120}),
-            new TectonicPoint(device.transformations, {x: 0, y: 120}),
-        ]
+        this.circuitCopy.boundingBox = device.boundingBox
         this.anyDevicesSelected = true
-
-        if (!this.circuitCopy) {
-            return
-        }
 
         if (device instanceof Mosfet) {
             const mosfet = this.circuitCopy.devices.mosfets[device.key]
             mosfet.vgs.visibility = device.vgs.visibility
             mosfet.vds.visibility = device.vds.visibility
-            mosfet.vgsChart.visibility = Visibility.Hidden // do not draw the charts
-            mosfet.vdsChart.visibility = Visibility.Hidden // do not draw the charts
+            mosfet.vgsChart.visibility = 'hidden' // do not draw the charts
+            mosfet.vdsChart.visibility = 'hidden' // do not draw the charts
 
+            // device.vgsChart.visibility = device.vgs.visibility
+            // device.vdsChart.visibility = device.vds.visibility
             this.selectedDeviceCharts = [device.vgsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart'), device.vdsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart')]
+            this.selectedDeviceCharts[0].visibility = device.vgs.visibility
+            this.selectedDeviceCharts[1].visibility = device.vds.visibility
 
         } else if (device instanceof VoltageSource) {
             const voltageSource = this.circuitCopy.devices.voltageSources[device.key]
@@ -177,16 +183,7 @@ export class Circuit extends CtxArtist {
         if (!this.circuitCopy) {
             return
         }
-        this.circuitCopy.allSliders.forEach((slider: CtxSlider) => {slider.visibility = Visibility.Hidden})
-        // Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
-        //     mosfet.vgs.visibility = Visibility.Hidden
-        //     mosfet.vds.visibility = Visibility.Hidden
-        //     mosfet.vgsChart.visibility = Visibility.Hidden
-        //     mosfet.vdsChart.visibility = Visibility.Hidden
-        // })
-        // Object.values(this.circuitCopy.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
-        //     voltageSource.voltageDrop.visibility = Visibility.Hidden
-        // })
+        this.circuitCopy.allSliders.forEach((slider: CtxSlider) => {slider.visibility = 'hidden'})
     }
 
     makeListOfSliders(): CtxSlider[] {
@@ -210,6 +207,81 @@ export class Circuit extends CtxArtist {
         } else {
             return allSliders
         }
+    }
+
+    setSlidersActive(slidersActive: boolean) {
+        const activateMosfetSliders = (mosfet: Mosfet) => {
+            if (slidersActive) {
+                mosfet.vgs.visibility = 'visible'
+                mosfet.vds.visibility = 'visible'
+                if ((mosfet.vgsChart.visibility == 'visible') || (mosfet.vgsChart.visibility == 'locked')) {
+                    mosfet.vgsChart.visibility = 'visible'
+                }
+                if ((mosfet.vdsChart.visibility == 'visible') || (mosfet.vdsChart.visibility == 'locked')) {
+                    mosfet.vdsChart.visibility = 'visible'
+                }
+            } else {
+                mosfet.vgs.visibility = mosfet.vgs.originalVisibility
+                mosfet.vds.visibility = mosfet.vds.originalVisibility
+                if ((mosfet.vgsChart.visibility == 'visible') || (mosfet.vgsChart.visibility == 'locked')) {
+                    mosfet.vgsChart.visibility = mosfet.vgs.visibility
+                }
+                if ((mosfet.vdsChart.visibility == 'visible') || (mosfet.vdsChart.visibility == 'locked')) {
+                    mosfet.vdsChart.visibility = mosfet.vds.visibility
+                }
+            }
+        }
+        Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
+            // Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selectedFocus) : []).forEach((mosfet: Mosfet) => {
+
+            activateMosfetSliders(mosfet)
+            if (mosfet.selectedFocus.value) {
+                if (this.circuitCopy) {
+                    activateMosfetSliders(this.circuitCopy.devices.mosfets[mosfet.key])
+                }
+            }
+        })
+
+        const activateVoltageSourceSliders = (voltageSource: VoltageSource) => {
+            if (slidersActive) {
+                voltageSource.voltageDrop.visibility = 'visible'
+            } else {
+                voltageSource.voltageDrop.visibility = voltageSource.voltageDrop.originalVisibility
+            }
+        }
+
+        Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
+        // Object.values(this.devices.voltageSources).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.voltageSources).filter((device: VoltageSource) => device.selectedFocus) : []).forEach((voltageSource: VoltageSource) => {
+            activateVoltageSourceSliders(voltageSource)
+            if (voltageSource.selectedFocus.value) {
+                if (this.circuitCopy) {
+                    activateVoltageSourceSliders(this.circuitCopy.devices.voltageSources[voltageSource.key])
+                }
+            }
+        })
+
+        if (this.selectedDeviceCharts.length >= 2) {
+            if (slidersActive) {
+                if ((this.selectedDeviceCharts[0].visibility == 'visible') || (this.selectedDeviceCharts[0].visibility == 'locked')) {
+                    this.selectedDeviceCharts[0].visibility = 'visible'
+                }
+                if ((this.selectedDeviceCharts[1].visibility == 'visible') || (this.selectedDeviceCharts[1].visibility == 'locked')) {
+                    this.selectedDeviceCharts[1].visibility = 'visible'
+                }
+            } else {
+                const selectedDeviceList = Object.values(this.devices.mosfets).filter((mosfet: Mosfet) => mosfet.selectedFocus)
+                if (selectedDeviceList.length >= 1) {
+                    const selectedDevice = selectedDeviceList[0]
+                    if ((this.selectedDeviceCharts[0].visibility == 'visible') || (this.selectedDeviceCharts[0].visibility == 'locked')) {
+                        this.selectedDeviceCharts[0].visibility = (selectedDevice.vgs.visibility == 'hidden') ? 'locked' : selectedDevice.vgs.visibility
+                    }
+                    if ((this.selectedDeviceCharts[1].visibility == 'visible') || (this.selectedDeviceCharts[1].visibility == 'locked')) {
+                        this.selectedDeviceCharts[1].visibility = (selectedDevice.vds.visibility == 'hidden') ? 'locked' : selectedDevice.vds.visibility
+                    }
+                }
+            }
+        }
+
     }
 
     drawGrid(ctx: CanvasRenderingContext2D) {
@@ -262,14 +334,67 @@ export class Circuit extends CtxArtist {
         this.setCtxArtistScale()
     }
 
-    setCtxArtistScale() {
-        // set static transformation matrices for the circuit
+    setCtxArtistScale() {  // set static transformation matrices for the circuit
         CtxArtist.circuitTransformationMatrix = this.transformationMatrix
         CtxArtist.textTransformationMatrix = this.textTransformationMatrix
     }
+
+    resetNodeCapacitance() {
+        for (const nodeId in this.nodes) {
+            const node = this.nodes[nodeId].value
+            node.capacitance = node.originalCapacitance
+        }
+    }
+
+    nodeVoltagesToJson(): string {
+        const nodeVoltages = Object.fromEntries(Object.entries(this.nodes).map(
+            ([name, nodeRef]: [string, Ref<Node>]): [string, number] => {
+                return [name, nodeRef.value.voltage]
+            }
+        ))
+        const json = JSON.stringify([this.name, nodeVoltages])
+        return json
+    }
+
+    fixedNodeVoltagesToJson(): string {
+        const nodeVoltages = Object.fromEntries(Object.entries(this.nodes).filter(
+            ([_, nodeRef]: [string, Ref<Node>]): boolean => {
+                return nodeRef.value.fixed
+            }
+        ).map(
+            ([name, nodeRef]: [string, Ref<Node>]): [string, number] => {
+                return [name, nodeRef.value.voltage]
+            }
+        ))
+        const json = JSON.stringify([this.name, nodeVoltages])
+        return json
+    }
+
+    nodeVoltagesFromJson(json: string) {
+        const parsedJson: [DefinedCircuits, {[key: string]: number}] = JSON.parse(json)
+
+        // when switching circuits, the circuit incrementing worker may still be sending values for the previous circuit,
+        // so we should ignore data unless it pertains to the circuit at hand.
+        if (parsedJson[0] != this.name) {
+            return false
+        }
+
+        let nonRailVoltagesUpdated = false
+        const nodeVoltages: { [name: string]: number; } = parsedJson[1]
+        Object.entries(nodeVoltages).forEach(([name, voltage]: [string, number]) => {
+            this.nodes[name].value.voltage = voltage
+            if (!([gndNodeId, vddNodeId].includes(name))) {
+                nonRailVoltagesUpdated = true
+            }
+        })
+
+        if (nonRailVoltagesUpdated) {
+            this.resetNodeCapacitance()
+        }
+    }
 }
 
-class CircuitCopy extends Circuit {
+export class CircuitCopy extends Circuit {
     override copy(): CircuitCopy | null {
         return null
     }

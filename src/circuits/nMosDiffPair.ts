@@ -1,4 +1,3 @@
-import { Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
@@ -13,7 +12,7 @@ import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 
 const useNmosDiffPair = () => {
-    const circuit: Circuit = new Circuit({x: 0, y: 4}, 25, 20)
+    const circuit: Circuit = new Circuit('nMosDiffPair', {x: 0, y: 4}, 25, 20)
 
     //////////////////////////////
     ///          NODES         ///
@@ -83,8 +82,8 @@ const useNmosDiffPair = () => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerVoltageSource'
         ),
         "M1": new Mosfet(
@@ -100,8 +99,8 @@ const useNmosDiffPair = () => {
             undefined,
             undefined,
             true,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'voltageSource'
         ),
         "M2": new Mosfet(
@@ -117,8 +116,8 @@ const useNmosDiffPair = () => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'voltageSource'
         ),
     }

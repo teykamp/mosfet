@@ -1,4 +1,4 @@
-import { canvasId, Point, RelativeDirection, Visibility } from "../types"
+import { canvasId, Point, Visibility } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toSiPrefix } from "../functions/toSiPrefix"
 import { between, toRadians } from "../functions/extraMath"
@@ -11,20 +11,18 @@ export class AngleSlider extends CtxSlider{
     originalRadius: number
     endAngle: number
     displayText: string
-    displayTextLocation: RelativeDirection
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, canvasId: canvasId = 'main') {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, drivenNode, minValue, maxValue, visibility, canvasId)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, drivenNode, minValue, maxValue, visibility, visibility, canvasId)
 
         this.radius = radius
         this.originalRadius = radius
         this.endAngle = endAngle
         this.displayText = name
-        this.displayTextLocation = CCW ? RelativeDirection.Right : RelativeDirection.Left
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (this.visibility == Visibility.Hidden) {
+        if (this.visibility == 'hidden') {
             return
         }
         this.transformationMatrix.transformCanvas(ctx)
@@ -36,7 +34,7 @@ export class AngleSlider extends CtxSlider{
         }
 
         // draw slider path
-        ctx.strokeStyle = this.visibility == Visibility.Visible ? 'orange' : 'lightgrey'
+        ctx.strokeStyle = this.visibility == 'visible' ? 'orange' : 'lightgrey'
         ctx.lineWidth = this.localLineThickness
         ctx.beginPath()
         ctx.arc(0, 0, this.radius, 0, this.endAngle, false)
@@ -85,10 +83,10 @@ export class AngleSlider extends CtxSlider{
         // draw draggable slider circle
         ctx.beginPath()
         ctx.arc(this.location.x, this.location.y, 5, 0, Math.PI * 2)
-        ctx.fillStyle = this.visibility == Visibility.Visible ? 'rgb(255, 0, 0)' : 'lightgrey'
+        ctx.fillStyle = this.visibility == 'visible' ? 'rgb(255, 0, 0)' : 'lightgrey'
         ctx.fill()
 
-        ctx.fillStyle = this.visibility == Visibility.Visible ? '#000' : 'lightgrey'
+        ctx.fillStyle = this.visibility == 'visible' ? '#000' : 'lightgrey'
 
         const textLocation: Point = {
             x: this.location.x * (this.radius + 15) / this.radius,

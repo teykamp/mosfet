@@ -11,10 +11,9 @@ import { between } from '../functions/extraMath'
 import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicPlate'
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
-import { Visibility } from '../types'
 
 const usePmosSingle = () => {
-    const circuit: Circuit = new Circuit({x: 0, y: 3}, 10, 20)
+    const circuit: Circuit = new Circuit('pMosSingle', {x: 0, y: 3}, 10, 20)
 
     //////////////////////////////
     ///          NODES         ///
@@ -64,12 +63,12 @@ const usePmosSingle = () => {
             circuit.nodes["M1_drain"],
             circuit.nodes[vddNodeId],
             circuit.nodes[gndNodeId],
-            3, 5, false, Visibility.Visible, Visibility.Visible, 'furtherGate'
+            3, 5, false, 'visible', 'visible', 'furtherGate'
         )
     }
 
-    circuit.devices.mosfets["M1"].vgsChart.visibility = Visibility.Visible
-    circuit.devices.mosfets["M1"].vdsChart.visibility = Visibility.Visible
+    circuit.devices.mosfets["M1"].vgsChart.originalVisibility = 'visible'
+    circuit.devices.mosfets["M1"].vdsChart.originalVisibility = 'visible'
 
     //////////////////////////////
     ///     VOLTAGE SOURCES    ///

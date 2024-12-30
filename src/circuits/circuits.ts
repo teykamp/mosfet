@@ -11,3 +11,5 @@ export const circuits = {
     'nMos5TransistorOpAmp': nMos5TransistorOpAmp(),
     'nMos9TransistorOpAmp': nMos9TransistorOpAmp(),
 }
+
+export type DefinedCircuits = keyof typeof circuits

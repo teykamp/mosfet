@@ -1,4 +1,3 @@
-import { Visibility } from '../types'
 import { gndNodeId, vddNodeId, gndVoltage, vddVoltage } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node } from '../classes/node'
@@ -13,7 +12,7 @@ import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
 
 const useNmos5TransistorOpAmp = (): Circuit => {
-    const circuit: Circuit = new Circuit({x: 0, y: 0}, 25, 28)
+    const circuit: Circuit = new Circuit('nMos5TransistorOpAmp', {x: 0, y: 0}, 25, 28)
 
     //////////////////////////////
     ///          NODES         ///
@@ -103,8 +102,8 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerVoltageSource'
         ),
         "M1": new Mosfet(
@@ -120,8 +119,8 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             undefined,
             undefined,
             true,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'voltageSource'
         ),
         "M2": new Mosfet(
@@ -137,8 +136,8 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'voltageSource'
         ),
         "M3": new Mosfet(
@@ -154,8 +153,8 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             undefined,
             undefined,
             false,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerBase'
         ),
         "M4": new Mosfet(
@@ -171,8 +170,8 @@ const useNmos5TransistorOpAmp = (): Circuit => {
             undefined,
             undefined,
             true,
-            Visibility.Locked,
-            Visibility.Locked,
+            'locked',
+            'locked',
             'lowerBase'
         ),
     }

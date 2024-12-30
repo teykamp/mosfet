@@ -1,20 +1,20 @@
 import { Visibility, SchematicEffect, Line, Point, Circle, canvasId } from "../types"
-import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { AngleSlider } from "./angleSlider"
 import { ref, Ref } from 'vue'
 import { ekvNmosNoUnits, ekvPmosNoUnits } from "../functions/ekvModel"
 import { between, toRadians } from "../functions/extraMath"
 import { toSiPrefix } from "../functions/toSiPrefix"
-import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, getLineLength, makeStandardGradient } from "../functions/drawFuncs"
+import { drawCirclesFillSolid, drawLinesFillSolid, drawLinesFillWithGradient, makeStandardGradient } from "../functions/drawFuncs"
 import { interpolateInferno } from "d3"
 import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
 import { Chart } from "./chart"
 import { vddVoltage } from "../constants"
+import { Device } from "./device"
 
-export class Mosfet extends CtxArtist{
+export class Mosfet extends Device{
     mosfetType: 'nmos' | 'pmos'
     isDuplicate: boolean = false
     // mirror: boolean
@@ -29,12 +29,10 @@ export class Mosfet extends CtxArtist{
     Vb: Ref<Node>
     gndNode: Ref<Node>
     mouseDownInsideSelectionArea = false
-    selected: Ref<boolean> = ref(false)
+    _selected: Ref<boolean> = ref(false)
     selectedFocus: Ref<boolean> = ref(false)
-    chartVisibility: Visibility = Visibility.Hidden
     vgsChart: Chart
     vdsChart: Chart
-    boundingBox: TectonicPoint[]
     static chartWidth = 200
     static chartHeight = 120
     static chartLocations = {
@@ -48,7 +46,7 @@ export class Mosfet extends CtxArtist{
         "deviceOrigin": {x: 0, y: 0},
     }
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = Visibility.Visible, vdsVisibility: Visibility = Visibility.Visible, chartLocation: keyof typeof Mosfet.chartLocations = "gate", canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxVgs: number = 3, maxVds: number = 5, mirror: boolean = false, vgsVisibility: Visibility = 'visible', vdsVisibility: Visibility = 'visible', chartLocation: keyof typeof Mosfet.chartLocations = "gate", canvasId: canvasId = 'main') {
         super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}).scale(1/30).mirror(mirror, mosfetType == 'pmos'), canvasId)
 
         this.mosfetType = mosfetType
@@ -102,24 +100,17 @@ export class Mosfet extends CtxArtist{
         if (this.mosfetType == 'nmos') {
             this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility, canvasId)
             this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility, canvasId)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility, chartCanvasId)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility, chartCanvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         }
         else {
             this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility, canvasId)
             this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility, canvasId)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, vgsVisibility, chartCanvasId)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, vdsVisibility, chartCanvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
-
-        this.boundingBox = [
-            new TectonicPoint(this.transformations, {x: -100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 100, y: 0}),
-            new TectonicPoint(this.transformations, {x: 0, y: -100}),
-            new TectonicPoint(this.transformations, {x: 0, y: 100}),
-        ]
     }
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Mosfet {
@@ -141,6 +132,8 @@ export class Mosfet extends CtxArtist{
             "deviceOrigin",
             canvasId
         )
+        newMosfet.vgsChart.visibility = 'hidden'
+        newMosfet.vdsChart.visibility = 'hidden'
         newMosfet.isDuplicate = true
         newMosfet.transformations[newMosfet.transformations.length - 1].value = new TransformationMatrix()
         return newMosfet
@@ -148,27 +141,7 @@ export class Mosfet extends CtxArtist{
 
     draw(ctx: CanvasRenderingContext2D) {
         this.transformationMatrix.transformCanvas(ctx)
-
-        if (this.selectedFocus.value && !this.isDuplicate) {
-            const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
-            backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
-            backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
-            backgroundGradient.addColorStop(0.8, 'rgba(0, 0, 255, 0.2)')
-            backgroundGradient.addColorStop(1, 'rgba(0, 0, 255, 0)')
-            ctx.fillStyle = backgroundGradient
-            ctx.arc(0, 0, 200, 0, 2 * Math.PI)
-            ctx.fill()
-        }
-        // else if (this.selected.value && !this.isDuplicate) {
-        //     const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
-        //     backgroundGradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
-        //     backgroundGradient.addColorStop(0.5, 'rgba(255, 0, 0, 0)')
-        //     backgroundGradient.addColorStop(0.8, 'rgba(255, 0, 0, 0.2)')
-        //     backgroundGradient.addColorStop(1, 'rgba(255, 0, 0, 0)')
-        //     ctx.fillStyle = backgroundGradient
-        //     ctx.arc(0, 0, 200, 0, 2 * Math.PI)
-        //     ctx.fill()
-        // }
+        this.drawSelectedHalo(ctx)
 
         const bodyLines: Line[] = [
             {start: {x: 0, y: 20}, end: {x: 0, y: 59}},
@@ -225,14 +198,26 @@ export class Mosfet extends CtxArtist{
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
 
-        if (this.selected.value && !this.isDuplicate) {
+        // if (this.selected.value && !this.isDuplicate) {
             this.vgsChart.draw(ctx)
             this.vdsChart.draw(ctx)
-        }
+        // }
 
         // draw mosfet angle sliders
         this.vgs.draw(ctx)
         this.vds.draw(ctx)
+    }
+
+    toggleSelected() {
+        if (this.selected.value) {
+            this.selected.value = false
+            this.vgsChart.visibility = 'hidden'
+            this.vdsChart.visibility = 'hidden'
+        } else {
+            this.selected.value = true
+            this.vgsChart.visibility = this.vgs.visibility
+            this.vdsChart.visibility = this.vds.visibility
+        }
     }
 
     get current(): number { // in Amps
@@ -243,12 +228,6 @@ export class Mosfet extends CtxArtist{
     }
     get forwardCurrent(): number { // in Amps
         return this.getMosfetForwardCurrent()
-    }
-
-    checkSelectionArea(mousePosition: Point): boolean {
-        const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
-        const radius = 60
-        return getLineLength({start: {x: 0, y: 0}, end: transformedMousePos}) < radius
     }
 
     setMinAndMaxValue() {
