@@ -153,6 +153,7 @@ const circuit = shallowRef(circuits[currentCircuit.value])
 const updateSlidersActive = () => {
   Object.values(circuits).forEach((circuit: Circuit) => {circuit.setSlidersActive(slidersActive.value)})
 }
+updateSlidersActive()
 
 if (!window.Worker) {
   console.log('Your browser doesn\'t support web workers.');
