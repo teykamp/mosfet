@@ -44,6 +44,24 @@
         :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px; touch-action: none`"
         class="main"
       ></canvas>
+        <button
+          @click.stop="toggleStopPlay"
+          :style="{
+            position: 'absolute',
+            top: '10px',
+            left: `${computedCanvasLayout.mainCanvas.width - 75}px`,
+            width: '80px',
+            height: '40px',
+            backgroundColor: isPlaying ? 'red' : 'green',
+            color: 'white',
+            padding: '10px',
+            border: 'none',
+            cursor: 'pointer',
+            textAlign: 'center',
+          }"
+  >
+    {{ isPlaying ? 'Stop' : 'Play' }}
+  </button>
 
       <div
       :style="{
@@ -134,6 +152,14 @@ const graphBarMosfetCanvas = ref<null | HTMLCanvasElement>(null)
 const graphBarMosfetCtx = ref<null | CanvasRenderingContext2D>(null)
 const graphBarChartCanvas = ref<null | HTMLCanvasElement>(null)
 const graphBarChartCtx = ref<null | CanvasRenderingContext2D>(null)
+const isPlaying = ref(true); // play/stop buttoni initialize: true = playing
+
+
+const toggleStopPlay = () => {
+    isPlaying.value = !isPlaying.value;
+    worker.postMessage(JSON.stringify({ action: "setPlayingState", isPlaying: isPlaying.value }));
+};
+
 
 let previousTimestamp = 0
 

@@ -6,22 +6,31 @@ const circuitCopies: {[key: string]: Circuit} = Object.fromEntries(Object.entrie
 let currentCircuitName: DefinedCircuits = "nMosDiffPair"
 let circuit = circuitCopies[currentCircuitName]
 let lastIncrementTimestamp = 0
+let isPlaying = true
 
 onmessage = function (event: MessageEvent<string>) {
-    const json: [DefinedCircuits, {[key: string]: number}] = JSON.parse(event.data)
-    if (json[0] != currentCircuitName) {
-        circuit = circuitCopies[json[0]]
-        currentCircuitName = json[0]
+    const message = JSON.parse(event.data);
+    if (message.action === "setPlayingState") {
+        togglePlayState(message.isPlaying); // updating play/stop state
+        console.log(message.isPlaying)
+    } else {
+        const json: [DefinedCircuits, {[key: string]: number}] = JSON.parse(event.data)
+        if (json[0] != currentCircuitName) {
+            circuit = circuitCopies[json[0]]
+            currentCircuitName = json[0]
+        }
+
+        circuit.nodeVoltagesFromJson(event.data)
+
+        postMessage(circuit.nodeVoltagesToJson())
     }
-
-    circuit.nodeVoltagesFromJson(event.data)
-
-    postMessage(circuit.nodeVoltagesToJson())
 }
+
 
 const deltaT = 20 // ms
 const repeatIncrementCircuit = () => {
-    incrementCircuit(circuit, deltaT)
+    // if state is playing, incrementCircuit is called as normal
+    if (isPlaying) {incrementCircuit(circuit, deltaT)}
     printTimeElapsed()
     setTimeout(repeatIncrementCircuit, deltaT)
 }
@@ -31,5 +40,9 @@ const printTimeElapsed = () => {
     // console.log("Elapsed time = ", (timestamp - lastIncrementTimestamp).toFixed(0))
     lastIncrementTimestamp = timestamp
 }
+
+const togglePlayState = (state: boolean) => {
+    isPlaying = state;
+};
 
 repeatIncrementCircuit()
