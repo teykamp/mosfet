@@ -71,6 +71,8 @@ export class Chart extends CtxSlider{
         }
         this.transformations[this.transformations.length - 1].value.translate({x: Chart.paddingL, y: Chart.paddingB}, true)
 
+        this.displayText = xAxisLabel
+
         this.points = []
         this.xAxisLabel = xAxisLabel // "←" + xAxisLabel + "→"
         this.yAxisLabel = yAxisLabel
