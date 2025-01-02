@@ -31,7 +31,7 @@ import { HtmlSlider } from '../classes/ctxSlider';
     //     value.value = sliderValue
     // })
 
-    watch(() => props.slider.value, (sliderValue) => {
+    watch([() => props.slider.value, () => props.slider.fromNode.value.voltage, () => props.slider.toNode.value.voltage], ([sliderValue, _, __]) => {
         console.log("Watch #1")
         value.value = sliderValue
     }, { deep: true })
