@@ -11,7 +11,7 @@ import { canvasSize } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
-import { CtxSlider, HtmlSlider } from "./ctxSlider"
+import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
 import { DefinedCircuits } from "../circuits/circuits"
@@ -83,18 +83,6 @@ export class Circuit extends CtxArtist {
 
     get allSliders(): CtxSlider[] {
         return this.makeListOfSliders()
-    }
-
-    get htmlSliders(): HtmlSlider[] {
-        const htmlSliders: HtmlSlider[] = []
-        Object.values(this.devices.voltageSources).sort((V1: VoltageSource, V2: VoltageSource) => V1.order - V2.order).forEach((voltageSource: VoltageSource) => {
-            htmlSliders.push(voltageSource.htmlSlider)
-        })
-        Object.values(this.devices.mosfets).sort((mosfet1: Mosfet, mosfet2: Mosfet) => mosfet1.order - mosfet2.order).forEach((mosfet: Mosfet) => {
-            htmlSliders.push(mosfet.vgsHtmlSlider)
-            htmlSliders.push(mosfet.vdsHtmlSlider)
-        })
-        return htmlSliders
     }
 
     get anySlidersDragging() {
@@ -206,13 +194,10 @@ export class Circuit extends CtxArtist {
             allSliders.push(mosfet.vds)
             allSliders.push(mosfet.vgsChart)
             allSliders.push(mosfet.vdsChart)
-            allSliders.push(mosfet.vgsHtmlSlider)
-            allSliders.push(mosfet.vdsHtmlSlider)
         }
         for (const voltageSourceId in this.devices.voltageSources) {
             const voltageSource = this.devices.voltageSources[voltageSourceId]
             allSliders.push(voltageSource.voltageDrop)
-            allSliders.push(voltageSource.htmlSlider)
         }
 
         this.selectedDeviceCharts.forEach((chart: Chart) => {allSliders.push(chart)})

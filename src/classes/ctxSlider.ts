@@ -5,7 +5,6 @@ import { between } from "../functions/extraMath"
 import { Node } from "./node"
 import { Ref } from "vue"
 import { preciseSliderTickRange } from "../constants"
-// import { HtmlSlider } from "./htmlSlider"
 
 export class CtxSlider extends CtxArtist{
     visibility: Visibility
@@ -19,7 +18,6 @@ export class CtxSlider extends CtxArtist{
     value: number // a number between minValue and maxValue
     drivenNode: 'fromNode' | 'toNode'
     canvasId: canvasId
-    displayText: string = "sliderName"
 
     preciseDragging: boolean = false
     temporaryMinValue: number
@@ -57,12 +55,12 @@ export class CtxSlider extends CtxArtist{
 
     updateValueBasedOnMousePosition(localMousePosition: Point) {
         // to be implemented by child classes
-        throw new Error("updateValueBasedOnMousePosition is a virtual function on the CtxSlider class. (Received " + localMousePosition + ")")
+        throw new Error("updateValueBasedOnMousePosition is a virtual function on the CtxSlider class. (Received" + localMousePosition + ")")
     }
 
     mouseDownIntiatesDrag(localMousePosition: Point): Boolean {
         // to be implemented by child classes
-        throw new Error("mouseDownIntiatesDrag is a virtual function on the CtxSlider class. (Received " + localMousePosition + ")")
+        throw new Error("mouseDownIntiatesDrag is a virtual function on the CtxSlider class. (Received" + localMousePosition + ")")
     }
 
     updateValueBasedOnNodeVoltages() {
@@ -164,29 +162,5 @@ export class CtxSlider extends CtxArtist{
                 this.temporaryMaxValue = this.maxValue
             }
         }
-    }
-
-    toHtmlSlider(): HtmlSlider {
-        const newHtmlSlider = new HtmlSlider(this.fromNode, this.toNode, this.drivenNode, this.minValue, this.maxValue, this.displayText, this.visibility)
-        return newHtmlSlider
-    }
-}
-
-export class HtmlSlider extends CtxSlider{
-    name: string
-
-    constructor(fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, name: string, visibility: Visibility) {
-        super([], new TransformationMatrix(), fromNode, toNode, drivenNode, minValue, maxValue, visibility, visibility)
-        this.name = name
-    }
-
-    draw() {}
-
-    updateLocationBasedOnValue() {}
-
-    updateValueBasedOnMousePosition() {}
-
-    mouseDownIntiatesDrag(): Boolean {
-        return this.dragging // do not modify the existing state of the dragging property
     }
 }

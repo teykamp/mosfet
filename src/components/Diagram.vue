@@ -1,8 +1,4 @@
 <template>
-  <div style="position: absolute; top: 10px; left: 100px;">
-    <VoltageSlider v-for="slider in circuit.htmlSliders" :slider="slider"></VoltageSlider>
-  </div>
-
   <div style="position: absolute; top: 10px; left: 10px;">
     <button @click.stop="showSideBar = !showSideBar">Menu</button>
   </div>
@@ -78,7 +74,6 @@ import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import VoltageSlider from './VoltageSlider.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { VoltageSource } from '../classes/voltageSource'
@@ -200,10 +195,8 @@ const checkDrag = (event: PointerEvent) => {
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
       slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
-      console.log("dragging", slider.dragging)
     }
   })
-  console.log("---")
 
   if (!circuit.value.anySlidersDragging) {
     Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {

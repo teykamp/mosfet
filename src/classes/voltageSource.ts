@@ -6,10 +6,8 @@ import { AngleSlider } from "./angleSlider"
 import { drawCirclesFillSolid, drawLinesFillSolid } from "../functions/drawFuncs"
 import { Node } from "./node"
 import { Device } from "./device"
-import { HtmlSlider } from "./ctxSlider"
 
 export class VoltageSource extends Device{
-    order: number = 0
     voltageDrop: AngleSlider
     vplus: Ref<Node>
     vminus: Ref<Node>
@@ -19,7 +17,6 @@ export class VoltageSource extends Device{
     isDuplicate: boolean = false
     selectedFocus: Ref<boolean> = ref(false)
     mouseDownInsideSelectionArea = false
-    htmlSlider: HtmlSlider
 
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false, canvasId: canvasId = 'main') {
         super(parentTransformations, (new TransformationMatrix()).translate(origin).mirror(mirror, false).scale(1/30), canvasId)
@@ -33,7 +30,6 @@ export class VoltageSource extends Device{
         }
         this.schematicEffects = {}
         this.current = 0 // Amps
-        this.htmlSlider = this.voltageDrop.toHtmlSlider()
 
         this.anchorPoints = {
             "Vplus": {x: 0, y: -30},
