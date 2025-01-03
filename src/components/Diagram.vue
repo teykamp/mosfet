@@ -3,6 +3,11 @@
     <VoltageSlider v-for="slider in circuit.htmlSliders" :slider="slider"></VoltageSlider>
   </div>
 
+  <div style="position: absolute; top: 10px; left: 500px;">
+    Node Voltages:<br>
+    {{ JSON.stringify(Object.fromEntries(Object.entries(circuit.nodes).map((value: [string, Ref<NodeClass>]) => [value[0], toSiPrefix(value[1].value.voltage, "V", 3)])), null, 2) }}
+  </div>
+
   <div style="position: absolute; top: 10px; left: 10px;">
     <button @click.stop="showSideBar = !showSideBar">Menu</button>
   </div>
@@ -86,6 +91,8 @@ import { Mosfet } from '../classes/mosfet'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
 import { Circuit } from '../classes/circuit'
+import { Node as NodeClass } from '../classes/node'
+import { toSiPrefix } from '../functions/toSiPrefix'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -200,10 +207,8 @@ const checkDrag = (event: PointerEvent) => {
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
       slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
-      console.log("dragging", slider.dragging)
     }
   })
-  console.log("---")
 
   if (!circuit.value.anySlidersDragging) {
     Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
