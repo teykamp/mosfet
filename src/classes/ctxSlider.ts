@@ -67,16 +67,6 @@ export class CtxSlider extends CtxArtist{
 
     updateValueBasedOnNodeVoltages() {
         this.value = between(this.temporaryMinValue, this.temporaryMaxValue, this.toNode.value.voltage - this.fromNode.value.voltage)
-        if (isNaN(this.value)) {
-            console.log("====== FOUND NAN ==========")
-            console.log("From: ", this.fromNode.value.voltage)
-            console.log("To: ", this.toNode.value.voltage)
-            console.log("typof To: ", typeof(this.toNode.value.voltage))
-            console.log("Min: ", this.temporaryMinValue)
-            console.log("Max: ", this.temporaryMaxValue)
-            console.log("Value: ", this.value)
-            console.log("===========================")
-        }
         this.updateLocationBasedOnValue()
     }
 
@@ -85,7 +75,6 @@ export class CtxSlider extends CtxArtist{
             if (this.drivenNode == 'toNode') {
                 this.toNode.value.fixed = true
                 this.toNode.value.voltage = this.fromNode.value.voltage + this.value
-                console.log("updateNodeVoltagesBasedOnValue(), toNode = ", this.toNode.value.voltage, ": ", typeof(this.toNode.value.voltage))
             } else {
                 this.fromNode.value.fixed = true
                 this.fromNode.value.voltage = this.toNode.value.voltage - this.value
@@ -99,7 +88,6 @@ export class CtxSlider extends CtxArtist{
             this.updateValueBasedOnMousePosition(transformedMousePos)
 
             this.value = between(this.temporaryMinValue, this.temporaryMaxValue, this.value)
-            // console.log("dragSlider(), value = ", this.value)
             const percentValue = between(0, 1, (this.value - this.temporaryMinValue) / (this.temporaryMaxValue - this.temporaryMinValue))
 
             if ((percentValue < 0.05) && (this.value <= this.previousValue)) {
@@ -115,6 +103,7 @@ export class CtxSlider extends CtxArtist{
             this.updateLocationBasedOnValue()
             this.updateNodeVoltagesBasedOnValue()
             this.previousValue = this.value
+            this.react()
         }
     }
 
@@ -128,6 +117,7 @@ export class CtxSlider extends CtxArtist{
         } else {
             this.fromNode.value.fixed = false
         }
+        this.react()
     }
 
     adjustPreciseSlider(timeDifference: number = 10) {
@@ -149,8 +139,8 @@ export class CtxSlider extends CtxArtist{
                 this.temporaryMaxValue += this.valueRateOfChange * (timeDifference / 1000) * 70
                 this.value += this.valueRateOfChange * (timeDifference / 1000) * 70
             }
+            this.react()
         }
-        // console.log("adjustPreciseSlider(), value = ", this.value)
     }
 
     checkDrag(mousePosition: Point, isPreciseDragging: boolean) {
@@ -176,6 +166,7 @@ export class CtxSlider extends CtxArtist{
                 this.temporaryMinValue = this.minValue
                 this.temporaryMaxValue = this.maxValue
             }
+            this.react()
         }
     }
 

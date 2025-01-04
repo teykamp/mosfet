@@ -229,6 +229,9 @@ export class Circuit extends CtxArtist {
             if (slidersActive) {
                 mosfet.vgs.visibility = 'visible'
                 mosfet.vds.visibility = 'visible'
+                mosfet.vgsHtmlSlider.visibility = 'visible'
+                mosfet.vdsHtmlSlider.visibility = 'visible'
+
                 if ((mosfet.vgsChart.visibility == 'visible') || (mosfet.vgsChart.visibility == 'locked')) {
                     mosfet.vgsChart.visibility = 'visible'
                 }
@@ -238,6 +241,9 @@ export class Circuit extends CtxArtist {
             } else {
                 mosfet.vgs.visibility = mosfet.vgs.originalVisibility
                 mosfet.vds.visibility = mosfet.vds.originalVisibility
+                mosfet.vgsHtmlSlider.visibility = mosfet.vgsHtmlSlider.originalVisibility
+                mosfet.vdsHtmlSlider.visibility = mosfet.vdsHtmlSlider.originalVisibility
+
                 if ((mosfet.vgsChart.visibility == 'visible') || (mosfet.vgsChart.visibility == 'locked')) {
                     mosfet.vgsChart.visibility = mosfet.vgs.visibility
                 }
@@ -245,6 +251,8 @@ export class Circuit extends CtxArtist {
                     mosfet.vdsChart.visibility = mosfet.vds.visibility
                 }
             }
+            mosfet.vgsHtmlSlider.react()
+            mosfet.vdsHtmlSlider.react()
         }
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
             // Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selectedFocus) : []).forEach((mosfet: Mosfet) => {
@@ -260,9 +268,12 @@ export class Circuit extends CtxArtist {
         const activateVoltageSourceSliders = (voltageSource: VoltageSource) => {
             if (slidersActive) {
                 voltageSource.voltageDrop.visibility = 'visible'
+                voltageSource.htmlSlider.visibility = 'visible'
             } else {
                 voltageSource.voltageDrop.visibility = voltageSource.voltageDrop.originalVisibility
+                voltageSource.htmlSlider.visibility = voltageSource.htmlSlider.originalVisibility
             }
+            voltageSource.htmlSlider.react()
         }
 
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
