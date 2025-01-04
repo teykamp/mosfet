@@ -3,10 +3,10 @@
     <VoltageSlider v-for="slider in circuit.htmlSliders" :slider="slider"></VoltageSlider>
   </div>
 
-  <!-- <div style="position: absolute; top: 10px; left: 500px;">
+  <div style="position: absolute; top: 10px; left: 500px; display: none">
     Node Voltages:<br>
     {{ JSON.stringify(Object.fromEntries(Object.entries(circuit.nodes).map((value: [string, Ref<NodeClass>]) => [value[0], toSiPrefix(value[1].value.voltage, "V", 3)])), null, 2) }}
-  </div> -->
+  </div>
 
   <div style="position: absolute; top: 10px; left: 10px;">
     <button @click.stop="showSideBar = !showSideBar">Menu</button>
@@ -14,7 +14,7 @@
 
   <Transition>
     <div v-show="showSideBar" ref="sideBar"
-      style="display: flex; flex-direction: column; width: 250px; height: 100vh; padding: 10px; background-color: whitesmoke; position: absolute;">
+      style="display: flex; flex-direction: column; width: 250px; height: 95%; padding: 10px; background-color: whitesmoke; position: absolute; overflow: auto">
       <h3 style="text-align: center;">Circuits</h3>
       <div style="border: 1px solid grey;"></div>
       <button v-for="circuit in circuitsToChooseFrom" @click.prevent="setCircuit(circuit)"
