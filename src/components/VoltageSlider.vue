@@ -12,7 +12,7 @@ script<template>
                     </div>
                 </div>
             </div>
-            <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" style="position: relative">
+            <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" style="position: relative">
         </div>
         {{ toSiPrefix(maxValue, "V", 3) }}
         {{ toSiPrefix(props.slider.value, "V", 3) }}
@@ -54,10 +54,13 @@ import { Visibility } from '../types';
     })
 
     const onPointerDown = (event: PointerEvent) => {
-        console.log("Pointerdown")
         props.slider.dragging = true
         props.slider.checkDrag({x: 0, y: 0}, eventInitiatesPreciseDragging(event))
         props.slider.value = value.value // even if value.value didn't change
+    }
+
+    const onPointerMove = (event: PointerEvent) => {
+        props.slider.dragSlider(event)
     }
 
     const onPointerUp = () => {

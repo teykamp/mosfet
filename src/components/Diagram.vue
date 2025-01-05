@@ -93,6 +93,7 @@ import { schematicScale } from '../constants'
 import { Circuit } from '../classes/circuit'
 import { Node as NodeClass } from '../classes/node'
 import { toSiPrefix } from '../functions/toSiPrefix'
+import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -206,7 +207,7 @@ const checkDrag = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
-      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+      slider.checkDrag({x: mouseX, y: mouseY}, eventInitiatesPreciseDragging(event))
     }
   })
 
