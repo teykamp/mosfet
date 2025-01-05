@@ -11,8 +11,18 @@
       <button v-for="circuit in circuitsToChooseFrom" @click.prevent="setCircuit(circuit)"
         :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`">{{
         circuit }}</button>
-      <div style="border: 1px solid grey; margin-top: 20px; margin-bottom: 30px;"></div>
-      <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
+      <div style="border: 1px solid grey; margin-top: 10px; margin-bottom: 30px;"></div>
+      <div style="margin-bottom: 10px;">
+        <h4 style="margin: 0;">Speed</h4>
+        <input type="range" min="0.5" max="1.25" step="0.25" v-model="speed" style="width: 100%;" @input="updateSpeed">
+        <div style="display: flex; justify-content: space-between;">
+          <span>x0.5</span>
+          <span>x0.75</span>
+          <span>x1</span>
+          <span>x1.25</span>
+        </div>
+      </div>
+
       <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
         <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
         <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" @click="updateSlidersActive()"/>
@@ -153,11 +163,15 @@ const graphBarMosfetCtx = ref<null | CanvasRenderingContext2D>(null)
 const graphBarChartCanvas = ref<null | HTMLCanvasElement>(null)
 const graphBarChartCtx = ref<null | CanvasRenderingContext2D>(null)
 const isPlaying = ref(true); // play/stop buttoni initialize: true = playing
-
+const speed = ref(1);
 
 const toggleStopPlay = () => {
     isPlaying.value = !isPlaying.value;
     worker.postMessage(JSON.stringify({ action: "setPlayingState", isPlaying: isPlaying.value }));
+};
+
+const updateSpeed = () => {
+  worker.postMessage(JSON.stringify({ action: "updateSpeed", speed: speed.value }));
 };
 
 
