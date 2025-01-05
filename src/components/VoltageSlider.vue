@@ -1,12 +1,13 @@
 script<template>
     <div v-if="visibility == 'visible' || visibility == 'locked'" style="user-select: none;">
-        {{ props.slider.name }}:
-        {{ toSiPrefix(minValue, "V", 3) }}
+        <div style="display: inline-block; width: 100px; text-align: right">
+            {{ props.slider.name }}: {{ toSiPrefix(minValue, "V", 3) }}
+        </div>
         <div style="position: relative; display: inline-block;">
 
             <!-- Ticks shown during precise dragging -->
-            <div v-show="preciseDragging" style="position: relative; display: flex; justify-content: start; align-items: center; top: 0; transform: translate(0px, 19px); border: 1px solid black">
-                <div v-for="tickDiv in tickDivs" :style="`position: relative; width: ${tickDiv.widthPx}px; height: ${tickDiv.type == 'major' ? '20px' : '10px'}; transform: translate(1px, 19px); visibility: ${tickDiv.type == 'spacer' ? 'hidden' : 'visible'}`" :class="{sliderBody: true, visible: visibility == 'visible', locked: visibility == 'locked'}"></div>
+            <div v-show="preciseDragging" style="position: relative; display: flex; justify-content: start; align-items: center; top: 0; transform: translate(0px, 18px); border: 1px solid black">
+                <div v-for="tickDiv in tickDivs" :style="`position: relative; width: ${tickDiv.widthPx}px; height: ${tickDiv.type == 'major' ? '18px' : '12px'}; transform: translate(1px, 19px); visibility: ${tickDiv.type == 'spacer' ? 'hidden' : 'visible'}`" :class="{sliderBody: true, visible: visibility == 'visible', locked: visibility == 'locked'}"></div>
             </div>
 
             <!-- Arrow head and tail -->
@@ -21,7 +22,7 @@ script<template>
             </div>
 
             <!-- The slider itself -->
-            <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" :style="`position: relative; width: ${sliderWidthPx}px`">
+            <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" :style="`position: relative; width: ${sliderWidthPx + 6}px`">
         </div>
         {{ toSiPrefix(maxValue, "V", 3) }}
         {{ toSiPrefix(props.slider.value, "V", 3) }}
@@ -51,62 +52,75 @@ script<template>
     const visibility: Ref<Visibility> = ref(props.slider.visibility)
     const preciseDragging: Ref<boolean> = ref(props.slider.preciseDragging)
     // const preciseDragging: Ref<boolean> = ref(true)
-    const tickWidthPx: number = 10
+    const tickWidthPx: number = 5
 
     const tickDivs: ComputedRef<TickDiv[]> = computed(() => {
-
         const divs: TickDiv[] = []
+        let nextTickDivIsSpacer
         let tickValue = Math.ceil(minValue.value * 2) / 2 // smallest multiple of 0.5 above minValue
+        let nextTickIsMajor = (tickValue * 2) % 2 == 0
 
-        if (tickValue > minValue.value) {
+        const standardSpacerWidth = props.sliderWidthPx * 0.5 / (maxValue.value - minValue.value) - tickWidthPx / 2 * 2
+
+        const firstSpacerWidthPx = props.sliderWidthPx * (tickValue - minValue.value) / (maxValue.value - minValue.value) - tickWidthPx / 2
+
+        if (firstSpacerWidthPx >= 0) {
             divs.push({
                 type: 'spacer',
-                widthPx: props.sliderWidthPx * (tickValue - minValue.value) / (maxValue.value - minValue.value) - tickWidthPx / 2,
+                widthPx: firstSpacerWidthPx,
             })
+            nextTickDivIsSpacer = false
+        } else {
+            divs.push({
+                type: nextTickIsMajor ? 'major' : 'minor',
+                widthPx: tickWidthPx + firstSpacerWidthPx, // firstSpacerWidthPx is negative
+            })
+            nextTickIsMajor = !nextTickIsMajor
+            nextTickDivIsSpacer = true
         }
 
-        while (tickValue < maxValue.value) {
-            divs.push({
-                type: 'minor',
-                widthPx: tickWidthPx,
-            })
+        let cumulativeDivWidthPx = divs[0].widthPx
 
-            const nextTickValue = tickValue + 0.5
+        while (cumulativeDivWidthPx < props.sliderWidthPx) {
+            if (nextTickDivIsSpacer) {
+                    divs.push({
+                        type: 'spacer',
+                        widthPx: standardSpacerWidth,
+                    })
+                } else {
+                divs.push({
+                    type: nextTickIsMajor ? 'major' : 'minor',
+                    widthPx: tickWidthPx,
+                })
+                nextTickIsMajor = !nextTickIsMajor
+            }
+            cumulativeDivWidthPx += divs[divs.length - 1].widthPx
+            nextTickDivIsSpacer = !nextTickDivIsSpacer
+        }
 
-            if (nextTickValue <= maxValue.value) {
+        // undo the last iteration of the while loop
+        cumulativeDivWidthPx -= divs[divs.length - 1].widthPx
+        divs.pop()
+        nextTickDivIsSpacer = !nextTickDivIsSpacer
+        if (!nextTickDivIsSpacer) {
+            nextTickIsMajor = !nextTickIsMajor
+        }
+
+        const lastSpacerWidthPx = props.sliderWidthPx - cumulativeDivWidthPx
+
+        if (nextTickDivIsSpacer) {
                 divs.push({
                     type: 'spacer',
-                    widthPx: props.sliderWidthPx * 0.5 / (maxValue.value - minValue.value) - tickWidthPx / 2 * 2,
+                    widthPx: lastSpacerWidthPx,
+                })
+                } else {
+                divs.push({
+                    type: nextTickIsMajor ? 'major' : 'minor',
+                    widthPx: lastSpacerWidthPx,
                 })
             }
 
-            tickValue = nextTickValue
-        }
-
         return divs
-
-        // return [
-        //     {
-        //         type: 'spacer',
-        //         widthPx: 30,
-        //     },
-        //     {
-        //         type: 'minor',
-        //         widthPx: 10,
-        //     },
-        //     {
-        //         type: 'spacer',
-        //         widthPx: 50,
-        //     },
-        //     {
-        //         type: 'major',
-        //         widthPx: 10,
-        //     },
-        //     {
-        //         type: 'spacer',
-        //         widthPx: 50,
-        //     },
-        // ]
     })
 
     watch([() => props.slider.temporaryMinValue, () => props.slider.temporaryMaxValue, () => props.slider.visibility, () => props.slider.preciseDragging, () => props.slider.updated.value], ([newMinValue, newMaxValue, newVisibility, newPreciseDragging, _]) => {
@@ -147,12 +161,12 @@ script<template>
 
     .sliderBody.visible {
         background: orange;
-        height: 0.4rem;
+        height: 6.4px;
     }
 
     .sliderBody.locked {
         background: lightgrey;
-        height: 0.4rem;
+        height: 6.4px;
     }
 
     input[type="range"] {
@@ -168,14 +182,14 @@ script<template>
     /***** Chrome, Safari, Opera, and Edge Chromium *****/
     input[type="range"]::-webkit-slider-runnable-track {
         /* background: orange; */
-        height: 0.4rem;
+        height: 6.4px;
         border-style: none;
     }
 
     /******** Firefox ********/
     input[type="range"]::-moz-range-track {
         /* background: orange; */
-        height: 0.4rem;
+        height: 6.4px;
         transform: translate(0px, 4px);
         border-style: none;
     }
