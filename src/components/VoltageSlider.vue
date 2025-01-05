@@ -3,6 +3,13 @@ script<template>
         {{ props.slider.name }}:
         {{ toSiPrefix(minValue, "V", 3) }}
         <div style="position: relative; display: inline-block;">
+
+            <!-- Ticks shown during precise dragging -->
+            <div v-show="preciseDragging" style="position: relative; display: flex; justify-content: start; align-items: center; top: 0; transform: translate(0px, 19px); border: 1px solid black">
+                <div v-for="tickDiv in tickDivs" :style="`position: relative; width: ${tickDiv.widthPx}px; height: ${tickDiv.type == 'major' ? '20px' : '10px'}; transform: translate(1px, 19px); visibility: ${tickDiv.type == 'spacer' ? 'hidden' : 'visible'}`" :class="{sliderBody: true, visible: visibility == 'visible', locked: visibility == 'locked'}"></div>
+            </div>
+
+            <!-- Arrow head and tail -->
             <div style="position: relative; display: flex; justify-content: space-between; align-items: center; top: 0;">
                     <div style="position: relative; width: 20px; transform: translate(-5px, 22px) rotate(90deg);" :class="{sliderBody: true, visible: visibility == 'visible', locked: visibility == 'locked'}"></div>
                 <div>
@@ -12,7 +19,9 @@ script<template>
                     </div>
                 </div>
             </div>
-            <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" style="position: relative">
+
+            <!-- The slider itself -->
+            <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" :style="`position: relative; width: ${sliderWidthPx}px`">
         </div>
         {{ toSiPrefix(maxValue, "V", 3) }}
         {{ toSiPrefix(props.slider.value, "V", 3) }}
@@ -20,25 +29,91 @@ script<template>
 </template>
 
 <script setup lang='ts'>
-    import { Ref, ref, watch } from 'vue';
+    import { computed, ComputedRef, Ref, ref, watch } from 'vue';
     import { HtmlSlider } from '../classes/ctxSlider';
     import { toSiPrefix } from '../functions/toSiPrefix';
     import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging';
-import { Visibility } from '../types';
+    import { Visibility } from '../types';
+
+    type TickDiv = {
+        type: 'spacer' | 'major' | 'minor',
+        widthPx: number,
+    }
 
     const props = defineProps<{
         slider: HtmlSlider,
+        sliderWidthPx: number,
     }>()
 
     const minValue: Ref<number> = ref(props.slider.temporaryMinValue)
     const maxValue: Ref<number> = ref(props.slider.temporaryMaxValue)
     const value: Ref<number> = ref(props.slider.value)
     const visibility: Ref<Visibility> = ref(props.slider.visibility)
+    const preciseDragging: Ref<boolean> = ref(props.slider.preciseDragging)
+    // const preciseDragging: Ref<boolean> = ref(true)
+    const tickWidthPx: number = 10
 
-    watch([() => props.slider.temporaryMinValue, () => props.slider.temporaryMaxValue, () => props.slider.visibility, () => props.slider.updated.value], ([newMinValue, newMaxValue, newVisibility, _]) => {
+    const tickDivs: ComputedRef<TickDiv[]> = computed(() => {
+
+        const divs: TickDiv[] = []
+        let tickValue = Math.ceil(minValue.value * 2) / 2 // smallest multiple of 0.5 above minValue
+
+        if (tickValue > minValue.value) {
+            divs.push({
+                type: 'spacer',
+                widthPx: props.sliderWidthPx * (tickValue - minValue.value) / (maxValue.value - minValue.value) - tickWidthPx / 2,
+            })
+        }
+
+        while (tickValue < maxValue.value) {
+            divs.push({
+                type: 'minor',
+                widthPx: tickWidthPx,
+            })
+
+            const nextTickValue = tickValue + 0.5
+
+            if (nextTickValue <= maxValue.value) {
+                divs.push({
+                    type: 'spacer',
+                    widthPx: props.sliderWidthPx * 0.5 / (maxValue.value - minValue.value) - tickWidthPx / 2 * 2,
+                })
+            }
+
+            tickValue = nextTickValue
+        }
+
+        return divs
+
+        // return [
+        //     {
+        //         type: 'spacer',
+        //         widthPx: 30,
+        //     },
+        //     {
+        //         type: 'minor',
+        //         widthPx: 10,
+        //     },
+        //     {
+        //         type: 'spacer',
+        //         widthPx: 50,
+        //     },
+        //     {
+        //         type: 'major',
+        //         widthPx: 10,
+        //     },
+        //     {
+        //         type: 'spacer',
+        //         widthPx: 50,
+        //     },
+        // ]
+    })
+
+    watch([() => props.slider.temporaryMinValue, () => props.slider.temporaryMaxValue, () => props.slider.visibility, () => props.slider.preciseDragging, () => props.slider.updated.value], ([newMinValue, newMaxValue, newVisibility, newPreciseDragging, _]) => {
         minValue.value = newMinValue
         maxValue.value = newMaxValue
         visibility.value = newVisibility
+        preciseDragging.value = newPreciseDragging
     })
 
     watch([() => props.slider.value, () => props.slider.fromNode.value.voltage, () => props.slider.toNode.value.voltage], ([sliderValue, _, __]) => {
@@ -85,7 +160,7 @@ import { Visibility } from '../types';
         appearance: none;
         background: transparent;
         cursor: pointer;
-        width: 10rem;
+        /* width: 10rem; */
         border-style: none;
     }
 

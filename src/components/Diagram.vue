@@ -1,6 +1,6 @@
 <template>
   <div style="position: absolute; top: 10px; left: 100px;">
-    <VoltageSlider v-for="slider in circuit.htmlSliders" :slider="slider"></VoltageSlider>
+    <VoltageSlider v-for="slider in circuit.htmlSliders" :slider="slider" :slider-width-px="150"></VoltageSlider>
   </div>
 
   <div style="position: absolute; top: 10px; left: 500px; display: none">
