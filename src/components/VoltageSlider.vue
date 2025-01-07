@@ -6,8 +6,8 @@ script<template>
         <div style="position: relative; display: inline-block;">
 
             <!-- Ticks shown during precise dragging -->
-            <div v-show="preciseDragging" style="position: relative; display: flex; justify-content: start; align-items: center; top: 0; transform: translate(0px, 18px); border: 1px solid black">
-                <div v-for="tickDiv in tickDivs" :style="`position: relative; width: ${tickDiv.widthPx}px; height: ${tickDiv.type == 'major' ? '18px' : '12px'}; transform: translate(1px, 19px); visibility: ${tickDiv.type == 'spacer' ? 'hidden' : 'visible'}`" :class="{sliderBody: true, visible: visibility == 'visible', locked: visibility == 'locked'}"></div>
+            <div v-show="preciseDragging" style="position: absolute; display: flex; justify-content: start; align-items: center; top: 0; transform: translate(1px, 19px);">
+                <div v-for="tickDiv in tickDivs" :style="`position: relative; width: ${tickDiv.widthPx}px; height: ${tickDiv.type == 'major' ? '18px' : '12px'}; visibility: ${tickDiv.type == 'spacer' ? 'hidden' : 'visible'}`" :class="{sliderBody: true, visible: visibility == 'visible', locked: visibility == 'locked'}"></div>
             </div>
 
             <!-- Arrow head and tail -->

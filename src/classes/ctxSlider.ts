@@ -123,22 +123,27 @@ export class CtxSlider extends CtxArtist{
     adjustPreciseSlider(timeDifference: number = 10) {
         if (this.dragging && this.preciseDragging) {
             if ((this.value >= this.maxValue) || (this.temporaryMaxValue > this.maxValue)) {
-                this.value = this.maxValue
+                console.log("max reached; value = ", this.value, ", tempMax = ", this.temporaryMaxValue)
+                this.value = between(this.minValue, this.maxValue, this.value)
                 this.temporaryMaxValue = this.maxValue
                 this.temporaryMinValue = this.maxValue - preciseSliderTickRange
                 this.valueRateOfChange = 0
             }
             else if ((this.value <= this.minValue) || (this.temporaryMinValue < this.minValue)) {
-                this.value = this.minValue
+                this.value = between(this.minValue, this.maxValue, this.value)
                 this.temporaryMinValue = this.minValue
                 this.temporaryMaxValue = this.minValue + preciseSliderTickRange
                 this.valueRateOfChange = 0
+                console.log("min reached")
             }
             else {
-                this.temporaryMinValue += this.valueRateOfChange * (timeDifference / 1000) * 70
-                this.temporaryMaxValue += this.valueRateOfChange * (timeDifference / 1000) * 70
-                this.value += this.valueRateOfChange * (timeDifference / 1000) * 70
+                const valueChangeMagnitude = this.valueRateOfChange * (timeDifference / 1000) * 70
+                this.temporaryMinValue += valueChangeMagnitude
+                this.temporaryMaxValue += valueChangeMagnitude
+                this.value += valueChangeMagnitude
+                console.log("adjusting by ", this.valueRateOfChange)
             }
+            console.log(this.value)
             this.react()
         }
     }
