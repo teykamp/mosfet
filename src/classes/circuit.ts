@@ -11,10 +11,11 @@ import { canvasSize } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
-import { CtxSlider, HtmlSlider } from "./ctxSlider"
+import { CtxSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
 import { DefinedCircuits } from "../circuits/circuits"
+import { LinearSlider } from "./linearSlider"
 
 export class Circuit extends CtxArtist {
     name: DefinedCircuits
@@ -85,8 +86,8 @@ export class Circuit extends CtxArtist {
         return this.makeListOfSliders()
     }
 
-    get htmlSliders(): HtmlSlider[] {
-        const htmlSliders: HtmlSlider[] = []
+    get htmlSliders(): LinearSlider[] {
+        const htmlSliders: LinearSlider[] = []
         Object.values(this.devices.voltageSources).sort((V1: VoltageSource, V2: VoltageSource) => V1.order - V2.order).forEach((voltageSource: VoltageSource) => {
             htmlSliders.push(voltageSource.htmlSlider)
         })

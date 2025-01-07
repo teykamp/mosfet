@@ -11,7 +11,7 @@ export type Point = {
 
 export type Visibility = 'hidden' | 'locked' | 'visible'
 
-export type canvasId = 'main' | 'mosfet' | 'chart'
+export type canvasId = 'main' | 'mosfet' | 'chart' | 'none'
 
 export type SchematicEffect = {
   node: Ref<Node>,

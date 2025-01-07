@@ -84,7 +84,7 @@ import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
 import VoltageSlider from './VoltageSlider.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { VoltageSource } from '../classes/voltageSource'
 import { Mosfet } from '../classes/mosfet'
@@ -94,6 +94,7 @@ import { Circuit } from '../classes/circuit'
 import { Node as NodeClass } from '../classes/node'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging'
+import { getMousePos, setUpCtx } from '../functions/canvasFuncs'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -194,15 +195,6 @@ const updateNodeVoltagesBasedOnSliders = () => {
   })
 }
 
-const getMousePos = (event: PointerEvent) => {
-  const myCanvas = event.target as HTMLCanvasElement
-  if (!myCanvas) return { mouseX: 0, mouseY: 0 }
-  const rect = myCanvas.getBoundingClientRect()
-  const mouseX = (event.clientX - rect.left) * canvasDpi.value
-  const mouseY = (event.clientY - rect.top) * canvasDpi.value
-  return { mouseX, mouseY }
-}
-
 const checkDrag = (event: PointerEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
@@ -275,23 +267,6 @@ const mouseUp = (event: PointerEvent) => {
 
   document.removeEventListener('pointermove', drag)
   document.removeEventListener('pointerup', mouseUp)
-}
-
-const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | CanvasRenderingContext2D>, myCanvasSize: Ref<{width: number, height: number}>): boolean => {
-  if (!myCanvas.value) return false
-  myCtx.value = myCanvas.value.getContext('2d')
-  if (!myCtx.value) return false
-  getCanvasSize(myCtx.value, myCanvasSize)
-
-  const dpi = canvasDpi.value
-  myCanvas.value.width = myCanvasSize.value.width * dpi
-  myCanvas.value.height = myCanvasSize.value.height * dpi
-  myCanvas.value.style.width = `${myCanvasSize.value.width}px`
-  myCanvas.value.style.height = `${myCanvasSize.value.height}px`
-
-  myCtx.value.resetTransform()
-  myCtx.value.clearRect(0, 0, myCanvas.value.width, myCanvas.value.height)
-  return true
 }
 
 const draw = () => {

@@ -13,7 +13,7 @@ import { TectonicPoint } from "./tectonicPlate"
 import { Chart } from "./chart"
 import { vddVoltage } from "../constants"
 import { Device } from "./device"
-import { HtmlSlider } from "./ctxSlider"
+import { LinearSlider } from "./linearSlider"
 
 export class Mosfet extends Device{
     order: number = 0
@@ -35,8 +35,8 @@ export class Mosfet extends Device{
     selectedFocus: Ref<boolean> = ref(false)
     vgsChart: Chart
     vdsChart: Chart
-    vgsHtmlSlider: HtmlSlider
-    vdsHtmlSlider: HtmlSlider
+    vgsHtmlSlider: LinearSlider
+    vdsHtmlSlider: LinearSlider
     static chartWidth = 200
     static chartHeight = 120
     static chartLocations = {
@@ -107,6 +107,8 @@ export class Mosfet extends Device{
             this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
             this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
+            this.vgsHtmlSlider = new LinearSlider([], Vs, Vg, 'toNode', 0, 0, 50, 0, 5, 'Vgs', vgsVisibility)
+            this.vdsHtmlSlider = new LinearSlider([], Vs, Vg, 'toNode', 0, 0, 50, 0, 5, 'Vds', vdsVisibility)
         }
         else {
             this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility, canvasId)
@@ -114,10 +116,9 @@ export class Mosfet extends Device{
             this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
             this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
+            this.vgsHtmlSlider = new LinearSlider([], Vs, Vg, 'fromNode', 0, 0, 50, 0, 5, 'Vgs', vgsVisibility)
+            this.vdsHtmlSlider = new LinearSlider([], Vs, Vg, 'fromNode', 0, 0, 50, 0, 5, 'Vds', vdsVisibility)
         }
-
-        this.vgsHtmlSlider = this.vgs.toHtmlSlider()
-        this.vdsHtmlSlider = this.vds.toHtmlSlider()
     }
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Mosfet {
