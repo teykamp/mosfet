@@ -16,7 +16,6 @@ import { Device } from "./device"
 import { HtmlSlider } from "./ctxSlider"
 
 export class Mosfet extends Device{
-    order: number = 0
     mosfetType: 'nmos' | 'pmos'
     isDuplicate: boolean = false
     // mirror: boolean

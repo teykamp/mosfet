@@ -6,6 +6,7 @@ import { getLineLength } from "../functions/drawFuncs"
 import { TectonicPoint } from "./tectonicPlate"
 
 export class Device extends CtxArtist{
+    order: number = 0
     isDuplicate: boolean = false
     mouseDownInsideSelectionArea = false
     selected: Ref<boolean> = ref(false)

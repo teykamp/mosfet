@@ -9,7 +9,6 @@ import { Device } from "./device"
 import { HtmlSlider } from "./ctxSlider"
 
 export class VoltageSource extends Device{
-    order: number = 0
     voltageDrop: AngleSlider
     vplus: Ref<Node>
     vminus: Ref<Node>

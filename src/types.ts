@@ -4,6 +4,11 @@ import { TectonicLine, TectonicPoint } from './classes/tectonicPlate';
 
 export type PublicInterface<T> = Pick<T, keyof T>;
 
+export type Named<T> = {
+  name: string,
+  value: T,
+}
+
 export type Point = {
   x: number
   y: number

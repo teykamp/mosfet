@@ -1,7 +1,7 @@
 script<template>
-    <div v-if="visibility == 'visible' || visibility == 'locked'" style="user-select: none;">
-        <div style="display: inline-block; width: 100px; text-align: right">
-            {{ props.slider.name }}: {{ toSiPrefix(minValue, "V", 3) }}
+    <div v-if="visibility == 'visible' || visibility == 'locked'" style="user-select: none; display: flex; align-items: end;">
+        <div style="display: inline-block; text-align: right; width: 4rem; padding-right: 10px">
+            {{ props.slider.name }}:
         </div>
         <div style="position: relative; display: inline-block;">
 
@@ -24,13 +24,15 @@ script<template>
             <!-- The slider itself -->
             <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" :disabled="visibility == 'locked'" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" :style="`position: relative; width: ${sliderWidthPx + 6}px`">
         </div>
-        {{ toSiPrefix(maxValue, "V", 3) }}
-        {{ toSiPrefix(props.slider.value, "V", 3) }}
+        <div style="display: inline-block; text-align: right; width: 4rem; padding-left: 10px">
+            {{ toSiPrefix(props.slider.value, "V", 3) }}
+        </div>
+
     </div>
 </template>
 
 <script setup lang='ts'>
-    import { computed, ComputedRef, Ref, ref, watch } from 'vue';
+    import { computed, ComputedRef, onMounted, Ref, ref, watch } from 'vue';
     import { HtmlSlider } from '../classes/ctxSlider';
     import { toSiPrefix } from '../functions/toSiPrefix';
     import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging';
@@ -123,11 +125,13 @@ script<template>
         return divs
     })
 
-    watch([() => props.slider.temporaryMinValue, () => props.slider.temporaryMaxValue, () => props.slider.visibility, () => props.slider.preciseDragging, () => props.slider.updated.value], ([newMinValue, newMaxValue, newVisibility, newPreciseDragging, _]) => {
+    watch([() => props.slider.value, () => props.slider.temporaryMinValue, () => props.slider.temporaryMaxValue, () => props.slider.visibility, () => props.slider.preciseDragging, () => props.slider.updated.value], ([newValue, newMinValue, newMaxValue, newVisibility, newPreciseDragging, _]) => {
+        value.value = newValue
         minValue.value = newMinValue
         maxValue.value = newMaxValue
         visibility.value = newVisibility
         preciseDragging.value = newPreciseDragging
+        console.log("watch #1")
     })
 
     watch([() => props.slider.value, () => props.slider.fromNode.value.voltage, () => props.slider.toNode.value.voltage], ([sliderValue, _, __]) => {
@@ -155,6 +159,9 @@ script<template>
     const onPointerUp = () => {
         props.slider.releaseSlider() // sets props.slider.dragging to false
     }
+
+    onMounted(() => props.slider.react())
+
 </script>
 
 <style scoped>

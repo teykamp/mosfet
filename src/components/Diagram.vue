@@ -1,6 +1,6 @@
 <template>
   <div style="position: absolute; top: 10px; left: 100px;">
-    <VoltageSlider v-for="slider in circuit.htmlSliders" :slider="slider" :slider-width-px="150"></VoltageSlider>
+    <AllVoltageSliders :html-sliders="circuit.htmlSliders" :width-px="300"></AllVoltageSliders>
   </div>
 
   <div style="position: absolute; top: 10px; left: 500px; display: none">
@@ -83,7 +83,6 @@ import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import VoltageSlider from './VoltageSlider.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { VoltageSource } from '../classes/voltageSource'
@@ -94,6 +93,7 @@ import { Circuit } from '../classes/circuit'
 import { Node as NodeClass } from '../classes/node'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging'
+import AllVoltageSliders from './AllVoltageSliders.vue'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 

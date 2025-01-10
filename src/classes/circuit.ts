@@ -1,4 +1,4 @@
-import { Point } from "../types"
+import { Named, Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
@@ -85,14 +85,20 @@ export class Circuit extends CtxArtist {
         return this.makeListOfSliders()
     }
 
-    get htmlSliders(): HtmlSlider[] {
-        const htmlSliders: HtmlSlider[] = []
+    get htmlSliders(): Named<HtmlSlider[]>[] {
+        const htmlSliders: Named<HtmlSlider[]>[] = []
         Object.values(this.devices.voltageSources).sort((V1: VoltageSource, V2: VoltageSource) => V1.order - V2.order).forEach((voltageSource: VoltageSource) => {
-            htmlSliders.push(voltageSource.htmlSlider)
+            htmlSliders.push({name: voltageSource.key, value: [voltageSource.htmlSlider]})
         })
         Object.values(this.devices.mosfets).sort((mosfet1: Mosfet, mosfet2: Mosfet) => mosfet1.order - mosfet2.order).forEach((mosfet: Mosfet) => {
-            htmlSliders.push(mosfet.vgsHtmlSlider)
-            htmlSliders.push(mosfet.vdsHtmlSlider)
+            const mosfetHtmlSliders: Named<HtmlSlider[]> = {
+                name: mosfet.key,
+                value: [
+                    mosfet.vgsHtmlSlider,
+                    mosfet.vdsHtmlSlider,
+                ]
+            }
+            htmlSliders.push(mosfetHtmlSliders)
         })
         return htmlSliders
     }
