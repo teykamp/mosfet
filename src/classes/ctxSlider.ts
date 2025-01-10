@@ -27,7 +27,6 @@ export class CtxSlider extends CtxArtist{
     previousValue: number
     valueRateOfChange: number = 0
 
-
     constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, originalVisibility: Visibility = 'visible', visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
         super(parentTransformations, localTransformationMatrix)
 

@@ -131,7 +131,6 @@ script<template>
         maxValue.value = newMaxValue
         visibility.value = newVisibility
         preciseDragging.value = newPreciseDragging
-        console.log("watch #1")
     })
 
     watch([() => props.slider.value, () => props.slider.fromNode.value.voltage, () => props.slider.toNode.value.voltage], ([sliderValue, _, __]) => {
