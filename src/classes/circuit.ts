@@ -88,17 +88,10 @@ export class Circuit extends CtxArtist {
     get htmlSliders(): Named<HtmlSlider[]>[] {
         const htmlSliders: Named<HtmlSlider[]>[] = []
         Object.values(this.devices.voltageSources).sort((V1: VoltageSource, V2: VoltageSource) => V1.order - V2.order).forEach((voltageSource: VoltageSource) => {
-            htmlSliders.push({name: voltageSource.key, value: [voltageSource.htmlSlider]})
+            htmlSliders.push(voltageSource.namedHtmlSliders)
         })
         Object.values(this.devices.mosfets).sort((mosfet1: Mosfet, mosfet2: Mosfet) => mosfet1.order - mosfet2.order).forEach((mosfet: Mosfet) => {
-            const mosfetHtmlSliders: Named<HtmlSlider[]> = {
-                name: mosfet.key,
-                value: [
-                    mosfet.vgsHtmlSlider,
-                    mosfet.vdsHtmlSlider,
-                ]
-            }
-            htmlSliders.push(mosfetHtmlSliders)
+            htmlSliders.push(mosfet.namedHtmlSliders)
         })
         return htmlSliders
     }

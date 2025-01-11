@@ -29,11 +29,12 @@ export class Mosfet extends Device{
     Vb: Ref<Node>
     gndNode: Ref<Node>
     mouseDownInsideSelectionArea = false
-    _selected: Ref<boolean> = ref(false)
     vgsChart: Chart
     vdsChart: Chart
     vgsHtmlSlider: HtmlSlider
     vdsHtmlSlider: HtmlSlider
+    vgsSelected: Ref<boolean> = ref(false)
+    vdsSelected: Ref<boolean> = ref(false)
     static chartWidth = 200
     static chartHeight = 120
     static chartLocations = {
@@ -116,6 +117,14 @@ export class Mosfet extends Device{
         this.vgsHtmlSlider = this.vgs.toHtmlSlider()
         this.vdsHtmlSlider = this.vds.toHtmlSlider()
     }
+
+    get htmlSliders(): HtmlSlider[] {
+        return [
+            this.vgsHtmlSlider,
+            this.vdsHtmlSlider,
+        ]
+    }
+
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Mosfet {
         const newMosfet = new Mosfet(

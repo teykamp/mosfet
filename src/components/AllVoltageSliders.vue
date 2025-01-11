@@ -1,6 +1,6 @@
 script<template>
     <div style="position: absolute; top: 10px; left: 100px;">
-        <div v-for="sliderGroup in htmlSliders" :style="`border: 1px solid black; width: ${widthPx}px`" :tabindex="1">
+        <div v-for="sliderGroup in htmlSliders" :style="`border: 1px solid black; width: ${widthPx}px`" :tabindex="1" :class="{selected: sliderGroup.deviceSelected.value}">
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>
@@ -14,12 +14,18 @@ script<template>
     import { Named } from '../types';
     import VoltageSlider from './VoltageSlider.vue'
 
-    defineProps<{
+    const props = defineProps<{
         htmlSliders: Named<HtmlSlider[]>[]
         widthPx: number
     }>()
 
+    console.log("=====================")
+    console.log(props.htmlSliders)
+
 </script>
 
 <style scoped>
+    .selected {
+        background-color: lightblue;
+    }
 </style>

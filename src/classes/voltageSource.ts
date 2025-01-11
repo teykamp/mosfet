@@ -41,6 +41,13 @@ export class VoltageSource extends Device{
         }
     }
 
+    get htmlSliders(): HtmlSlider[] {
+        return [
+            this.htmlSlider,
+        ]
+    }
+
+
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): VoltageSource {
         const newVoltageSource = new VoltageSource(
             [parentTransformation].concat(this.transformations.slice(1)),

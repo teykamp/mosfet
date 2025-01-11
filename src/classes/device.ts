@@ -1,9 +1,10 @@
-import { Point, canvasId } from "../types"
+import { Named, Point, canvasId } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
 import { getLineLength } from "../functions/drawFuncs"
 import { TectonicPoint } from "./tectonicPlate"
+import { HtmlSlider } from "./ctxSlider"
 
 export class Device extends CtxArtist{
     order: number = 0
@@ -39,6 +40,19 @@ export class Device extends CtxArtist{
             ctx.fillStyle = backgroundGradient
             ctx.arc(0, 0, 200, 0, 2 * Math.PI)
             ctx.fill()
+        }
+    }
+
+    get htmlSliders(): HtmlSlider[] {
+        console.error("Getter function device.htmlSliders is a virtual function.")
+        return []
+    }
+
+    get namedHtmlSliders(): Named<HtmlSlider[]> {
+        return {
+            name: this.key,
+            deviceSelected: this.selected,
+            value: this.htmlSliders,
         }
     }
 }
