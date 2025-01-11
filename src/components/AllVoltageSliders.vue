@@ -1,6 +1,6 @@
 script<template>
     <div style="position: absolute; top: 10px; left: 100px;">
-        <div v-for="sliderGroup in htmlSliders" :style="`border: 1px solid black; width: ${widthPx}px`">
+        <div v-for="sliderGroup in htmlSliders" :style="`border: 1px solid black; width: ${widthPx}px`" :tabindex="1">
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>

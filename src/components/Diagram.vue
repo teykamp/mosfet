@@ -248,7 +248,6 @@ const mouseUp = (event: PointerEvent) => {
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
         if (mosfet.selectedFocus.value) {
-          // mosfet.selected.value = !mosfet.selected.value
           mosfet.toggleSelected()
         }
         mosfet.selectedFocus.value = true

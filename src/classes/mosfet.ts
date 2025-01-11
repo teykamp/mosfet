@@ -31,7 +31,6 @@ export class Mosfet extends Device{
     gndNode: Ref<Node>
     mouseDownInsideSelectionArea = false
     _selected: Ref<boolean> = ref(false)
-    selectedFocus: Ref<boolean> = ref(false)
     vgsChart: Chart
     vdsChart: Chart
     vgsHtmlSlider: HtmlSlider
@@ -204,10 +203,8 @@ export class Mosfet extends Device{
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
 
-        // if (this.selected.value && !this.isDuplicate) {
-            this.vgsChart.draw(ctx)
-            this.vdsChart.draw(ctx)
-        // }
+        this.vgsChart.draw(ctx)
+        this.vdsChart.draw(ctx)
 
         // draw mosfet angle sliders
         this.vgs.draw(ctx)
@@ -234,20 +231,6 @@ export class Mosfet extends Device{
     }
     get forwardCurrent(): number { // in Amps
         return this.getMosfetForwardCurrent()
-    }
-
-    setMinAndMaxValue() {
-        if (this.mosfetType == 'pmos') {
-            this.vgs.minValue = this.Vs.value.voltage - vddVoltage
-            this.vds.minValue = this.Vs.value.voltage - vddVoltage
-            this.vgsChart.minValue = this.Vs.value.voltage - vddVoltage
-            this.vdsChart.minValue = this.Vs.value.voltage - vddVoltage
-        } else {
-            this.vgs.minValue = -this.Vs.value.voltage
-            this.vds.minValue = -this.Vs.value.voltage
-            this.vgsChart.minValue = -this.Vs.value.voltage
-            this.vdsChart.minValue = -this.Vs.value.voltage
-        }
     }
 
     getMosfetEkvResult(): { I: number, saturationLevel: number, IF: number } {

@@ -9,8 +9,8 @@ export class Device extends CtxArtist{
     order: number = 0
     isDuplicate: boolean = false
     mouseDownInsideSelectionArea = false
-    selected: Ref<boolean> = ref(false)
-    selectedFocus: Ref<boolean> = ref(false)
+    selected: Ref<boolean> = ref(false) // mainly a placeholder variable to keep track of whether mosfet charts are visible. Used in determining the positions of tectonic plates. Any number of devices can be 'selected' at any given time.
+    selectedFocus: Ref<boolean> = ref(false) // the device that currently has the focus after being clicked on most recently. Only one device ever has selectedFocus as true.
     boundingBox: TectonicPoint[]
 
     constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), canvasId: canvasId = 'main') {

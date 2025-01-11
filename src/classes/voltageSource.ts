@@ -16,7 +16,6 @@ export class VoltageSource extends Device{
     current: number // in Amps
     fixedAt: 'gnd' | 'vdd'
     isDuplicate: boolean = false
-    selectedFocus: Ref<boolean> = ref(false)
     mouseDownInsideSelectionArea = false
     htmlSlider: HtmlSlider
 
