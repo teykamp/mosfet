@@ -11,7 +11,6 @@ import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
 import { Chart } from "./chart"
-import { vddVoltage } from "../constants"
 import { Device } from "./device"
 import { HtmlSlider } from "./ctxSlider"
 
@@ -212,12 +211,12 @@ export class Mosfet extends Device{
     }
 
     toggleSelected() {
-        if (this.selected.value) {
-            this.selected.value = false
+        if (this.showCharts.value) {
+            this.showCharts.value = false
             this.vgsChart.visibility = 'hidden'
             this.vdsChart.visibility = 'hidden'
         } else {
-            this.selected.value = true
+            this.showCharts.value = true
             this.vgsChart.visibility = this.vgs.visibility
             this.vdsChart.visibility = this.vds.visibility
         }

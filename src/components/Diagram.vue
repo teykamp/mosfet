@@ -247,22 +247,22 @@ const mouseUp = (event: PointerEvent) => {
     circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
-        if (mosfet.selectedFocus.value) {
+        if (mosfet.selected.value) {
           mosfet.toggleSelected()
         }
-        mosfet.selectedFocus.value = true
+        mosfet.selected.value = true
         circuit.value.setSelectedDevice(mosfet)
       } else {
-        mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
+        mosfet.selected.value = false // unselect everything when you click somewhere else
       }
       mosfet.mouseDownInsideSelectionArea = false
     })
     Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
       if (voltageSource.mouseDownInsideSelectionArea && voltageSource.checkSelectionArea({x: mouseX, y: mouseY})) {
-        voltageSource.selectedFocus.value = true
+        voltageSource.selected.value = true
         circuit.value.setSelectedDevice(voltageSource)
       } else {
-        voltageSource.selectedFocus.value = false // unselect everything when you click somewhere else
+        voltageSource.selected.value = false // unselect everything when you click somewhere else
       }
       voltageSource.mouseDownInsideSelectionArea = false
     })

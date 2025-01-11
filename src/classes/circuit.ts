@@ -261,10 +261,10 @@ export class Circuit extends CtxArtist {
             mosfet.vdsHtmlSlider.react()
         }
         Object.values(this.devices.mosfets).forEach((mosfet: Mosfet) => {
-            // Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selectedFocus) : []).forEach((mosfet: Mosfet) => {
+            // Object.values(this.devices.mosfets).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.mosfets).filter((device: Mosfet) => device.selected) : []).forEach((mosfet: Mosfet) => {
 
             activateMosfetSliders(mosfet)
-            if (mosfet.selectedFocus.value) {
+            if (mosfet.selected.value) {
                 if (this.circuitCopy) {
                     activateMosfetSliders(this.circuitCopy.devices.mosfets[mosfet.key])
                 }
@@ -283,9 +283,9 @@ export class Circuit extends CtxArtist {
         }
 
         Object.values(this.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
-        // Object.values(this.devices.voltageSources).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.voltageSources).filter((device: VoltageSource) => device.selectedFocus) : []).forEach((voltageSource: VoltageSource) => {
+        // Object.values(this.devices.voltageSources).concat(this.circuitCopy ? Object.values(this.circuitCopy.devices.voltageSources).filter((device: VoltageSource) => device.selected) : []).forEach((voltageSource: VoltageSource) => {
             activateVoltageSourceSliders(voltageSource)
-            if (voltageSource.selectedFocus.value) {
+            if (voltageSource.selected.value) {
                 if (this.circuitCopy) {
                     activateVoltageSourceSliders(this.circuitCopy.devices.voltageSources[voltageSource.key])
                 }
@@ -301,7 +301,7 @@ export class Circuit extends CtxArtist {
                     this.selectedDeviceCharts[1].visibility = 'visible'
                 }
             } else {
-                const selectedDeviceList = Object.values(this.devices.mosfets).filter((mosfet: Mosfet) => mosfet.selectedFocus)
+                const selectedDeviceList = Object.values(this.devices.mosfets).filter((mosfet: Mosfet) => mosfet.selected)
                 if (selectedDeviceList.length >= 1) {
                     const selectedDevice = selectedDeviceList[0]
                     if ((this.selectedDeviceCharts[0].visibility == 'visible') || (this.selectedDeviceCharts[0].visibility == 'locked')) {
