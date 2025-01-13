@@ -1,9 +1,10 @@
 <template>
-    <div>
+    <div style="overflow: auto">
         <div v-for="sliderGroup in htmlSliders"
             style="border: 1px solid black;"
             :tabindex="1" :class="{selected: sliderGroup.deviceSelected.value}"
-            @focus="setDeviceSelected(sliderGroup, true)"
+            @focus="setDeviceSelected(sliderGroup)"
+            @blur="console.log('device html losing focus')"
             :ref="(element) => {
                 if (element && sliderGroup.deviceSelected.value) { // element may be null on the first iteration because it is not mounted yet.
 
@@ -24,7 +25,7 @@
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>
-            <VoltageSlider v-for="slider in sliderGroup.value" :slider="slider"></VoltageSlider>
+            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider"></VoltageSlider>
         </div>
     </div>
 </template>
@@ -38,14 +39,12 @@
         htmlSliders: Named<HtmlSlider[]>[]
     }>()
 
-    const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>, focused: boolean) => {
+    const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>) => {
         console.log("setting device selected")
-        if (focused) {
-            props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
-                otherSliderGroup.deviceSelected.value = false
-            })
-        }
-        sliderGroup.deviceSelected.value = focused
+        props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
+            otherSliderGroup.deviceSelected.value = false
+        })
+        sliderGroup.deviceSelected.value = true
     }
 </script>
 

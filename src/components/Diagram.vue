@@ -62,7 +62,7 @@
           class="chart"
         ></canvas>
 
-        <div v-if="showGraphBar" :style="{maxWidth: computedCanvasLayout.graphBarChartCanvas.width}">
+        <div v-if="showGraphBar" :style="{maxWidth: computedCanvasLayout.graphBarChartCanvas.width, maxHeight: computedCanvasLayout.graphBarChartCanvas.height}">
           <AllVoltageSliders :html-sliders="circuit.htmlSliders"></AllVoltageSliders>
         </div>
 
@@ -185,8 +185,6 @@ const getMousePos = (event: PointerEvent) => {
 }
 
 const checkDrag = (event: PointerEvent) => {
-  console.log("pointer down on main canvas")
-
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {

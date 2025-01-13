@@ -1,7 +1,7 @@
 <template>
     <div v-if="visibility == 'visible' || visibility == 'locked'" style="user-select: none; display: flex; align-items: end;" ref="outerDiv">
         <div style="display: inline-block; text-align: right; width: 4rem; padding-right: 10px">
-            {{ props.slider.name }}:
+            {{ props.htmlSlider.name }}:
         </div>
         <div style="position: relative; display: inline-block;">
 
@@ -32,7 +32,7 @@
             >
         </div>
         <div style="display: inline-block; text-align: right; width: 2rem; padding-left: 10px">
-            {{ toSiPrefix(props.slider.value, "V", 3) }}
+            {{ toSiPrefix(props.htmlSlider.value, "V", 3) }}
         </div>
 
     </div>
@@ -52,7 +52,7 @@
     }
 
     const props = defineProps<{
-        slider: HtmlSlider,
+        htmlSlider: HtmlSlider,
     }>()
 
 
@@ -70,11 +70,11 @@
         sliderWidthPx.value = entry.contentRect.width
     })
 
-    const minValue: Ref<number> = ref(props.slider.temporaryMinValue)
-    const maxValue: Ref<number> = ref(props.slider.temporaryMaxValue)
-    const value: Ref<number> = ref(props.slider.value)
-    const visibility: Ref<Visibility> = ref(props.slider.visibility)
-    const preciseDragging: Ref<boolean> = ref(props.slider.preciseDragging)
+    const minValue: Ref<number> = ref(props.htmlSlider.temporaryMinValue)
+    const maxValue: Ref<number> = ref(props.htmlSlider.temporaryMaxValue)
+    const value: Ref<number> = ref(props.htmlSlider.value)
+    const visibility: Ref<Visibility> = ref(props.htmlSlider.visibility)
+    const preciseDragging: Ref<boolean> = ref(props.htmlSlider.preciseDragging)
     const tickWidthPx: number = 5
 
     const tickDivs: ComputedRef<TickDiv[]> = computed(() => {
@@ -146,7 +146,7 @@
         return divs
     })
 
-    watch([() => props.slider.value, () => props.slider.temporaryMinValue, () => props.slider.temporaryMaxValue, () => props.slider.visibility, () => props.slider.preciseDragging, () => props.slider.updated.value], ([newValue, newMinValue, newMaxValue, newVisibility, newPreciseDragging, _]) => {
+    watch([() => props.htmlSlider.value, () => props.htmlSlider.temporaryMinValue, () => props.htmlSlider.temporaryMaxValue, () => props.htmlSlider.visibility, () => props.htmlSlider.preciseDragging, () => props.htmlSlider.updated.value], ([newValue, newMinValue, newMaxValue, newVisibility, newPreciseDragging, _]) => {
         value.value = newValue
         minValue.value = newMinValue
         maxValue.value = newMaxValue
@@ -154,21 +154,21 @@
         preciseDragging.value = newPreciseDragging
     })
 
-    watch([() => props.slider.value, () => props.slider.fromNode.value.voltage, () => props.slider.toNode.value.voltage], ([sliderValue, _, __]) => {
+    watch([() => props.htmlSlider.value, () => props.htmlSlider.fromNode.value.voltage, () => props.htmlSlider.toNode.value.voltage], ([sliderValue, _, __]) => {
         value.value = sliderValue
     }, { deep: true })
 
     watch(value, (newValue: number) => {
-        props.slider.value = Number(newValue) // I don't know why, but newValue sometimes get passed as a string
-        if (isNaN(props.slider.value)) {
+        props.htmlSlider.value = Number(newValue) // I don't know why, but newValue sometimes get passed as a string
+        if (isNaN(props.htmlSlider.value)) {
             console.error("Html slider received non-numeric value")
         }
-        props.slider.updateNodeVoltagesBasedOnValue()
+        props.htmlSlider.updateNodeVoltagesBasedOnValue()
     })
 
-    watch(props.slider.selected, () => {
-        if (props.slider.selectionChanged.value) {
-            props.slider.selectionChanged.value = false
+    watch(props.htmlSlider.selected, () => {
+        if (props.htmlSlider.selected.value && props.htmlSlider.selectionChanged.value) {
+            props.htmlSlider.selectionChanged.value = false
             if (slider.value) {
                 console.log("focusing on slider")
                 slider.value.focus()
@@ -177,22 +177,22 @@
     })
 
     const onPointerDown = (event: PointerEvent) => {
-        props.slider.dragging = true
-        props.slider.selected.value = true
-        props.slider.checkDrag({x: 0, y: 0}, eventInitiatesPreciseDragging(event))
-        props.slider.value = value.value // even if value.value didn't change
+        props.htmlSlider.dragging = true
+        props.htmlSlider.selected.value = true
+        props.htmlSlider.checkDrag({x: 0, y: 0}, eventInitiatesPreciseDragging(event))
+        props.htmlSlider.value = value.value // even if value.value didn't change
     }
 
     const onPointerMove = (event: PointerEvent) => {
-        props.slider.dragSlider(event)
+        props.htmlSlider.dragSlider(event)
     }
 
     const onPointerUp = () => {
-        props.slider.releaseSlider() // sets props.slider.dragging to false
+        props.htmlSlider.releaseSlider() // sets props.htmlSlider.dragging to false
     }
 
     onMounted(() => {
-        props.slider.react()
+        props.htmlSlider.react()
     })
 
 </script>
