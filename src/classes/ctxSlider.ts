@@ -20,7 +20,7 @@ export class CtxSlider extends CtxArtist{
     drivenNode: 'fromNode' | 'toNode'
     canvasId: canvasId
     displayText: string = "sliderName"
-    selected: Ref<boolean>
+    selected: Ref<boolean> // TODO: selected and dragging essentially track the same thing; remove selected and make draggign a ref.
     selectionChanged: Ref<boolean> = ref(true)
 
     preciseDragging: boolean = false
@@ -116,6 +116,7 @@ export class CtxSlider extends CtxArtist{
         this.temporaryMaxValue = this.maxValue
         this.preciseDragging = false
         this.dragging = false
+        this.selected.value = false
         if (this.drivenNode == 'toNode') {
             this.toNode.value.fixed = false
         } else {
@@ -160,6 +161,7 @@ export class CtxSlider extends CtxArtist{
         const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
         if (this.mouseDownIntiatesDrag(transformedMousePos)) {
             this.dragging = true
+            this.selected.value = true
         }
 
         if (this.dragging) {

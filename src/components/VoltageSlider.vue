@@ -28,6 +28,7 @@ script<template>
                 :disabled="visibility == 'locked'"
                 :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}"
                 :style="`position: relative; width: ${sliderWidthPx + 6}px`"
+                ref="slider"
             >
         </div>
         <div style="display: inline-block; text-align: right; width: 4rem; padding-left: 10px">
@@ -54,12 +55,13 @@ script<template>
         sliderWidthPx: number,
     }>()
 
+    const slider = ref<HTMLInputElement | null>(null) // the template ref
+
     const minValue: Ref<number> = ref(props.slider.temporaryMinValue)
     const maxValue: Ref<number> = ref(props.slider.temporaryMaxValue)
     const value: Ref<number> = ref(props.slider.value)
     const visibility: Ref<Visibility> = ref(props.slider.visibility)
     const preciseDragging: Ref<boolean> = ref(props.slider.preciseDragging)
-    // const preciseDragging: Ref<boolean> = ref(true)
     const tickWidthPx: number = 5
 
     const tickDivs: ComputedRef<TickDiv[]> = computed(() => {
@@ -151,8 +153,16 @@ script<template>
         props.slider.updateNodeVoltagesBasedOnValue()
     })
 
+    watch(props.slider.selectionChanged, () => {
+        console.log("focusing on slider")
+        if (slider.value) {
+            slider.value.focus()
+        }
+    })
+
     const onPointerDown = (event: PointerEvent) => {
         props.slider.dragging = true
+        props.slider.selected.value = true
         props.slider.checkDrag({x: 0, y: 0}, eventInitiatesPreciseDragging(event))
         props.slider.value = value.value // even if value.value didn't change
     }
