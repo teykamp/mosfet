@@ -52,11 +52,11 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlateOutput: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        let nChartsSelected = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
-        if (nChartsSelected == 0) {
+        let nChartsShown = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
+        if (nChartsShown == 0) {
             return {x: 0, y: 0}
         }
-        if (nChartsSelected == 1) {
+        if (nChartsShown == 1) {
             return {x: 5, y: 0}
         }
         if ((circuit.devices.mosfets["M5"].showCharts.value && circuit.devices.mosfets["M6"].showCharts.value) || (circuit.devices.mosfets["Mb"].showCharts.value && circuit.devices.mosfets["M7"].showCharts.value)) {
@@ -66,11 +66,11 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlatePmosOutput: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
-        let nChartsSelected = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
-        if (nChartsSelected == 0) {
+        let nChartsShown = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
+        if (nChartsShown == 0) {
             return {x: 0, y: 0}
         }
-        if (nChartsSelected == 1) {
+        if (nChartsShown == 1) {
             return {x: 5, y: 0}
         }
         if ((circuit.devices.mosfets["M5"].showCharts.value && circuit.devices.mosfets["M6"].showCharts.value) || (circuit.devices.mosfets["Mb"].showCharts.value && circuit.devices.mosfets["M7"].showCharts.value)) {

@@ -85,8 +85,6 @@ import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
 import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
-import { VoltageSource } from '../classes/voltageSource'
-import { Mosfet } from '../classes/mosfet'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
 import { Circuit } from '../classes/circuit'
@@ -94,6 +92,7 @@ import { Node as NodeClass } from '../classes/node'
 import { toSiPrefix } from '../functions/toSiPrefix'
 import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging'
 import AllVoltageSliders from './AllVoltageSliders.vue'
+import { Device } from '../classes/device'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -204,6 +203,8 @@ const getMousePos = (event: PointerEvent) => {
 }
 
 const checkDrag = (event: PointerEvent) => {
+  console.log("pointer down on main canvas")
+
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
@@ -212,14 +213,9 @@ const checkDrag = (event: PointerEvent) => {
   })
 
   if (!circuit.value.anySlidersDragging) {
-    Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
-      if (mosfet.canvasId == (event.target as HTMLElement).className) {
-        mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
-      }
-    })
-    Object.values(circuit.value.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
-      if (voltageSource.canvasId == (event.target as HTMLElement).className) {
-        voltageSource.mouseDownInsideSelectionArea = voltageSource.checkSelectionArea({x: mouseX, y: mouseY})
+    circuit.value.allDevices.forEach((device: Device) => {
+      if (device.canvasId == (event.target as HTMLElement).className) {
+        device.mouseDownInsideSelectionArea = device.checkSelectionArea({x: mouseX, y: mouseY})
       }
     })
   }
@@ -276,6 +272,14 @@ const mouseUp = (event: PointerEvent) => {
   document.removeEventListener('pointerup', mouseUp)
 }
 
+const checkSelectedDevice = () => {
+  circuit.value.allDevices.forEach((device: Device) => {
+    if (device.selected.value) {
+      circuit.value.setSelectedDevice(device)
+    }
+  })
+}
+
 const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | CanvasRenderingContext2D>, myCanvasSize: Ref<{width: number, height: number}>): boolean => {
   if (!myCanvas.value) return false
   myCtx.value = myCanvas.value.getContext('2d')
@@ -297,6 +301,8 @@ const draw = () => {
   if (!setUpCtx(canvas, ctx, canvasSize)) return
   if (!setUpCtx(graphBarMosfetCanvas, graphBarMosfetCtx, graphBarMosfetCanvasSize)) return
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
+
+  checkSelectedDevice()
 
   const json = circuit.value.fixedNodeVoltagesToJson()
   worker.postMessage(json)

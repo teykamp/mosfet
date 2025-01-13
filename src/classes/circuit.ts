@@ -15,6 +15,7 @@ import { CtxSlider, HtmlSlider } from "./ctxSlider"
 import { canvasDpi, drawGrid, moveNodesInResponseToCircuitState } from "../globalState"
 import { Chart } from "./chart"
 import { DefinedCircuits } from "../circuits/circuits"
+import { Device } from "./device"
 
 export class Circuit extends CtxArtist {
     name: DefinedCircuits
@@ -106,6 +107,12 @@ export class Circuit extends CtxArtist {
         return flag
     }
 
+    get allDevices(): Device[] {
+        const mosfets: Device[] = Object.values(this.devices.mosfets)
+        const voltageSources: Device[] = Object.values(this.devices.voltageSources)
+        return mosfets.concat(voltageSources)
+    }
+
     copy(): CircuitCopy | null {
         const parentTransformation = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
         const newCircuit = new CircuitCopy(
@@ -161,8 +168,8 @@ export class Circuit extends CtxArtist {
         })
     }
 
-    setSelectedDevice(device: Mosfet | VoltageSource) {
-        if (!this.circuitCopy) {
+    setSelectedDevice(device: Device) {
+        if (!this.circuitCopy) { // only a circuit object has a circuitCopy; this line will return if called on a circuitCopy object
             return
         }
         this.circuitCopy.boundingBox = device.boundingBox
@@ -175,8 +182,6 @@ export class Circuit extends CtxArtist {
             mosfet.vgsChart.visibility = 'hidden' // do not draw the charts
             mosfet.vdsChart.visibility = 'hidden' // do not draw the charts
 
-            // device.vgsChart.visibility = device.vgs.visibility
-            // device.vdsChart.visibility = device.vds.visibility
             this.selectedDeviceCharts = [device.vgsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart'), device.vdsChart.copy(this.selectedDeviceChartsTransformationMatrix, 'chart')]
             this.selectedDeviceCharts[0].visibility = device.vgs.visibility
             this.selectedDeviceCharts[1].visibility = device.vds.visibility
@@ -184,6 +189,9 @@ export class Circuit extends CtxArtist {
         } else if (device instanceof VoltageSource) {
             const voltageSource = this.circuitCopy.devices.voltageSources[device.key]
             voltageSource.voltageDrop.visibility = device.voltageDrop.visibility
+            this.selectedDeviceCharts = []
+        } else {
+            this.selectedDeviceCharts = []
         }
     }
 
