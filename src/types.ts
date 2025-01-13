@@ -6,6 +6,7 @@ export type PublicInterface<T> = Pick<T, keyof T>;
 
 export type Named<T> = {
   name: string,
+  selectionChanged: Ref<boolean>,
   deviceSelected: Ref<boolean>,
   value: T,
 }

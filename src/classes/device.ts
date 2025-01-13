@@ -1,7 +1,7 @@
 import { Named, Point, canvasId } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
-import { ref, Ref } from 'vue'
+import { ref, Ref, watch } from 'vue'
 import { getLineLength } from "../functions/drawFuncs"
 import { TectonicPoint } from "./tectonicPlate"
 import { HtmlSlider } from "./ctxSlider"
@@ -12,6 +12,7 @@ export class Device extends CtxArtist{
     mouseDownInsideSelectionArea = false
     showCharts: Ref<boolean> = ref(false) // mainly a placeholder variable to keep track of whether mosfet charts are visible. Used in determining the positions of tectonic plates. Any number of devices can be 'showCharts' at any given time.
     selected: Ref<boolean> = ref(false) // the device that currently has the focus after being clicked on most recently. Only one device ever has selected as true.
+    selectionChanged: Ref<boolean> = ref(false)
     boundingBox: TectonicPoint[]
 
     constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), canvasId: canvasId = 'main') {
@@ -22,6 +23,7 @@ export class Device extends CtxArtist{
             new TectonicPoint(this.transformations, {x: 0, y: -120}),
             new TectonicPoint(this.transformations, {x: 0, y: 120}),
         ]
+        watch(this.selected, () => this.selectionChanged.value = true)
     }
 
     checkSelectionArea(mousePosition: Point): boolean {
@@ -51,6 +53,7 @@ export class Device extends CtxArtist{
     get namedHtmlSliders(): Named<HtmlSlider[]> {
         return {
             name: this.key,
+            selectionChanged: this.selectionChanged,
             deviceSelected: this.selected,
             value: this.htmlSliders,
         }
