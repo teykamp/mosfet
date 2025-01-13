@@ -153,10 +153,13 @@ script<template>
         props.slider.updateNodeVoltagesBasedOnValue()
     })
 
-    watch(props.slider.selectionChanged, () => {
-        console.log("focusing on slider")
-        if (slider.value) {
-            slider.value.focus()
+    watch(props.slider.selected, () => {
+        if (props.slider.selectionChanged.value) {
+            props.slider.selectionChanged.value = false
+            if (slider.value) {
+                console.log("focusing on slider")
+                slider.value.focus()
+            }
         }
     })
 
