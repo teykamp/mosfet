@@ -139,14 +139,12 @@ export class CtxSlider extends CtxArtist{
                 this.temporaryMinValue = this.minValue
                 this.temporaryMaxValue = this.minValue + preciseSliderTickRange
                 this.valueRateOfChange = 0
-                console.log("min reached")
             }
             else {
                 const valueChangeMagnitude = this.valueRateOfChange * (timeDifference / 1000) * 70
                 this.temporaryMinValue += valueChangeMagnitude
                 this.temporaryMaxValue += valueChangeMagnitude
                 this.value += valueChangeMagnitude
-                console.log("adjusting by ", this.valueRateOfChange)
             }
             console.log(this.value)
             this.react()

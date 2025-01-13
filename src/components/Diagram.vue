@@ -1,8 +1,4 @@
 <template>
-  <div style="position: absolute; top: 10px; left: 100px;">
-    <AllVoltageSliders :html-sliders="circuit.htmlSliders" :width-px="300"></AllVoltageSliders>
-  </div>
-
   <div style="position: absolute; top: 10px; left: 500px; display: none">
     Node Voltages:<br>
     {{ JSON.stringify(Object.fromEntries(Object.entries(circuit.nodes).map((value: [string, Ref<NodeClass>]) => [value[0], toSiPrefix(value[1].value.voltage, "V", 3)])), null, 2) }}
@@ -65,12 +61,11 @@
           :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="chart"
         ></canvas>
-        <canvas
-          ref="graphBarMosfetCanvas"
-          @pointerdown="checkDrag"
-          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
-          class="mosfet"
-        ></canvas>
+
+        <div v-if="showGraphBar" :style="{maxWidth: computedCanvasLayout.graphBarChartCanvas.width}">
+          <AllVoltageSliders :html-sliders="circuit.htmlSliders"></AllVoltageSliders>
+        </div>
+
       </div>
     </div>
 
@@ -83,7 +78,7 @@ import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
@@ -122,28 +117,15 @@ const computedCanvasLayout = computed(() => {
     height: (screenHeight.value - padding) / 2 - borderWidth
   }
 
-  const graphBarMosfetCanvas = xs.value ?
-  {
-    width: (screenWidth.value - padding) / 2 - borderWidth,
-    height: bottomGraphHeight
-  } :
-  {
-    width: sideGraphWidth,
-    height: (screenHeight.value - padding) / 2 - borderWidth
-  }
-
   return {
     mainCanvas,
     graphBarChartCanvas,
-    graphBarMosfetCanvas,
     borderWidth
   }
 })
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
-const graphBarMosfetCanvas = ref<null | HTMLCanvasElement>(null)
-const graphBarMosfetCtx = ref<null | CanvasRenderingContext2D>(null)
 const graphBarChartCanvas = ref<null | HTMLCanvasElement>(null)
 const graphBarChartCtx = ref<null | CanvasRenderingContext2D>(null)
 
@@ -299,7 +281,6 @@ const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | Can
 
 const draw = () => {
   if (!setUpCtx(canvas, ctx, canvasSize)) return
-  if (!setUpCtx(graphBarMosfetCanvas, graphBarMosfetCtx, graphBarMosfetCanvasSize)) return
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
 
   checkSelectedDevice()
@@ -313,7 +294,6 @@ const draw = () => {
   // draw the graph bar canvases if active
   if (circuit.value.anyDevicesSelected && showSideBar) {
     CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale / schematicScale
-    circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
     circuit.value.drawSelectedDeviceCharts(graphBarChartCtx.value as CanvasRenderingContext2D)
   }
 }
@@ -351,9 +331,6 @@ onMounted(() => {
     draw()
     requestAnimationFrame(animate)
 
-  }
-  if (graphBarMosfetCanvas.value) {
-    graphBarMosfetCtx.value = graphBarMosfetCanvas.value.getContext('2d')
   }
   if (graphBarChartCanvas.value) {
     graphBarChartCtx.value = graphBarChartCanvas.value.getContext('2d')

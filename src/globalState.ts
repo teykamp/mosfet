@@ -10,11 +10,6 @@ export const canvasSize = ref({
     height: 1
 })
 
-export const graphBarMosfetCanvasSize = ref({
-    width: 1,
-    height: 1
-})
-
 export const graphBarChartCanvasSize = ref({
     width: 1,
     height: 1

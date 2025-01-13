@@ -1,7 +1,7 @@
-script<template>
-    <div style="position: absolute; top: 10px; left: 100px;">
+<template>
+    <div>
         <div v-for="sliderGroup in htmlSliders"
-            :style="`border: 1px solid black; width: ${widthPx}px`"
+            style="border: 1px solid black;"
             :tabindex="1" :class="{selected: sliderGroup.deviceSelected.value}"
             @focus="setDeviceSelected(sliderGroup, true)"
             :ref="(element) => {
@@ -24,7 +24,7 @@ script<template>
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>
-            <VoltageSlider v-for="slider in sliderGroup.value" :slider="slider" :slider-width-px="widthPx - 150"></VoltageSlider>
+            <VoltageSlider v-for="slider in sliderGroup.value" :slider="slider"></VoltageSlider>
         </div>
     </div>
 </template>
@@ -36,7 +36,6 @@ script<template>
 
     const props = defineProps<{
         htmlSliders: Named<HtmlSlider[]>[]
-        widthPx: number
     }>()
 
     const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>, focused: boolean) => {

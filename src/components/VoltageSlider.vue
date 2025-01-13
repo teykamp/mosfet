@@ -1,5 +1,5 @@
-script<template>
-    <div v-if="visibility == 'visible' || visibility == 'locked'" style="user-select: none; display: flex; align-items: end;">
+<template>
+    <div v-if="visibility == 'visible' || visibility == 'locked'" style="user-select: none; display: flex; align-items: end;" ref="outerDiv">
         <div style="display: inline-block; text-align: right; width: 4rem; padding-right: 10px">
             {{ props.slider.name }}:
         </div>
@@ -27,11 +27,11 @@ script<template>
                 @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove"
                 :disabled="visibility == 'locked'"
                 :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}"
-                :style="`position: relative; width: ${sliderWidthPx + 6}px`"
+                :style="`position: relative; width: calc(${outerDivWidthPx}px - 4rem - 2rem - 10px - 10px - 1rem)`"
                 ref="slider"
             >
         </div>
-        <div style="display: inline-block; text-align: right; width: 4rem; padding-left: 10px">
+        <div style="display: inline-block; text-align: right; width: 2rem; padding-left: 10px">
             {{ toSiPrefix(props.slider.value, "V", 3) }}
         </div>
 
@@ -44,6 +44,7 @@ script<template>
     import { toSiPrefix } from '../functions/toSiPrefix';
     import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging';
     import { Visibility } from '../types';
+    import { useResizeObserver } from '@vueuse/core'
 
     type TickDiv = {
         type: 'spacer' | 'major' | 'minor',
@@ -52,10 +53,22 @@ script<template>
 
     const props = defineProps<{
         slider: HtmlSlider,
-        sliderWidthPx: number,
     }>()
 
+
+    const outerDiv = ref<HTMLInputElement | null>(null) // the template ref
+    const outerDivWidthPx: Ref<number> = ref(200)
+    useResizeObserver(outerDiv, (entries) => {
+        const entry = entries[0]
+        outerDivWidthPx.value = entry.contentRect.width
+    })
+
     const slider = ref<HTMLInputElement | null>(null) // the template ref
+    const sliderWidthPx: Ref<number> = ref(60)
+    useResizeObserver(slider, (entries) => {
+        const entry = entries[0]
+        sliderWidthPx.value = entry.contentRect.width
+    })
 
     const minValue: Ref<number> = ref(props.slider.temporaryMinValue)
     const maxValue: Ref<number> = ref(props.slider.temporaryMaxValue)
@@ -70,9 +83,9 @@ script<template>
         let tickValue = Math.ceil(minValue.value * 2) / 2 // smallest multiple of 0.5 above minValue
         let nextTickIsMajor = (tickValue * 2) % 2 == 0
 
-        const standardSpacerWidth = props.sliderWidthPx * 0.5 / (maxValue.value - minValue.value) - tickWidthPx / 2 * 2
+        const standardSpacerWidth = sliderWidthPx.value * 0.5 / (maxValue.value - minValue.value) - tickWidthPx / 2 * 2
 
-        const firstSpacerWidthPx = props.sliderWidthPx * (tickValue - minValue.value) / (maxValue.value - minValue.value) - tickWidthPx / 2
+        const firstSpacerWidthPx = sliderWidthPx.value * (tickValue - minValue.value) / (maxValue.value - minValue.value) - tickWidthPx / 2
 
         if (firstSpacerWidthPx >= 0) {
             divs.push({
@@ -91,7 +104,7 @@ script<template>
 
         let cumulativeDivWidthPx = divs[0].widthPx
 
-        while (cumulativeDivWidthPx < props.sliderWidthPx) {
+        while (cumulativeDivWidthPx < sliderWidthPx.value) {
             if (nextTickDivIsSpacer) {
                     divs.push({
                         type: 'spacer',
@@ -116,7 +129,7 @@ script<template>
             nextTickIsMajor = !nextTickIsMajor
         }
 
-        const lastSpacerWidthPx = props.sliderWidthPx - cumulativeDivWidthPx
+        const lastSpacerWidthPx = sliderWidthPx.value - cumulativeDivWidthPx
 
         if (nextTickDivIsSpacer) {
                 divs.push({
@@ -178,7 +191,9 @@ script<template>
         props.slider.releaseSlider() // sets props.slider.dragging to false
     }
 
-    onMounted(() => props.slider.react())
+    onMounted(() => {
+        props.slider.react()
+    })
 
 </script>
 
