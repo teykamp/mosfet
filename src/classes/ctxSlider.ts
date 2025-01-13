@@ -3,7 +3,7 @@ import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { between } from "../functions/extraMath"
 import { Node } from "./node"
-import { Ref } from "vue"
+import { ref, Ref, watch } from "vue"
 import { preciseSliderTickRange } from "../constants"
 // import { HtmlSlider } from "./htmlSlider"
 
@@ -20,6 +20,8 @@ export class CtxSlider extends CtxArtist{
     drivenNode: 'fromNode' | 'toNode'
     canvasId: canvasId
     displayText: string = "sliderName"
+    selected: Ref<boolean>
+    selectionChanged: Ref<boolean> = ref(true)
 
     preciseDragging: boolean = false
     temporaryMinValue: number
@@ -27,7 +29,7 @@ export class CtxSlider extends CtxArtist{
     previousValue: number
     valueRateOfChange: number = 0
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, originalVisibility: Visibility = 'visible', visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, selected: Ref<boolean>, originalVisibility: Visibility = 'visible', visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
         super(parentTransformations, localTransformationMatrix)
 
         this.originalVisibility = originalVisibility
@@ -39,9 +41,12 @@ export class CtxSlider extends CtxArtist{
         this.value = minValue
         this.temporaryMinValue = minValue
         this.temporaryMaxValue = maxValue
+        this.selected = selected
         this.previousValue = minValue
         this.drivenNode = drivenNode
         this.canvasId = canvasId
+
+        watch(this.selected, () => this.selectionChanged.value = true)
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -175,7 +180,7 @@ export class CtxSlider extends CtxArtist{
     }
 
     toHtmlSlider(): HtmlSlider {
-        const newHtmlSlider = new HtmlSlider(this.fromNode, this.toNode, this.drivenNode, this.minValue, this.maxValue, this.displayText, this.visibility)
+        const newHtmlSlider = new HtmlSlider(this.fromNode, this.toNode, this.drivenNode, this.minValue, this.maxValue, this.displayText, this.selected, this.visibility)
         return newHtmlSlider
     }
 }
@@ -183,8 +188,8 @@ export class CtxSlider extends CtxArtist{
 export class HtmlSlider extends CtxSlider{
     name: string
 
-    constructor(fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, name: string, visibility: Visibility) {
-        super([], new TransformationMatrix(), fromNode, toNode, drivenNode, minValue, maxValue, visibility, visibility)
+    constructor(fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, name: string, selected: Ref<boolean>, visibility: Visibility) {
+        super([], new TransformationMatrix(), fromNode, toNode, drivenNode, minValue, maxValue, selected, visibility, visibility)
         this.name = name
     }
 

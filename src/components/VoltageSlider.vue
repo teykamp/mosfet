@@ -22,7 +22,13 @@ script<template>
             </div>
 
             <!-- The slider itself -->
-            <input type="range" step="0.01" :min="minValue" :max="maxValue" v-model="value" @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" :disabled="visibility == 'locked'" :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}" :style="`position: relative; width: ${sliderWidthPx + 6}px`">
+            <input type="range" step="0.01"
+                :min="minValue" :max="maxValue" v-model="value"
+                @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove"
+                :disabled="visibility == 'locked'"
+                :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}"
+                :style="`position: relative; width: ${sliderWidthPx + 6}px`"
+            >
         </div>
         <div style="display: inline-block; text-align: right; width: 4rem; padding-left: 10px">
             {{ toSiPrefix(props.slider.value, "V", 3) }}

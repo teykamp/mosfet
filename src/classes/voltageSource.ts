@@ -18,20 +18,22 @@ export class VoltageSource extends Device{
     isDuplicate: boolean = false
     mouseDownInsideSelectionArea = false
     htmlSlider: HtmlSlider
+    sliderSelected: Ref<boolean>
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false, canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], origin: Point, vminus: Ref<Node>, vplus: Ref<Node>, name: string, fixedAt: 'gnd' | 'vdd', mirror: boolean = false, selected: Ref<boolean>, canvasId: canvasId = 'main') {
         super(parentTransformations, (new TransformationMatrix()).translate(origin).mirror(mirror, false).scale(1/30), canvasId)
         this.vplus = vplus
         this.vminus = vminus
         this.fixedAt = fixedAt
         if (fixedAt == 'gnd') {
-            this.voltageDrop = new AngleSlider(this.transformations, vminus, vplus, 'toNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, 'visible', canvasId)
+            this.voltageDrop = new AngleSlider(this.transformations, vminus, vplus, 'toNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, this.selected, 'visible', canvasId)
         } else {
-            this.voltageDrop = new AngleSlider(this.transformations.concat([ref((new TransformationMatrix().mirror(false, true))) as Ref<TransformationMatrix>]), vminus, vplus, 'fromNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, 'visible', canvasId)
+            this.voltageDrop = new AngleSlider(this.transformations.concat([ref((new TransformationMatrix().mirror(false, true))) as Ref<TransformationMatrix>]), vminus, vplus, 'fromNode', 0, 0, 50, toRadians(40), toRadians(80), true, 0, 5, name, this.selected, 'visible', canvasId)
         }
         this.schematicEffects = {}
         this.current = 0 // Amps
         this.htmlSlider = this.voltageDrop.toHtmlSlider()
+        this.sliderSelected = selected
 
         this.anchorPoints = {
             "Vplus": {x: 0, y: -30},
@@ -57,6 +59,7 @@ export class VoltageSource extends Device{
             this.voltageDrop.displayText,
             this.fixedAt,
             (this.fixedAt == 'gnd') == (this.transformationMatrix.isMirrored), // has not been checked; may be wrong logic
+            this.selected,
             canvasId
         )
         newVoltageSource.transformations[newVoltageSource.transformations.length - 1].value = new TransformationMatrix()
