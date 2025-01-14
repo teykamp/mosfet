@@ -1,5 +1,5 @@
 <template>
-    <div style="overflow: auto">
+    <div>
         <div v-for="sliderGroup in htmlSliders"
             style="border: 1px solid black;"
             :tabindex="1" :class="{selected: sliderGroup.deviceSelected.value}"
@@ -16,7 +16,7 @@
                         // A little bit of type checking to see if element.focus() exists and is a function
                         // This is mainly needed to make VS Code happy
                         if ('focus' in element) {
-                            (element.focus as Function)()
+                            (element.focus as Function)() // ({preventScroll: true, focusVisible: false})
                         }
                         // or simply element.focus() without the type checking
                     }
@@ -36,7 +36,7 @@
     import VoltageSlider from './VoltageSlider.vue'
 
     const props = defineProps<{
-        htmlSliders: Named<HtmlSlider[]>[]
+        htmlSliders: Named<HtmlSlider[]>[],
     }>()
 
     const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>) => {

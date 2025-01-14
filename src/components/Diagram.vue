@@ -63,7 +63,9 @@
         ></canvas>
 
         <div v-if="showGraphBar" :style="{maxWidth: computedCanvasLayout.graphBarChartCanvas.width, maxHeight: computedCanvasLayout.graphBarChartCanvas.height}">
-          <AllVoltageSliders :html-sliders="circuit.htmlSliders"></AllVoltageSliders>
+          <div :style="`border-color: blue; border-style: solid; border-width: ${computedCanvasLayout.borderWidth}px; overflow-y: auto; overflow-x: hidden; height: ${computedCanvasLayout.graphBarChartCanvas.height}px;`">
+            <AllVoltageSliders :html-sliders="circuit.htmlSliders"></AllVoltageSliders>
+          </div>
         </div>
 
       </div>

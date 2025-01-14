@@ -25,13 +25,15 @@
             <input type="range" step="0.01"
                 :min="minValue" :max="maxValue" v-model="value"
                 @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove"
+                @focus="setDeviceSelected(htmlSlider)"
+                @blur="console.log('slider html losing focus')"
                 :disabled="visibility == 'locked'"
                 :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}"
-                :style="`position: relative; width: calc(${outerDivWidthPx}px - 4rem - 2rem - 10px - 10px - 1rem)`"
-                ref="slider"
+                :style="`position: relative; width: calc(${outerDivWidthPx}px - 4rem - 3rem - 10px - 10px - 1rem)`"
+                ref="sliderElement"
             >
         </div>
-        <div style="display: inline-block; text-align: right; width: 2rem; padding-left: 10px">
+        <div style="display: inline-block; text-align: right; width: 3rem; padding-left: 10px">
             {{ toSiPrefix(props.htmlSlider.value, "V", 3) }}
         </div>
 
@@ -55,7 +57,6 @@
         htmlSlider: HtmlSlider,
     }>()
 
-
     const outerDiv = ref<HTMLInputElement | null>(null) // the template ref
     const outerDivWidthPx: Ref<number> = ref(200)
     useResizeObserver(outerDiv, (entries) => {
@@ -63,9 +64,9 @@
         outerDivWidthPx.value = entry.contentRect.width
     })
 
-    const slider = ref<HTMLInputElement | null>(null) // the template ref
+    const sliderElement = ref<HTMLInputElement | null>(null) // the template ref
     const sliderWidthPx: Ref<number> = ref(60)
-    useResizeObserver(slider, (entries) => {
+    useResizeObserver(sliderElement, (entries) => {
         const entry = entries[0]
         sliderWidthPx.value = entry.contentRect.width
     })
@@ -169,12 +170,22 @@
     watch(props.htmlSlider.selected, () => {
         if (props.htmlSlider.selected.value && props.htmlSlider.selectionChanged.value) {
             props.htmlSlider.selectionChanged.value = false
-            if (slider.value) {
+            if (sliderElement.value) {
                 console.log("focusing on slider")
-                slider.value.focus()
+                console.log(sliderElement.value)
+                sliderElement.value.focus({preventScroll: true})
             }
         }
     })
+
+    const setDeviceSelected = (htmlSlider: HtmlSlider) => {
+        console.log("setting slider selected")
+        // props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
+        //     otherSliderGroup.deviceSelected.value = false
+        // })
+        htmlSlider.selected.value = true
+    }
+
 
     const onPointerDown = (event: PointerEvent) => {
         props.htmlSlider.dragging = true
