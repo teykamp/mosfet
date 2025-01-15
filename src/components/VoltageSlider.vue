@@ -22,9 +22,10 @@
             </div>
 
             <!-- The slider itself -->
-            <input type="range" step="0.01"
+            <input type="range" step="0.05"
                 :min="minValue" :max="maxValue" v-model="value"
-                @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove"
+                :tabindex="2"
+                @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" @keydown="onKeyDown" @keyup="onKeyUp"
                 @focus="setDeviceSelected(htmlSlider)"
                 @blur="console.log('slider html losing focus')"
                 :disabled="visibility == 'locked'"
@@ -164,7 +165,13 @@
         if (isNaN(props.htmlSlider.value)) {
             console.error("Html slider received non-numeric value")
         }
-        props.htmlSlider.updateNodeVoltagesBasedOnValue()
+        console.log("value was updated")
+        console.log(props.htmlSlider.value)
+        // props.htmlSlider.dragging = true
+        if (props.htmlSlider.dragging) {
+            props.htmlSlider.updateNodeVoltagesBasedOnValue()
+        }
+        // props.htmlSlider.dragging = false
     })
 
     watch(props.htmlSlider.selected, () => {
@@ -173,7 +180,8 @@
             if (sliderElement.value) {
                 console.log("focusing on slider")
                 console.log(sliderElement.value)
-                sliderElement.value.focus({preventScroll: true})
+                sliderElement.value.focus() // ({preventScroll: true})
+                console.log(document.activeElement)
             }
         }
     })
@@ -200,6 +208,18 @@
 
     const onPointerUp = () => {
         props.htmlSlider.releaseSlider() // sets props.htmlSlider.dragging to false
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+        if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+            props.htmlSlider.dragging = true
+        }
+    }
+
+    const onKeyUp = (event: KeyboardEvent) => {
+        if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+            props.htmlSlider.dragging = false
+        }
     }
 
     onMounted(() => {

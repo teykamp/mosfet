@@ -1,5 +1,6 @@
 <template>
-  <div style="position: absolute; top: 10px; left: 500px; display: none">
+  <!-- <div style="position: absolute; top: 10px; left: 500px; display: none"> -->
+  <div style="position: absolute; top: 10px; left: 500px;">
     Node Voltages:<br>
     {{ JSON.stringify(Object.fromEntries(Object.entries(circuit.nodes).map((value: [string, Ref<NodeClass>]) => [value[0], toSiPrefix(value[1].value.voltage, "V", 3)])), null, 2) }}
   </div>
@@ -191,6 +192,10 @@ const checkDrag = (event: PointerEvent) => {
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
       slider.checkDrag({x: mouseX, y: mouseY}, eventInitiatesPreciseDragging(event))
+      if (slider.dragging) {
+        event.preventDefault()
+        slider.selected.value = true
+      }
     }
   })
 

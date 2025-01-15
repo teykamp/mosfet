@@ -21,7 +21,7 @@ export class CtxSlider extends CtxArtist{
     canvasId: canvasId
     displayText: string = "sliderName"
     selected: Ref<boolean> // TODO: selected and dragging essentially track the same thing; remove selected and make draggign a ref.
-    selectionChanged: Ref<boolean> = ref(true)
+    selectionChanged: Ref<boolean> = ref(false)
 
     preciseDragging: boolean = false
     temporaryMinValue: number
@@ -153,13 +153,13 @@ export class CtxSlider extends CtxArtist{
 
     checkDrag(mousePosition: Point, isPreciseDragging: boolean) {
         if (this.visibility != 'visible') {
-            return
+            return false
         }
 
         const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
         if (this.mouseDownIntiatesDrag(transformedMousePos)) {
             this.dragging = true
-            this.selected.value = true
+            // this.selected.value = true // handled in Diagram.vue, so we can call event.preventDefault()
         }
 
         if (this.dragging) {
