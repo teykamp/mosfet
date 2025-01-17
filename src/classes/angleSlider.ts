@@ -5,6 +5,7 @@ import { between, toRadians } from "../functions/extraMath"
 import { Node } from "./node"
 import { Ref } from "vue"
 import { CtxSlider } from "./ctxSlider"
+import { lastSelectionEvent } from "../globalState"
 
 export class AngleSlider extends CtxSlider{
     radius: number
@@ -32,11 +33,11 @@ export class AngleSlider extends CtxSlider{
             this.radius = this.originalRadius
         }
 
-        if (this.selected.value) {
+        if (this.selected.value && (lastSelectionEvent.value == 'keyboard' || lastSelectionEvent.value == 'htmlSlider')) {
             this.drawSliderPath(ctx, 'blue', 2)
         }
 
-        this.drawSliderPath(ctx, 'orange')
+        this.drawSliderPath(ctx, this.visibility == 'visible' ? 'orange' : 'lightgrey')
 
         if (this.dragging && this.preciseDragging) {
             // draw tick marks

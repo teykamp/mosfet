@@ -47,6 +47,7 @@
     import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging';
     import { Visibility } from '../types';
     import { useResizeObserver } from '@vueuse/core'
+import { lastSelectionEvent } from '../globalState';
 
     type TickDiv = {
         type: 'spacer' | 'major' | 'minor',
@@ -199,6 +200,8 @@
     }
 
     const onPointerDown = (event: PointerEvent) => {
+        lastSelectionEvent.value = 'htmlSlider'
+
         props.htmlSlider.dragging = true
         props.htmlSlider.selected.value = true
         props.htmlSlider.checkDrag({x: 0, y: 0}, eventInitiatesPreciseDragging(event))

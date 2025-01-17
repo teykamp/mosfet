@@ -21,6 +21,8 @@ export type Visibility = 'hidden' | 'locked' | 'visible'
 
 export type canvasId = 'main' | 'mosfet' | 'chart'
 
+export type selectionEvent = 'canvas' | 'htmlSlider' | 'keyboard'
+
 export type SchematicEffect = {
   node: Ref<Node>,
   origin: TectonicPoint,

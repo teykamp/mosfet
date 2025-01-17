@@ -1,5 +1,6 @@
 <template>
-  <div style="display: none; position: absolute; top: 10px; left: 500px;">
+  <div style="position: absolute; top: 10px; left: 500px;">
+    {{ lastSelectionEvent }}
     Node Voltages:<br>
     {{ JSON.stringify(Object.fromEntries(Object.entries(circuit.nodes).map((value: [string, Ref<NodeClass>]) => [value[0], toSiPrefix(value[1].value.voltage, "V", 3)])), null, 2) }}
   </div>
@@ -80,7 +81,7 @@ import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
@@ -187,6 +188,7 @@ const getMousePos = (event: PointerEvent) => {
 }
 
 const checkDrag = (event: PointerEvent) => {
+  lastSelectionEvent.value = 'canvas'
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
@@ -256,6 +258,12 @@ const mouseUp = (event: PointerEvent) => {
 
   document.removeEventListener('pointermove', drag)
   document.removeEventListener('pointerup', mouseUp)
+}
+
+const onKeyDown = (event: KeyboardEvent) => {
+  if (['Tab', 'Enter', 'Up', 'ArrowUp', 'Down', 'ArrowDown'].includes(event.key)) {
+    lastSelectionEvent.value = 'keyboard'
+  }
 }
 
 const checkSelectedDevice = () => {
@@ -331,6 +339,7 @@ onMounted(() => {
     ctx.value = canvas.value.getContext('2d')
 
     document.addEventListener('click', handleClickOutside)
+    document.addEventListener('keydown', onKeyDown)
 
     draw()
     requestAnimationFrame(animate)
