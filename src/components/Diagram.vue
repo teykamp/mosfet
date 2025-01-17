@@ -153,7 +153,7 @@ const updateSlidersActive = () => {
 updateSlidersActive()
 
 if (!window.Worker) {
-  console.log('Your browser doesn\'t support web workers.');
+  console.error('Your browser doesn\'t support web workers.');
 }
 
 const worker = new Worker(new URL('../workers/incrementCircuitWorker.ts', import.meta.url), { type: 'module' })
@@ -194,10 +194,7 @@ const checkDrag = (event: PointerEvent) => {
       slider.checkDrag({x: mouseX, y: mouseY}, eventInitiatesPreciseDragging(event))
       if (slider.dragging) {
         event.preventDefault()
-        console.log("setting slider.selected to true")
-        console.log("slider.selected was ", slider.selected.value)
         slider.selected.value = true
-        console.log(slider)
       }
     }
   })

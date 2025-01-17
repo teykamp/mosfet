@@ -48,7 +48,6 @@ export class CtxSlider extends CtxArtist{
 
         watch(this.selected, () => {
             this.selectionChanged.value = true
-            console.log("watching CtxSlider.selected: ", this.selected.value)
         })
     }
 

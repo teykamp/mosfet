@@ -4,7 +4,6 @@
             style="border: 1px solid black;"
             :tabindex="1" :class="{selected: sliderGroup.deviceSelected.value}"
             @focus="setDeviceSelected(sliderGroup)"
-            @blur="console.log('device html losing focus')"
             :ref="(element) => {
                 if (element && sliderGroup.deviceSelected.value) { // element may be null on the first iteration because it is not mounted yet.
 
@@ -40,7 +39,6 @@
     }>()
 
     const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>) => {
-        console.log("setting device selected")
         props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
             otherSliderGroup.deviceSelected.value = false
         })

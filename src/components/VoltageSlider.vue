@@ -27,7 +27,6 @@
                 :tabindex="2"
                 @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" @keydown="onKeyDown" @keyup="onKeyUp"
                 @focus="setDeviceSelected(htmlSlider)"
-                @blur="console.log('slider html losing focus')"
                 :disabled="visibility == 'locked'"
                 :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}"
                 :style="`position: relative; width: calc(${outerDivWidthPx}px - 4rem - 3rem - 10px - 10px - 1rem)`"
@@ -158,7 +157,6 @@
 
     watch([() => props.htmlSlider.value, () => props.htmlSlider.fromNode.value.voltage, () => props.htmlSlider.toNode.value.voltage], ([sliderValue, _, __]) => {
         value.value = sliderValue
-        // console.log("watching node voltages")
     }, { deep: true })
 
     watch(value, (newValue: number) => {
@@ -166,32 +164,21 @@
         if (isNaN(props.htmlSlider.value)) {
             console.error("Html slider received non-numeric value")
         }
-        // props.htmlSlider.dragging = true
         if (props.htmlSlider.dragging) {
             props.htmlSlider.updateNodeVoltagesBasedOnValue()
         }
-        // props.htmlSlider.dragging = false
-        // console.log("htmlSlider value changed")
     })
 
     watch(() => props.htmlSlider.selected.value, () => {
-        console.log("watching slider.selected !!!!!")
         if (props.htmlSlider.selected.value && props.htmlSlider.selectionChanged.value) {
             props.htmlSlider.selectionChanged.value = false
             if (sliderElement.value) {
-                console.log("focusing on slider")
-                console.log(sliderElement.value)
                 sliderElement.value.focus() // ({preventScroll: true})
-                console.log(document.activeElement)
             }
         }
     })
 
     const setDeviceSelected = (htmlSlider: HtmlSlider) => {
-        console.log("setting slider selected")
-        // props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
-        //     otherSliderGroup.deviceSelected.value = false
-        // })
         htmlSlider.selected.value = true
     }
 
@@ -224,8 +211,6 @@
     }
 
     onMounted(() => {
-        console.log("mounted!")
-        console.log(props.htmlSlider)
         props.htmlSlider.react()
     })
 

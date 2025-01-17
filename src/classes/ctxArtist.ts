@@ -38,7 +38,7 @@ export class CtxArtist extends Watchable {
 
     getAnchorPoint(name: string): Point {
         if (this.anchorPoints[name] == undefined) {
-            console.log("Cannot find anchor point", name, "on CtxArtist")
+            console.error("Cannot find anchor point", name, "on CtxArtist")
         }
         return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.anchorPoints[name])
     }
