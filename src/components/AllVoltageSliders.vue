@@ -46,6 +46,7 @@
     const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>) => {
         unselectAllDevices()
         unselectAllSliders()
+        sliderGroup.selectionChanged.value = true
         sliderGroup.deviceSelected.value = true
     }
 

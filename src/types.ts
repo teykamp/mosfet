@@ -50,13 +50,3 @@ export type Circle = {
   center: Point,
   outerDiameter: number,
 }
-
-export interface ReactiveHtmlSlider {
-  temporaryMinValue: number,
-  temporaryMaxValue: number,
-  value: number,
-  name: string,
-  dragging: boolean,
-  updateNodeVoltagesBasedOnValue: () => void,
-  releaseSlider: () => void,
-}

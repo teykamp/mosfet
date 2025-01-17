@@ -29,6 +29,7 @@ export class Circuit extends CtxArtist {
     selectedDeviceCharts: Chart[] = []
     selectedDeviceChartsBoundingBox: TectonicPoint[]
     selectedDeviceChartsTransformationMatrix: Ref<TransformationMatrix> = ref(new TransformationMatrix()) as Ref<TransformationMatrix>
+    selectedDeviceKey: string = 'none'
 
     nodes: {[nodeId: string]: Ref<Node>} // a dictionary mapping the names of the nodes in the circuit with their voltages (in V)
     textTransformationMatrix: TransformationMatrix
@@ -179,6 +180,11 @@ export class Circuit extends CtxArtist {
         this.circuitCopy.boundingBox = device.boundingBox
         this.anyDevicesSelected = true
 
+        if (device.key == this.selectedDeviceKey) {
+            return
+        }
+        this.selectedDeviceKey = device.key
+
         if (device instanceof Mosfet) {
             const mosfet = this.circuitCopy.devices.mosfets[device.key]
             mosfet.vgs.visibility = device.vgs.visibility
@@ -202,6 +208,7 @@ export class Circuit extends CtxArtist {
     resetSelectedDevice() {
         this.selectedDeviceCharts = []
         this.anyDevicesSelected = false
+        this.selectedDeviceKey = 'none'
 
         if (!this.circuitCopy) {
             return

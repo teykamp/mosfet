@@ -194,6 +194,7 @@
 
     const setDeviceUnselected = (htmlSlider: HtmlSlider) => {
         htmlSlider.selected.value = false
+        console.log("calling release slider")
         htmlSlider.releaseSlider()
         htmlSlider.updateValueBasedOnNodeVoltages()
     }
@@ -235,6 +236,7 @@
 
     const onKeyUp = (event: KeyboardEvent) => {
         if (['Up', 'ArrowUp', 'Down', 'ArrowDown'].includes(event.key)) {
+            console.log("keyup")
             props.htmlSlider.dragging = false
         }
         sliderStepSize.value = 0.05
