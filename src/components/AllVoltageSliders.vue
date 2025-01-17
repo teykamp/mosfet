@@ -24,7 +24,7 @@
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>
-            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider"></VoltageSlider>
+            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider" @slider-selected="unselectAllSliders"></VoltageSlider>
         </div>
     </div>
 </template>
@@ -39,10 +39,23 @@
     }>()
 
     const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>) => {
+        unselectAllDevices()
+        unselectAllSliders()
+        sliderGroup.deviceSelected.value = true
+    }
+
+    const unselectAllDevices = () => {
         props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
             otherSliderGroup.deviceSelected.value = false
         })
-        sliderGroup.deviceSelected.value = true
+    }
+
+    const unselectAllSliders = () => {
+        props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
+            otherSliderGroup.value.forEach((slider: HtmlSlider) => {
+                slider.selected.value = false
+            })
+        })
     }
 </script>
 

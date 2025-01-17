@@ -118,7 +118,7 @@ export class CtxSlider extends CtxArtist{
         this.temporaryMaxValue = this.maxValue
         this.preciseDragging = false
         this.dragging = false
-        this.selected.value = false
+        // this.selected.value = false
         if (this.drivenNode == 'toNode') {
             this.toNode.value.fixed = false
         } else {

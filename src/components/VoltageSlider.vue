@@ -26,7 +26,7 @@
                 :min="minValue" :max="maxValue" v-model="value"
                 :tabindex="2"
                 @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" @keydown="onKeyDown" @keyup="onKeyUp"
-                @focus="setDeviceSelected(htmlSlider)"
+                @focus="setDeviceSelected(htmlSlider)" @blur="setDeviceUnselected(htmlSlider)"
                 :disabled="visibility == 'locked'"
                 :class="{ visible: visibility == 'visible', locked: visibility == 'locked'}"
                 :style="`position: relative; width: calc(${outerDivWidthPx}px - 4rem - 3rem - 10px - 10px - 1rem)`"
@@ -56,6 +56,10 @@
     const props = defineProps<{
         htmlSlider: HtmlSlider,
     }>()
+
+    const emit = defineEmits<{
+        (e: 'sliderSelected', id: boolean): void;
+    }>();
 
     const outerDiv = ref<HTMLInputElement | null>(null) // the template ref
     const outerDivWidthPx: Ref<number> = ref(200)
@@ -157,7 +161,7 @@
 
     watch([() => props.htmlSlider.value, () => props.htmlSlider.fromNode.value.voltage, () => props.htmlSlider.toNode.value.voltage], ([sliderValue, _, __]) => {
         value.value = sliderValue
-    }, { deep: true })
+    })
 
     watch(value, (newValue: number) => {
         props.htmlSlider.value = Number(newValue) // I don't know why, but newValue sometimes get passed as a string
@@ -172,6 +176,8 @@
     watch(() => props.htmlSlider.selected.value, () => {
         if (props.htmlSlider.selected.value && props.htmlSlider.selectionChanged.value) {
             props.htmlSlider.selectionChanged.value = false
+            emit('sliderSelected', true) // sets selected.value to false for all htmlSliders in the parent component
+            props.htmlSlider.selected.value = true
             if (sliderElement.value) {
                 sliderElement.value.focus() // ({preventScroll: true})
             }
@@ -179,9 +185,16 @@
     })
 
     const setDeviceSelected = (htmlSlider: HtmlSlider) => {
+        htmlSlider.updateValueBasedOnNodeVoltages()
+        value.value = htmlSlider.value
         htmlSlider.selected.value = true
     }
 
+    const setDeviceUnselected = (htmlSlider: HtmlSlider) => {
+        htmlSlider.selected.value = false
+        htmlSlider.releaseSlider()
+        htmlSlider.updateValueBasedOnNodeVoltages()
+    }
 
     const onPointerDown = (event: PointerEvent) => {
         props.htmlSlider.dragging = true
