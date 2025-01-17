@@ -59,6 +59,7 @@
 
     const emit = defineEmits<{
         (e: 'sliderSelected', id: boolean): void;
+        (e: 'stepOutSelection', id: boolean): void;
     }>();
 
     const outerDiv = ref<HTMLInputElement | null>(null) // the template ref
@@ -225,6 +226,10 @@
             else if (['Down', 'ArrowDown'].includes(event.key)) {
                 props.htmlSlider.value = Math.floor(props.htmlSlider.value / sliderStepSize.value - 1) * sliderStepSize.value
             }
+        }
+
+        if (event.key == 'Enter') {
+            emit('stepOutSelection', true)
         }
     }
 

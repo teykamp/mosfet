@@ -89,10 +89,14 @@ export class Circuit extends CtxArtist {
     get htmlSliders(): Named<HtmlSlider[]>[] {
         const htmlSliders: Named<HtmlSlider[]>[] = []
         Object.values(this.devices.voltageSources).sort((V1: VoltageSource, V2: VoltageSource) => V1.order - V2.order).forEach((voltageSource: VoltageSource) => {
-            htmlSliders.push(voltageSource.namedHtmlSliders)
+            const namedHtmlSliders = voltageSource.namedHtmlSliders
+            namedHtmlSliders.deviceType = 'voltageSource'
+            htmlSliders.push(namedHtmlSliders)
         })
         Object.values(this.devices.mosfets).sort((mosfet1: Mosfet, mosfet2: Mosfet) => mosfet1.order - mosfet2.order).forEach((mosfet: Mosfet) => {
-            htmlSliders.push(mosfet.namedHtmlSliders)
+            const namedHtmlSliders = mosfet.namedHtmlSliders
+            namedHtmlSliders.deviceType = 'mosfet'
+            htmlSliders.push(namedHtmlSliders)
         })
         return htmlSliders
     }

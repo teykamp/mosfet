@@ -8,6 +8,7 @@ export type Named<T> = {
   name: string,
   selectionChanged: Ref<boolean>,
   deviceSelected: Ref<boolean>,
+  deviceType: 'voltageSource' | 'mosfet' | 'other',
   value: T,
 }
 

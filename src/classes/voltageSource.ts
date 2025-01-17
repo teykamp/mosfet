@@ -48,7 +48,6 @@ export class VoltageSource extends Device{
         ]
     }
 
-
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): VoltageSource {
         const newVoltageSource = new VoltageSource(
             [parentTransformation].concat(this.transformations.slice(1)),
@@ -92,4 +91,8 @@ export class VoltageSource extends Device{
 
         this.voltageDrop.draw(ctx)
     }
+
+    // checkSelectionArea(): boolean {
+    //     return false
+    // }
 }

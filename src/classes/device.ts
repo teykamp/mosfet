@@ -54,6 +54,7 @@ export class Device extends CtxArtist{
         return {
             name: this.key,
             selectionChanged: this.selectionChanged,
+            deviceType: 'other',
             deviceSelected: this.selected,
             value: this.htmlSliders,
         }

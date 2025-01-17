@@ -1,9 +1,12 @@
 <template>
     <div>
+        <!-- :tabindex="sliderGroup.deviceType == 'voltageSource' ? -1 : 1" :class="{selected: sliderGroup.deviceSelected.value}" -->
         <div v-for="sliderGroup in htmlSliders"
             style="border: 1px solid black;"
-            :tabindex="1" :class="{selected: sliderGroup.deviceSelected.value}"
+            :tabindex="sliderGroup.deviceType == 'voltageSource' ? 1 : 1" :class="{selected: sliderGroup.deviceSelected.value}"
             @focus="setDeviceSelected(sliderGroup)"
+            @keydown="(event) => onKeyDown(event, sliderGroup)"
+
             :ref="(element) => {
                 if (element && sliderGroup.deviceSelected.value) { // element may be null on the first iteration because it is not mounted yet.
 
@@ -24,7 +27,7 @@
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>
-            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider" @slider-selected="unselectAllSliders"></VoltageSlider>
+            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider" @slider-selected="unselectAllSliders" @step-out-selection="() => stepOutSelection(sliderGroup)"></VoltageSlider>
         </div>
     </div>
 </template>
@@ -38,10 +41,17 @@
         htmlSliders: Named<HtmlSlider[]>[],
     }>()
 
+    let keyDownOnSlider: boolean = false
+
     const setDeviceSelected = (sliderGroup: Named<HtmlSlider[]>) => {
         unselectAllDevices()
         unselectAllSliders()
         sliderGroup.deviceSelected.value = true
+    }
+
+    const stepOutSelection = (sliderGroup: Named<HtmlSlider[]>) => {
+        setDeviceSelected(sliderGroup)
+        keyDownOnSlider = true
     }
 
     const unselectAllDevices = () => {
@@ -56,6 +66,18 @@
                 slider.selected.value = false
             })
         })
+    }
+
+    const onKeyDown = (event: KeyboardEvent, sliderGroup: Named<HtmlSlider[]>) => {
+        if (event.key == 'Enter') {
+            if (!keyDownOnSlider) {
+                unselectAllSliders()
+                if (sliderGroup.value[0].visibility == 'visible') {
+                    sliderGroup.value[0].selected.value = true
+                }
+            }
+            keyDownOnSlider = false
+        }
     }
 </script>
 
