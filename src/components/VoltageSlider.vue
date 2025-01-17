@@ -22,7 +22,7 @@
             </div>
 
             <!-- The slider itself -->
-            <input type="range" step="0.05"
+            <input type="range" :step="sliderStepSize"
                 :min="minValue" :max="maxValue" v-model="value"
                 :tabindex="2"
                 @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" @keydown="onKeyDown" @keyup="onKeyUp"
@@ -81,6 +81,7 @@
     const visibility: Ref<Visibility> = ref(props.htmlSlider.visibility)
     const preciseDragging: Ref<boolean> = ref(props.htmlSlider.preciseDragging)
     const tickWidthPx: number = 5
+    const sliderStepSize: Ref<number> = ref(0.05)
 
     const tickDivs: ComputedRef<TickDiv[]> = computed(() => {
         const divs: TickDiv[] = []
@@ -212,15 +213,26 @@
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-        if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+        if (['Up', 'ArrowUp', 'Down', 'ArrowDown'].includes(event.key)) {
             props.htmlSlider.dragging = true
+            if (eventInitiatesPreciseDragging(event)) {
+                sliderStepSize.value = 0.01
+            }
+            event.preventDefault()
+            if (['Up', 'ArrowUp'].includes(event.key)) {
+                props.htmlSlider.value = Math.ceil(props.htmlSlider.value / sliderStepSize.value + 1) * sliderStepSize.value
+            }
+            else if (['Down', 'ArrowDown'].includes(event.key)) {
+                props.htmlSlider.value = Math.floor(props.htmlSlider.value / sliderStepSize.value - 1) * sliderStepSize.value
+            }
         }
     }
 
     const onKeyUp = (event: KeyboardEvent) => {
-        if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+        if (['Up', 'ArrowUp', 'Down', 'ArrowDown'].includes(event.key)) {
             props.htmlSlider.dragging = false
         }
+        sliderStepSize.value = 0.05
     }
 
     onMounted(() => {
