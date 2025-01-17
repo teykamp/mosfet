@@ -158,6 +158,7 @@
 
     watch([() => props.htmlSlider.value, () => props.htmlSlider.fromNode.value.voltage, () => props.htmlSlider.toNode.value.voltage], ([sliderValue, _, __]) => {
         value.value = sliderValue
+        // console.log("watching node voltages")
     }, { deep: true })
 
     watch(value, (newValue: number) => {
@@ -165,16 +166,16 @@
         if (isNaN(props.htmlSlider.value)) {
             console.error("Html slider received non-numeric value")
         }
-        console.log("value was updated")
-        console.log(props.htmlSlider.value)
         // props.htmlSlider.dragging = true
         if (props.htmlSlider.dragging) {
             props.htmlSlider.updateNodeVoltagesBasedOnValue()
         }
         // props.htmlSlider.dragging = false
+        // console.log("htmlSlider value changed")
     })
 
-    watch(props.htmlSlider.selected, () => {
+    watch(() => props.htmlSlider.selected.value, () => {
+        console.log("watching slider.selected !!!!!")
         if (props.htmlSlider.selected.value && props.htmlSlider.selectionChanged.value) {
             props.htmlSlider.selectionChanged.value = false
             if (sliderElement.value) {
@@ -223,6 +224,8 @@
     }
 
     onMounted(() => {
+        console.log("mounted!")
+        console.log(props.htmlSlider)
         props.htmlSlider.react()
     })
 

@@ -142,7 +142,7 @@ const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
 
-const currentCircuit = ref<DefinedCircuits>('nMosSingle')
+const currentCircuit = ref<DefinedCircuits>('pMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
@@ -194,7 +194,10 @@ const checkDrag = (event: PointerEvent) => {
       slider.checkDrag({x: mouseX, y: mouseY}, eventInitiatesPreciseDragging(event))
       if (slider.dragging) {
         event.preventDefault()
+        console.log("setting slider.selected to true")
+        console.log("slider.selected was ", slider.selected.value)
         slider.selected.value = true
+        console.log(slider)
       }
     }
   })

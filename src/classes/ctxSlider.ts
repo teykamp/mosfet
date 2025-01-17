@@ -46,7 +46,10 @@ export class CtxSlider extends CtxArtist{
         this.drivenNode = drivenNode
         this.canvasId = canvasId
 
-        watch(this.selected, () => this.selectionChanged.value = true)
+        watch(this.selected, () => {
+            this.selectionChanged.value = true
+            console.log("watching CtxSlider.selected: ", this.selected.value)
+        })
     }
 
     draw(ctx: CanvasRenderingContext2D) {
