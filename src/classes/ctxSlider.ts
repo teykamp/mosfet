@@ -118,7 +118,6 @@ export class CtxSlider extends CtxArtist{
         this.temporaryMaxValue = this.maxValue
         this.preciseDragging = false
         this.dragging = false
-        console.log("releasing slider")
         // this.selected.value = false
         if (this.drivenNode == 'toNode') {
             this.toNode.value.fixed = false
@@ -131,7 +130,6 @@ export class CtxSlider extends CtxArtist{
     adjustPreciseSlider(timeDifference: number = 10) {
         if (this.dragging && this.preciseDragging) {
             if ((this.value >= this.maxValue) || (this.temporaryMaxValue > this.maxValue)) {
-                console.log("max reached; value = ", this.value, ", tempMax = ", this.temporaryMaxValue)
                 this.value = between(this.minValue, this.maxValue, this.value)
                 this.temporaryMaxValue = this.maxValue
                 this.temporaryMinValue = this.maxValue - preciseSliderTickRange
@@ -149,7 +147,6 @@ export class CtxSlider extends CtxArtist{
                 this.temporaryMaxValue += valueChangeMagnitude
                 this.value += valueChangeMagnitude
             }
-            console.log(this.value)
             this.react()
         }
     }
@@ -162,7 +159,6 @@ export class CtxSlider extends CtxArtist{
         const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
         if (this.mouseDownIntiatesDrag(transformedMousePos)) {
             this.dragging = true
-            console.log("setting dragging to true")
             // this.selected.value = true // handled in Diagram.vue, so we can call event.preventDefault()
         }
 

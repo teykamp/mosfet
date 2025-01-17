@@ -141,7 +141,7 @@ const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
 
-const currentCircuit = ref<DefinedCircuits>('pMosSingle')
+const currentCircuit = ref<DefinedCircuits>('nMosSingle')
 const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
 
 const circuit = shallowRef(circuits[currentCircuit.value])
@@ -195,7 +195,6 @@ const checkDrag = (event: PointerEvent) => {
         event.preventDefault()
         slider.selected.value = true
       }
-      console.log("checking drag: ", slider.dragging)
     }
   })
 
@@ -218,7 +217,6 @@ const drag = (event: PointerEvent) => {
   // update slider values based on position
   circuit.value.allSliders.forEach(slider => {
     slider.dragSlider({x: mouseX, y: mouseY})
-    console.log("dragging slider: ", slider.dragging)
   })
 
   updateNodeVoltagesBasedOnSliders()
@@ -264,7 +262,6 @@ const checkSelectedDevice = () => {
   circuit.value.allDevices.forEach((device: Device) => {
     if (device.selected.value) {
       circuit.value.setSelectedDevice(device)
-      console.log("checking selected device !!!")
     }
   })
 }
