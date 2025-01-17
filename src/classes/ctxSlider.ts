@@ -187,6 +187,7 @@ export class CtxSlider extends CtxArtist{
 
 export class HtmlSlider extends CtxSlider{
     name: string
+    tabIndex: Ref<number> = ref(-1)
 
     constructor(fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, name: string, selected: Ref<boolean>, visibility: Visibility) {
         super([], new TransformationMatrix(), fromNode, toNode, drivenNode, minValue, maxValue, selected, visibility, visibility)

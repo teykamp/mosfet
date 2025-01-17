@@ -27,7 +27,7 @@
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>
-            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider" @slider-selected="unselectAllSliders" @step-out-selection="() => stepOutSelection(sliderGroup)"></VoltageSlider>
+            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider" @slider-selected="() => onSliderSelected(sliderGroup)" @step-out-selection="() => stepOutSelection(sliderGroup)"></VoltageSlider>
         </div>
     </div>
 </template>
@@ -50,6 +50,13 @@
         sliderGroup.deviceSelected.value = true
     }
 
+    const onSliderSelected = (sliderGroup: Named<HtmlSlider[]>) => {
+        unselectAllSliders()
+        sliderGroup.value.forEach((slider: HtmlSlider) => {
+            slider.tabIndex.value = 1
+        })
+    }
+
     const stepOutSelection = (sliderGroup: Named<HtmlSlider[]>) => {
         setDeviceSelected(sliderGroup)
         keyDownOnSlider = true
@@ -65,6 +72,7 @@
         props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
             otherSliderGroup.value.forEach((slider: HtmlSlider) => {
                 slider.selected.value = false
+                slider.tabIndex.value = -1
             })
         })
     }

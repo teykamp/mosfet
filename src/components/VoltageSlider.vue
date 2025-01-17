@@ -24,7 +24,7 @@
             <!-- The slider itself -->
             <input type="range" :step="sliderStepSize"
                 :min="minValue" :max="maxValue" v-model="value"
-                :tabindex="2"
+                :tabindex="props.htmlSlider.tabIndex.value"
                 @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" @keydown="onKeyDown" @keyup="onKeyUp"
                 @focus="setDeviceSelected(htmlSlider)" @blur="setDeviceUnselected(htmlSlider)"
                 :disabled="visibility == 'locked'"
