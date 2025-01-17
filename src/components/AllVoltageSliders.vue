@@ -34,7 +34,7 @@
 
 <script setup lang='ts'>
     import { HtmlSlider } from '../classes/ctxSlider'
-    import { Named } from '../types'
+    import { DIRECTIONS, keysToDirections, Named } from '../types'
     import VoltageSlider from './VoltageSlider.vue'
 
     const props = defineProps<{
@@ -77,6 +77,18 @@
         })
     }
 
+    const anySlidersSelected = (): boolean => {
+        props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
+            otherSliderGroup.value.forEach((slider: HtmlSlider) => {
+                if (slider.selected.value) {
+                    console.log(slider.selected.value)
+                    return true
+                }
+            })
+        })
+        return false
+    }
+
     const onKeyDown = (event: KeyboardEvent, sliderGroup: Named<HtmlSlider[]>) => {
         if (event.key == 'Enter') {
             if (!keyDownOnSlider) {
@@ -86,6 +98,22 @@
                 }
             }
             keyDownOnSlider = false
+        }
+
+        console.log("any slider selected: ", anySlidersSelected())
+        if (!anySlidersSelected()) {
+            if (DIRECTIONS.includes(keysToDirections[event.key])) {
+                if (Object.keys(sliderGroup.adjacencyList).includes(keysToDirections[event.key])) {
+                    props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
+                        if (otherSliderGroup.name == sliderGroup.adjacencyList[keysToDirections[event.key]]) {
+                            event.preventDefault()
+                            unselectAllDevices()
+                            otherSliderGroup.deviceSelected.value = true
+                            otherSliderGroup.selectionChanged.value = true
+                        }
+                    })
+                }
+            }
         }
     }
 </script>

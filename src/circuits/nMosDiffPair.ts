@@ -232,6 +232,18 @@ const useNmosDiffPair = () => {
         ]
     )
 
+    circuit.devices.mosfets["M1"].adjacentDevices = {'down': 'Mb'}
+    circuit.devices.mosfets["M1"].adjacentDevices = {'left': 'V1'}
+    circuit.devices.mosfets["M1"].adjacentDevices = {'right': 'M2'}
+    circuit.devices.mosfets["Mb"].adjacentDevices = {'up': 'M1'}
+    circuit.devices.mosfets["Mb"].adjacentDevices = {'right': 'Vb'}
+    circuit.devices.mosfets["M2"].adjacentDevices = {'down': 'Mb'}
+    circuit.devices.mosfets["M2"].adjacentDevices = {'left': 'M1'}
+    circuit.devices.mosfets["M2"].adjacentDevices = {'right': 'V2'}
+    circuit.devices.voltageSources["Vb"].adjacentDevices = {'left': 'Mb'}
+    circuit.devices.voltageSources["V1"].adjacentDevices = {'right': 'M1'}
+    circuit.devices.voltageSources["V2"].adjacentDevices = {'left': 'M2'}
+
     circuit.finishSetup()
     return circuit
 }

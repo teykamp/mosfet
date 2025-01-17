@@ -10,7 +10,10 @@ export type Named<T> = {
   deviceSelected: Ref<boolean>,
   deviceType: 'voltageSource' | 'mosfet' | 'other',
   value: T,
+  adjacencyList: DeviceAdjacencyList,
 }
+
+export type DeviceAdjacencyList = { [direction: string]: string }
 
 export type Point = {
   x: number
@@ -22,6 +25,18 @@ export type Visibility = 'hidden' | 'locked' | 'visible'
 export type canvasId = 'main' | 'mosfet' | 'chart'
 
 export type selectionEvent = 'canvas' | 'htmlSlider' | 'keyboard'
+
+export const DIRECTIONS = ['up', 'down', 'left', 'right']
+export const keysToDirections: { [keyPress: string]: string } = {
+  'ArrowUp': 'up',
+  'ArrowDown': 'down',
+  'ArrowLeft': 'left',
+  'ArrowRight': 'right',
+  'Up': 'up',
+  'Down': 'down',
+  'Left': 'left',
+  'Right': 'right',
+}
 
 export type SchematicEffect = {
   node: Ref<Node>,

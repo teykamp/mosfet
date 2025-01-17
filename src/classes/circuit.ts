@@ -81,6 +81,9 @@ export class Circuit extends CtxArtist {
         this.assignKeysToDevices()
         this.circuitCopy = this.copy()
         this.circuitCopy?.assignKeysToDevices()
+        this.allDevices.forEach((device: Device) => {
+            device.finishSetup()
+        })
     }
 
     get allSliders(): CtxSlider[] {

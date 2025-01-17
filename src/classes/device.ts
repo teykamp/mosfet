@@ -1,4 +1,4 @@
-import { Named, Point, canvasId } from "../types"
+import { DIRECTIONS, DeviceAdjacencyList, Named, Point, canvasId } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref, watch } from 'vue'
@@ -15,6 +15,8 @@ export class Device extends CtxArtist{
     selectionChanged: Ref<boolean> = ref(false)
     boundingBox: TectonicPoint[]
 
+    adjacentDevices: DeviceAdjacencyList = {}
+
     constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), canvasId: canvasId = 'main') {
         super(parentTransformations, localTransformationMatrix, canvasId)
         this.boundingBox = [
@@ -24,6 +26,14 @@ export class Device extends CtxArtist{
             new TectonicPoint(this.transformations, {x: 0, y: 120}),
         ]
         watch(this.selected, () => this.selectionChanged.value = true)
+    }
+
+    finishSetup() {
+        Object.keys(this.adjacentDevices).forEach((direction: string) => {
+            if (!(DIRECTIONS.includes(direction))) {
+                console.error("Adjacency direction must be one of " + DIRECTIONS)
+            }
+        })
     }
 
     checkSelectionArea(mousePosition: Point): boolean {
@@ -56,6 +66,7 @@ export class Device extends CtxArtist{
             selectionChanged: this.selectionChanged,
             deviceType: 'other',
             deviceSelected: this.selected,
+            adjacencyList: this.adjacentDevices,
             value: this.htmlSliders,
         }
     }
