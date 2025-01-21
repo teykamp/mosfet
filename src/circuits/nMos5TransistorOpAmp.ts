@@ -312,6 +312,18 @@ const useNmos5TransistorOpAmp = (): Circuit => {
         ]
     )
 
+
+
+    circuit.devices.mosfets["Mb"].adjacentDevices =        { 'up': 'M1', 'down': 'Vb', 'left': '',   'right': 'Vb' }
+    circuit.devices.mosfets["M1"].adjacentDevices =        { 'up': 'M3', 'down': 'Mb', 'left': 'V1', 'right': 'M2' }
+    circuit.devices.mosfets["M2"].adjacentDevices =        { 'up': 'M4', 'down': 'Mb', 'left': 'M1', 'right': 'V2' }
+    circuit.devices.mosfets["M3"].adjacentDevices =        { 'up': '',   'down': 'M1', 'left': '',   'right': 'M4' }
+    circuit.devices.mosfets["M4"].adjacentDevices =        { 'up': '',   'down': 'M2', 'left': 'M3', 'right': ''   }
+    circuit.devices.voltageSources["Vb"].adjacentDevices = { 'up': 'Mb', 'down': '',   'left': 'Mb', 'right': ''   }
+    circuit.devices.voltageSources["V1"].adjacentDevices = { 'up': 'M1', 'down': 'Mb', 'left': '',   'right': 'M1' }
+    circuit.devices.voltageSources["V2"].adjacentDevices = { 'up': 'M2', 'down': 'Vb', 'left': 'M2', 'right': ''   }
+
+
     circuit.finishSetup()
     return circuit
 }

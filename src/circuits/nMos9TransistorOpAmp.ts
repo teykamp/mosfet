@@ -434,6 +434,19 @@ const useNmos9TransistorOpAmp = () => {
         ]
     )
 
+    circuit.devices.mosfets["Mb"].adjacentDevices =        { 'up': 'M1', 'down': 'Vb', 'left': '',   'right': 'Vb' }
+    circuit.devices.mosfets["M1"].adjacentDevices =        { 'up': 'M3', 'down': 'Mb', 'left': 'V1', 'right': 'M2' }
+    circuit.devices.mosfets["M2"].adjacentDevices =        { 'up': 'M5', 'down': 'Mb', 'left': 'M1', 'right': 'V2' }
+    circuit.devices.mosfets["M3"].adjacentDevices =        { 'up': '',   'down': 'M1', 'left': '',   'right': 'M4' }
+    circuit.devices.mosfets["M4"].adjacentDevices =        { 'up': '',   'down': 'M8', 'left': 'M3', 'right': ''   }
+    circuit.devices.mosfets["M5"].adjacentDevices =        { 'up': 'M3', 'down': 'M2', 'left': 'M3', 'right': 'M6' }
+    circuit.devices.mosfets["M6"].adjacentDevices =        { 'up': 'M4', 'down': 'M7', 'left': 'M5', 'right': 'M4' }
+    circuit.devices.mosfets["M7"].adjacentDevices =        { 'up': 'M6', 'down': '',   'left': 'V2', 'right': 'M8' }
+    circuit.devices.mosfets["M8"].adjacentDevices =        { 'up': 'M4', 'down': '',   'left': 'M7', 'right': ''   }
+    circuit.devices.voltageSources["Vb"].adjacentDevices = { 'up': 'Mb', 'down': '',   'left': 'Mb', 'right': 'M7' }
+    circuit.devices.voltageSources["V1"].adjacentDevices = { 'up': 'M1', 'down': 'Mb', 'left': '',   'right': 'M1' }
+    circuit.devices.voltageSources["V2"].adjacentDevices = { 'up': 'M2', 'down': 'Vb', 'left': 'M2', 'right': 'M7' }
+
     circuit.finishSetup()
     return circuit
 }

@@ -78,15 +78,15 @@
     }
 
     const anySlidersSelected = (): boolean => {
+        let result = false
         props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
             otherSliderGroup.value.forEach((slider: HtmlSlider) => {
                 if (slider.selected.value) {
-                    console.log(slider.selected.value)
-                    return true
+                    result = true
                 }
             })
         })
-        return false
+        return result
     }
 
     const onKeyDown = (event: KeyboardEvent, sliderGroup: Named<HtmlSlider[]>) => {
@@ -100,18 +100,26 @@
             keyDownOnSlider = false
         }
 
-        console.log("any slider selected: ", anySlidersSelected())
         if (!anySlidersSelected()) {
             if (DIRECTIONS.includes(keysToDirections[event.key])) {
                 if (Object.keys(sliderGroup.adjacencyList).includes(keysToDirections[event.key])) {
-                    props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
-                        if (otherSliderGroup.name == sliderGroup.adjacencyList[keysToDirections[event.key]]) {
-                            event.preventDefault()
-                            unselectAllDevices()
-                            otherSliderGroup.deviceSelected.value = true
-                            otherSliderGroup.selectionChanged.value = true
+                    const deviceKey = sliderGroup.adjacencyList[keysToDirections[event.key]]
+                    if (deviceKey != '') {
+                        let deviceExists = false
+                        props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
+                            if (otherSliderGroup.name == deviceKey) {
+                                deviceExists = true
+                                console.log("found device", deviceKey)
+                                event.preventDefault()
+                                unselectAllDevices()
+                                otherSliderGroup.deviceSelected.value = true
+                                otherSliderGroup.selectionChanged.value = true
+                            }
+                        })
+                        if (!deviceExists) {
+                            console.error("Could not find device by key ''" + String(deviceKey) + "'")
                         }
-                    })
+                    }
                 }
             }
         }

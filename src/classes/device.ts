@@ -31,7 +31,7 @@ export class Device extends CtxArtist{
     finishSetup() {
         Object.keys(this.adjacentDevices).forEach((direction: string) => {
             if (!(DIRECTIONS.includes(direction))) {
-                console.error("Adjacency direction must be one of " + DIRECTIONS)
+                console.error("Adjacency direction must be one of " + String(DIRECTIONS) + " (inside of " + String(this.key) + ")")
             }
         })
     }

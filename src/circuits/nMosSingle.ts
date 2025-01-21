@@ -119,8 +119,8 @@ const useNmosSingle = () => {
         ]
     )
 
-    circuit.devices.mosfets["M1"].adjacentDevices = {'up': 'Vd'}
-    circuit.devices.voltageSources["Vd"].adjacentDevices = {'down': 'M1'}
+    circuit.devices.mosfets["M1"].adjacentDevices =        { 'up': 'Vd', 'down': '', 'left': '', 'right': '' }
+    circuit.devices.voltageSources["Vd"].adjacentDevices = { 'up': '', 'down': 'M1', 'left': '', 'right': '' }
 
     circuit.finishSetup()
     return circuit

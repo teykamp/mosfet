@@ -118,8 +118,8 @@ const usePmosSingle = () => {
         ]
     )
 
-    circuit.devices.mosfets["M1"].adjacentDevices = {'down': 'Vd'}
-    circuit.devices.voltageSources["Vd"].adjacentDevices = {'up': 'M1'}
+    circuit.devices.mosfets["M1"].adjacentDevices =        { 'up': '', 'down': 'Vd', 'left': '', 'right': ''  }
+    circuit.devices.voltageSources["Vd"].adjacentDevices = {'up': 'M1', 'down': '',   'left': '', 'right': '' }
 
     circuit.finishSetup()
     return circuit
