@@ -22,9 +22,10 @@
             </div>
 
             <!-- The slider itself -->
+            <!-- :tabindex="lastMouseSelectionEvent == 'canvas' ? props.htmlSlider.tabIndex.value : 2" -->
             <input type="range" :step="sliderStepSize"
                 :min="minValue" :max="maxValue" v-model="value"
-                :tabindex="props.htmlSlider.tabIndex.value"
+                :tabindex="2"
                 @pointerdown="onPointerDown" @pointerup="onPointerUp" @pointermove="onPointerMove" @keydown="onKeyDown" @keyup="onKeyUp"
                 @focus="setDeviceSelected(htmlSlider)" @blur="setDeviceUnselected(htmlSlider)"
                 :disabled="visibility == 'locked'"
@@ -47,7 +48,7 @@
     import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging';
     import { Visibility } from '../types';
     import { useResizeObserver } from '@vueuse/core'
-import { lastSelectionEvent } from '../globalState';
+import { lastMouseSelectionEvent, lastSelectionEvent } from '../globalState';
 
     type TickDiv = {
         type: 'spacer' | 'major' | 'minor',
@@ -202,6 +203,7 @@ import { lastSelectionEvent } from '../globalState';
 
     const onPointerDown = (event: PointerEvent) => {
         lastSelectionEvent.value = 'htmlSlider'
+        lastMouseSelectionEvent.value = 'htmlSlider'
 
         props.htmlSlider.dragging = true
         props.htmlSlider.selected.value = true

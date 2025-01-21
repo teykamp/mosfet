@@ -25,6 +25,7 @@ export type Visibility = 'hidden' | 'locked' | 'visible'
 export type canvasId = 'main' | 'mosfet' | 'chart'
 
 export type selectionEvent = 'canvas' | 'htmlSlider' | 'keyboard'
+export type mouseSelectionEvent = 'canvas' | 'htmlSlider'
 
 export const DIRECTIONS = ['up', 'down', 'left', 'right']
 export const keysToDirections: { [keyPress: string]: string } = {

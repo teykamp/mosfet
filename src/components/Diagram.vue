@@ -81,7 +81,7 @@ import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent, lastMouseSelectionEvent } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
@@ -189,6 +189,7 @@ const getMousePos = (event: PointerEvent) => {
 
 const checkDrag = (event: PointerEvent) => {
   lastSelectionEvent.value = 'canvas'
+  lastMouseSelectionEvent.value = 'canvas'
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {

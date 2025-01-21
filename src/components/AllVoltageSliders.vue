@@ -31,6 +31,7 @@
                 @slider-selected="() => onSliderSelected(sliderGroup)"
                 @step-out-selection="() => stepOutSelection(sliderGroup)"
                 @select-other-slider="(sliderIdx) => selectOtherSlider(sliderGroup, sliderIdx)"
+                @click="onClick"
             ></VoltageSlider>
         </div>
     </div>
@@ -38,6 +39,7 @@
 
 <script setup lang='ts'>
     import { HtmlSlider } from '../classes/ctxSlider'
+    import { lastMouseSelectionEvent } from '../globalState';
     import { DIRECTIONS, keysToDirections, Named } from '../types'
     import VoltageSlider from './VoltageSlider.vue'
 
@@ -134,6 +136,10 @@
                 }
             }
         }
+    }
+
+    const onClick = () => {
+        lastMouseSelectionEvent.value = 'htmlSlider'
     }
 </script>
 
