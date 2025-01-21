@@ -27,7 +27,11 @@
             <div style="display: flex; justify-content: center;">
                 {{ sliderGroup.name }}
             </div>
-            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider" @slider-selected="() => onSliderSelected(sliderGroup)" @step-out-selection="() => stepOutSelection(sliderGroup)"></VoltageSlider>
+            <VoltageSlider v-for="slider in sliderGroup.value" :html-slider="slider"
+                @slider-selected="() => onSliderSelected(sliderGroup)"
+                @step-out-selection="() => stepOutSelection(sliderGroup)"
+                @select-other-slider="(sliderIdx) => selectOtherSlider(sliderGroup, sliderIdx)"
+            ></VoltageSlider>
         </div>
     </div>
 </template>
@@ -60,6 +64,14 @@
     const stepOutSelection = (sliderGroup: Named<HtmlSlider[]>) => {
         setDeviceSelected(sliderGroup)
         keyDownOnSlider = true
+    }
+
+    const selectOtherSlider = (sliderGroup: Named<HtmlSlider[]>, sliderIdxToSelect: number) => {
+        if (sliderIdxToSelect < sliderGroup.value.length) {
+            unselectAllSliders()
+            sliderGroup.value[sliderIdxToSelect].selected.value = true
+            sliderGroup.value[sliderIdxToSelect].selectionChanged.value = true
+        }
     }
 
     const unselectAllDevices = () => {
@@ -109,7 +121,6 @@
                         props.htmlSliders.forEach((otherSliderGroup: Named<HtmlSlider[]>) => {
                             if (otherSliderGroup.name == deviceKey) {
                                 deviceExists = true
-                                console.log("found device", deviceKey)
                                 event.preventDefault()
                                 unselectAllDevices()
                                 otherSliderGroup.deviceSelected.value = true

@@ -180,7 +180,7 @@ export class CtxSlider extends CtxArtist{
     }
 
     toHtmlSlider(): HtmlSlider {
-        const newHtmlSlider = new HtmlSlider(this.fromNode, this.toNode, this.drivenNode, this.minValue, this.maxValue, this.displayText, this.selected, this.visibility)
+        const newHtmlSlider = new HtmlSlider(this.transformations, this.fromNode, this.toNode, this.drivenNode, this.minValue, this.maxValue, this.displayText, this.selected, this.visibility)
         return newHtmlSlider
     }
 }
@@ -189,8 +189,8 @@ export class HtmlSlider extends CtxSlider{
     name: string
     tabIndex: Ref<number> = ref(-1)
 
-    constructor(fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, name: string, selected: Ref<boolean>, visibility: Visibility) {
-        super([], new TransformationMatrix(), fromNode, toNode, drivenNode, minValue, maxValue, selected, visibility, visibility)
+    constructor(transformations: Ref<TransformationMatrix>[], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, name: string, selected: Ref<boolean>, visibility: Visibility) {
+        super(transformations, new TransformationMatrix(), fromNode, toNode, drivenNode, minValue, maxValue, selected, visibility, visibility)
         this.name = name
     }
 

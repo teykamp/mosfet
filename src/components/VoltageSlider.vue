@@ -61,6 +61,7 @@ import { lastSelectionEvent } from '../globalState';
     const emit = defineEmits<{
         (e: 'sliderSelected', id: boolean): void;
         (e: 'stepOutSelection', id: boolean): void;
+        (e: 'selectOtherSlider', id: number): void;
     }>();
 
     const outerDiv = ref<HTMLInputElement | null>(null) // the template ref
@@ -217,17 +218,38 @@ import { lastSelectionEvent } from '../globalState';
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
+        if (['Up', 'ArrowUp', 'Down', 'ArrowDown', 'Left', 'ArrowLeft', 'Right', 'ArrowRight'].includes(event.key)) {
+            event.preventDefault()
+        }
+
         if (['Up', 'ArrowUp', 'Down', 'ArrowDown'].includes(event.key)) {
             props.htmlSlider.dragging = true
             if (eventInitiatesPreciseDragging(event)) {
                 sliderStepSize.value = 0.01
             }
-            event.preventDefault()
             if (['Up', 'ArrowUp'].includes(event.key)) {
                 props.htmlSlider.value = Math.ceil(props.htmlSlider.value / sliderStepSize.value + 1) * sliderStepSize.value
             }
             else if (['Down', 'ArrowDown'].includes(event.key)) {
                 props.htmlSlider.value = Math.floor(props.htmlSlider.value / sliderStepSize.value - 1) * sliderStepSize.value
+            }
+        }
+
+        if (['Vgs', 'Vds', 'Vsg', 'Vsd'].includes(props.htmlSlider.name)) {
+            const deviceIsNmos = (props.htmlSlider.name == 'Vgs' || props.htmlSlider.name == 'Vds')
+            const sliderIsVgs = (props.htmlSlider.name == 'Vgs' || props.htmlSlider.name == 'Vsg')
+            const sliderIsOnRightOfDevice = props.htmlSlider.transformationMatrix.isMirrored == deviceIsNmos
+
+            if (['Left', 'ArrowLeft'].includes(event.key)) {
+                if (sliderIsOnRightOfDevice) {
+                    emit('selectOtherSlider', sliderIsVgs ? 1 : 0)
+                }
+            }
+
+            if (['Right', 'ArrowRight'].includes(event.key)) {
+                if (!sliderIsOnRightOfDevice) {
+                    emit('selectOtherSlider', sliderIsVgs ? 1 : 0)
+                }
             }
         }
 
