@@ -69,9 +69,9 @@ const isFirstTimeLoad = (): boolean => {
 
 const firstTimeLoad = ref(isFirstTimeLoad())
 
-const resetTutorial = () => { 
+const resetTutorial = () => {
   firstTimeLoad.value = true
-  tutorialStep.value = 1 
+  tutorialStep.value = 1
 }
 
 document.body.onmousedown = function(e) {

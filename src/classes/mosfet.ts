@@ -11,8 +11,8 @@ import { Node } from "./node"
 import { CurrentDots } from "./currentDots"
 import { TectonicPoint } from "./tectonicPlate"
 import { Chart } from "./chart"
-import { vddVoltage } from "../constants"
 import { Device } from "./device"
+import { HtmlSlider } from "./ctxSlider"
 
 export class Mosfet extends Device{
     mosfetType: 'nmos' | 'pmos'
@@ -29,10 +29,12 @@ export class Mosfet extends Device{
     Vb: Ref<Node>
     gndNode: Ref<Node>
     mouseDownInsideSelectionArea = false
-    _selected: Ref<boolean> = ref(false)
-    selectedFocus: Ref<boolean> = ref(false)
     vgsChart: Chart
     vdsChart: Chart
+    vgsHtmlSlider: HtmlSlider
+    vdsHtmlSlider: HtmlSlider
+    vgsSelected: Ref<boolean> = ref(false)
+    vdsSelected: Ref<boolean> = ref(false)
     static chartWidth = 200
     static chartHeight = 120
     static chartLocations = {
@@ -98,20 +100,31 @@ export class Mosfet extends Device{
 
         // maybe can be condensed down to one case
         if (this.mosfetType == 'nmos') {
-            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', vgsVisibility, canvasId)
-            this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', vdsVisibility, canvasId)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
+            this.vgs = new AngleSlider(this.transformations, Vs, Vg, 'toNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vgs', this.vgsSelected, vgsVisibility, canvasId)
+            this.vds = new AngleSlider(this.transformations, Vs, Vd, 'toNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vds', this.vdsSelected, vdsVisibility, canvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, this.vgsSelected, 'hidden', chartCanvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, this.vdsSelected, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: -60}, end: {x: -15, y: 60}}])
         }
         else {
-            this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', vgsVisibility, canvasId)
-            this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', vdsVisibility, canvasId)
-            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, 'hidden', chartCanvasId)
-            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, 'hidden', chartCanvasId)
+            this.vgs = new AngleSlider(this.transformations, Vg, Vs, 'fromNode', 10, 10, 60, toRadians(75), toRadians(70), true, 0, maxVgs, 'Vsg', this.vgsSelected, vgsVisibility, canvasId)
+            this.vds = new AngleSlider(this.transformations, Vd, Vs, 'fromNode', 30, 0, 75, toRadians(140), toRadians(80), false, 0, maxVds, 'Vsd', this.vdsSelected, vdsVisibility, canvasId)
+            this.vgsChart = new Chart(this.transformations, mosfetType, 'Vgs', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vg", "Current", "V", "A", 'linear', 'log', 200, 115, this.vgsSelected, 'hidden', chartCanvasId)
+            this.vdsChart = new Chart(this.transformations, mosfetType, 'Vds', Mosfet.chartLocations[chartLocation].x, Mosfet.chartLocations[chartLocation].y, Vg, Vs, Vd, Vb, gnd, 5, "Vd", "Saturation Level", "V", "%", 'linear', 'linear', 200, 115, this.vdsSelected, 'hidden', chartCanvasId)
             this.currentDots = new CurrentDots([{start: {x: -15, y: 60}, end: {x: -15, y: -60}}])
         }
+
+        this.vgsHtmlSlider = this.vgs.toHtmlSlider()
+        this.vdsHtmlSlider = this.vds.toHtmlSlider()
     }
+
+    get htmlSliders(): HtmlSlider[] {
+        return [
+            this.vgsHtmlSlider,
+            this.vdsHtmlSlider,
+        ]
+    }
+
 
     copy(parentTransformation: Ref<TransformationMatrix>, canvasId: canvasId = 'main'): Mosfet {
         const newMosfet = new Mosfet(
@@ -198,10 +211,8 @@ export class Mosfet extends Device{
         ctx.font = "14px sans-serif";
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, currentSuffix, true, true)
 
-        // if (this.selected.value && !this.isDuplicate) {
-            this.vgsChart.draw(ctx)
-            this.vdsChart.draw(ctx)
-        // }
+        this.vgsChart.draw(ctx)
+        this.vdsChart.draw(ctx)
 
         // draw mosfet angle sliders
         this.vgs.draw(ctx)
@@ -209,12 +220,12 @@ export class Mosfet extends Device{
     }
 
     toggleSelected() {
-        if (this.selected.value) {
-            this.selected.value = false
+        if (this.showCharts.value) {
+            this.showCharts.value = false
             this.vgsChart.visibility = 'hidden'
             this.vdsChart.visibility = 'hidden'
         } else {
-            this.selected.value = true
+            this.showCharts.value = true
             this.vgsChart.visibility = this.vgs.visibility
             this.vdsChart.visibility = this.vds.visibility
         }
@@ -228,20 +239,6 @@ export class Mosfet extends Device{
     }
     get forwardCurrent(): number { // in Amps
         return this.getMosfetForwardCurrent()
-    }
-
-    setMinAndMaxValue() {
-        if (this.mosfetType == 'pmos') {
-            this.vgs.minValue = this.Vs.value.voltage - vddVoltage
-            this.vds.minValue = this.Vs.value.voltage - vddVoltage
-            this.vgsChart.minValue = this.Vs.value.voltage - vddVoltage
-            this.vdsChart.minValue = this.Vs.value.voltage - vddVoltage
-        } else {
-            this.vgs.minValue = -this.Vs.value.voltage
-            this.vds.minValue = -this.Vs.value.voltage
-            this.vgsChart.minValue = -this.Vs.value.voltage
-            this.vdsChart.minValue = -this.Vs.value.voltage
-        }
     }
 
     getMosfetEkvResult(): { I: number, saturationLevel: number, IF: number } {

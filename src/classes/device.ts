@@ -1,16 +1,21 @@
-import { Point, canvasId } from "../types"
+import { DIRECTIONS, DeviceAdjacencyList, Named, Point, canvasId } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
-import { ref, Ref } from 'vue'
+import { ref, Ref, watch } from 'vue'
 import { getLineLength } from "../functions/drawFuncs"
 import { TectonicPoint } from "./tectonicPlate"
+import { HtmlSlider } from "./ctxSlider"
 
 export class Device extends CtxArtist{
+    order: number = 0
     isDuplicate: boolean = false
     mouseDownInsideSelectionArea = false
-    selected: Ref<boolean> = ref(false)
-    selectedFocus: Ref<boolean> = ref(false)
+    showCharts: Ref<boolean> = ref(false) // mainly a placeholder variable to keep track of whether mosfet charts are visible. Used in determining the positions of tectonic plates. Any number of devices can be 'showCharts' at any given time.
+    selected: Ref<boolean> = ref(false) // the device that currently has the focus after being clicked on most recently. Only one device ever has selected as true.
+    selectionChanged: Ref<boolean> = ref(false)
     boundingBox: TectonicPoint[]
+
+    adjacentDevices: DeviceAdjacencyList = {}
 
     constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), canvasId: canvasId = 'main') {
         super(parentTransformations, localTransformationMatrix, canvasId)
@@ -20,6 +25,15 @@ export class Device extends CtxArtist{
             new TectonicPoint(this.transformations, {x: 0, y: -120}),
             new TectonicPoint(this.transformations, {x: 0, y: 120}),
         ]
+        watch(this.selected, () => this.selectionChanged.value = true)
+    }
+
+    finishSetup() {
+        Object.keys(this.adjacentDevices).forEach((direction: string) => {
+            if (!(DIRECTIONS.includes(direction))) {
+                console.error("Adjacency direction must be one of " + String(DIRECTIONS) + " (inside of " + String(this.key) + ")")
+            }
+        })
     }
 
     checkSelectionArea(mousePosition: Point): boolean {
@@ -29,7 +43,7 @@ export class Device extends CtxArtist{
     }
 
     drawSelectedHalo(ctx: CanvasRenderingContext2D) {
-        if (this.selectedFocus.value && !this.isDuplicate) {
+        if (this.selected.value && !this.isDuplicate) {
             const backgroundGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 100)
             backgroundGradient.addColorStop(0, 'rgba(0, 0, 255, 0)')
             backgroundGradient.addColorStop(0.5, 'rgba(0, 0, 255, 0)')
@@ -38,6 +52,22 @@ export class Device extends CtxArtist{
             ctx.fillStyle = backgroundGradient
             ctx.arc(0, 0, 200, 0, 2 * Math.PI)
             ctx.fill()
+        }
+    }
+
+    get htmlSliders(): HtmlSlider[] {
+        console.error("Getter function device.htmlSliders is a virtual function.")
+        return []
+    }
+
+    get namedHtmlSliders(): Named<HtmlSlider[]> {
+        return {
+            name: this.key,
+            selectionChanged: this.selectionChanged,
+            deviceType: 'other',
+            deviceSelected: this.selected,
+            adjacencyList: this.adjacentDevices,
+            value: this.htmlSliders,
         }
     }
 }

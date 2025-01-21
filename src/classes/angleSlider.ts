@@ -5,15 +5,15 @@ import { between, toRadians } from "../functions/extraMath"
 import { Node } from "./node"
 import { Ref } from "vue"
 import { CtxSlider } from "./ctxSlider"
+import { lastSelectionEvent } from "../globalState"
 
 export class AngleSlider extends CtxSlider{
     radius: number
     originalRadius: number
     endAngle: number
-    displayText: string
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, visibility: Visibility, canvasId: canvasId = 'main') {
-        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, drivenNode, minValue, maxValue, visibility, visibility, canvasId)
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number, CCW: boolean, minValue: number, maxValue: number, name: string, selected: Ref<boolean>, visibility: Visibility, canvasId: canvasId = 'main') {
+        super(parentTransformations, (new TransformationMatrix()).translate({x: centerX, y: centerY}).rotate(startAngle).mirror(false, CCW), fromNode, toNode, drivenNode, minValue, maxValue, selected, visibility, visibility, canvasId)
 
         this.radius = radius
         this.originalRadius = radius
@@ -33,28 +33,11 @@ export class AngleSlider extends CtxSlider{
             this.radius = this.originalRadius
         }
 
-        // draw slider path
-        ctx.strokeStyle = this.visibility == 'visible' ? 'orange' : 'lightgrey'
-        ctx.lineWidth = this.localLineThickness
-        ctx.beginPath()
-        ctx.arc(0, 0, this.radius, 0, this.endAngle, false)
+        if (this.selected.value && (lastSelectionEvent.value == 'keyboard' || lastSelectionEvent.value == 'htmlSlider')) {
+            this.drawSliderPath(ctx, 'blue', 2)
+        }
 
-        // switch head and tail if the min and max are negative valued
-        const headAngle = this.endAngle
-        const tailAngle = 0
-
-        // draw tail flourish on slider path
-        const tailSize = 7
-        ctx.moveTo((this.radius + tailSize) * Math.cos(tailAngle), (this.radius + tailSize) * Math.sin(tailAngle))
-        ctx.lineTo((this.radius - tailSize) * Math.cos(tailAngle), (this.radius - tailSize) * Math.sin(tailAngle))
-
-        // draw head flourish on slider path
-        const headSize = 7
-        const arrowAngle = toRadians(-5)
-        ctx.moveTo((this.radius + headSize) * Math.cos(headAngle + arrowAngle), (this.radius + headSize) * Math.sin(headAngle + arrowAngle))
-        ctx.lineTo((this.radius           ) * Math.cos(headAngle            ), (this.radius           ) * Math.sin(headAngle            ))
-        ctx.lineTo((this.radius - headSize) * Math.cos(headAngle + arrowAngle), (this.radius - headSize) * Math.sin(headAngle + arrowAngle))
-        ctx.stroke()
+        this.drawSliderPath(ctx, this.visibility == 'visible' ? 'orange' : 'lightgrey')
 
         if (this.dragging && this.preciseDragging) {
             // draw tick marks
@@ -97,6 +80,34 @@ export class AngleSlider extends CtxSlider{
         const nextLineLocation = this.fillTextGlobalReferenceFrame(ctx, textLocation, this.displayText, true, false, 18)
         ctx.font = '16px Arial'
         this.fillTextGlobalReferenceFrame(ctx, nextLineLocation, toSiPrefix(this.value, 'V', 3), true)
+    }
+
+    drawSliderPath(ctx: CanvasRenderingContext2D, sliderColor: string = 'orange', lineThicknessMultiplier: number = 1) {
+        // draw slider path
+        // ctx.strokeStyle = this.visibility == 'visible' ? 'orange' : 'lightgrey'
+        ctx.strokeStyle = sliderColor
+        ctx.lineWidth = this.localLineThickness * lineThicknessMultiplier
+        // ctx.lineCap = lineThicknessMultiplier > 1 ? 'square' : 'butt'
+        ctx.lineCap = 'round'
+        ctx.beginPath()
+        ctx.arc(0, 0, this.radius, 0, this.endAngle, false)
+
+        // switch head and tail if the min and max are negative valued
+        const headAngle = this.endAngle
+        const tailAngle = 0
+
+        // draw tail flourish on slider path
+        const tailSize = 7
+        ctx.moveTo((this.radius + tailSize) * Math.cos(tailAngle), (this.radius + tailSize) * Math.sin(tailAngle))
+        ctx.lineTo((this.radius - tailSize) * Math.cos(tailAngle), (this.radius - tailSize) * Math.sin(tailAngle))
+
+        // draw head flourish on slider path
+        const headSize = 7
+        const arrowAngle = toRadians(-5)
+        ctx.moveTo((this.radius + headSize) * Math.cos(headAngle + arrowAngle), (this.radius + headSize) * Math.sin(headAngle + arrowAngle))
+        ctx.lineTo((this.radius           ) * Math.cos(headAngle            ), (this.radius           ) * Math.sin(headAngle            ))
+        ctx.lineTo((this.radius - headSize) * Math.cos(headAngle + arrowAngle), (this.radius - headSize) * Math.sin(headAngle + arrowAngle))
+        ctx.stroke()
     }
 
     updateLocationBasedOnValue() {

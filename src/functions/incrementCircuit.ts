@@ -43,7 +43,7 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 10) => {
             voltageSource.vminus.value.netCurrent = 0
         }
         else {
-            console.log("Cannot solve voltage source not attached to GND or VDD")
+            console.error("Cannot solve voltage source not attached to GND or VDD")
         }
     }
 

@@ -1,11 +1,17 @@
 <template>
+  <div style="display: none; position: absolute; top: 10px; left: 500px;">
+    {{ lastSelectionEvent }}
+    Node Voltages:<br>
+    {{ JSON.stringify(Object.fromEntries(Object.entries(circuit.nodes).map((value: [string, Ref<NodeClass>]) => [value[0], toSiPrefix(value[1].value.voltage, "V", 3)])), null, 2) }}
+  </div>
+
   <div style="position: absolute; top: 10px; left: 10px;">
     <button @click.stop="showSideBar = !showSideBar">Menu</button>
   </div>
 
   <Transition>
     <div v-show="showSideBar" ref="sideBar"
-      style="display: flex; flex-direction: column; width: 250px; height: 100vh; padding: 10px; background-color: whitesmoke; position: absolute;">
+      style="display: flex; flex-direction: column; width: 250px; height: 95%; padding: 10px; background-color: whitesmoke; position: absolute; overflow: auto">
       <h3 style="text-align: center;">Circuits</h3>
       <div style="border: 1px solid grey;"></div>
       <button v-for="circuit in circuitsToChooseFrom" @click.prevent="setCircuit(circuit)"
@@ -56,12 +62,13 @@
           :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="chart"
         ></canvas>
-        <canvas
-          ref="graphBarMosfetCanvas"
-          @pointerdown="checkDrag"
-          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarMosfetCanvas.width}px; height: ${computedCanvasLayout.graphBarMosfetCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
-          class="mosfet"
-        ></canvas>
+
+        <div v-if="showGraphBar" :style="{maxWidth: computedCanvasLayout.graphBarChartCanvas.width, maxHeight: computedCanvasLayout.graphBarChartCanvas.height}">
+          <div :style="`border-color: blue; border-style: solid; border-width: ${computedCanvasLayout.borderWidth}px; overflow-y: auto; overflow-x: hidden; height: ${computedCanvasLayout.graphBarChartCanvas.height}px;`">
+            <AllVoltageSliders :html-sliders="circuit.htmlSliders"></AllVoltageSliders>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -74,13 +81,16 @@ import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarMosfetCanvasSize, graphBarChartCanvasSize } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent, lastMouseSelectionEvent } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
-import { VoltageSource } from '../classes/voltageSource'
-import { Mosfet } from '../classes/mosfet'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
 import { Circuit } from '../classes/circuit'
+import { Node as NodeClass } from '../classes/node'
+import { toSiPrefix } from '../functions/toSiPrefix'
+import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging'
+import AllVoltageSliders from './AllVoltageSliders.vue'
+import { Device } from '../classes/device'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -110,28 +120,15 @@ const computedCanvasLayout = computed(() => {
     height: (screenHeight.value - padding) / 2 - borderWidth
   }
 
-  const graphBarMosfetCanvas = xs.value ?
-  {
-    width: (screenWidth.value - padding) / 2 - borderWidth,
-    height: bottomGraphHeight
-  } :
-  {
-    width: sideGraphWidth,
-    height: (screenHeight.value - padding) / 2 - borderWidth
-  }
-
   return {
     mainCanvas,
     graphBarChartCanvas,
-    graphBarMosfetCanvas,
     borderWidth
   }
 })
 
 const canvas = ref<null | HTMLCanvasElement>(null)
 const ctx = ref<null | CanvasRenderingContext2D>(null)
-const graphBarMosfetCanvas = ref<null | HTMLCanvasElement>(null)
-const graphBarMosfetCtx = ref<null | CanvasRenderingContext2D>(null)
 const graphBarChartCanvas = ref<null | HTMLCanvasElement>(null)
 const graphBarChartCtx = ref<null | CanvasRenderingContext2D>(null)
 
@@ -156,7 +153,7 @@ const updateSlidersActive = () => {
 updateSlidersActive()
 
 if (!window.Worker) {
-  console.log('Your browser doesn\'t support web workers.');
+  console.error('Your browser doesn\'t support web workers.');
 }
 
 const worker = new Worker(new URL('../workers/incrementCircuitWorker.ts', import.meta.url), { type: 'module' })
@@ -191,22 +188,23 @@ const getMousePos = (event: PointerEvent) => {
 }
 
 const checkDrag = (event: PointerEvent) => {
+  lastSelectionEvent.value = 'canvas'
+  lastMouseSelectionEvent.value = 'canvas'
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {
-      slider.checkDrag({x: mouseX, y: mouseY}, event.button == 1)
+      slider.checkDrag({x: mouseX, y: mouseY}, eventInitiatesPreciseDragging(event))
+      if (slider.dragging) {
+        event.preventDefault()
+        slider.selected.value = true
+      }
     }
   })
 
   if (!circuit.value.anySlidersDragging) {
-    Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
-      if (mosfet.canvasId == (event.target as HTMLElement).className) {
-        mosfet.mouseDownInsideSelectionArea = mosfet.checkSelectionArea({x: mouseX, y: mouseY})
-      }
-    })
-    Object.values(circuit.value.devices.voltageSources).forEach((voltageSource: VoltageSource) => {
-      if (voltageSource.canvasId == (event.target as HTMLElement).className) {
-        voltageSource.mouseDownInsideSelectionArea = voltageSource.checkSelectionArea({x: mouseX, y: mouseY})
+    circuit.value.allDevices.forEach((device: Device) => {
+      if (device.canvasId == (event.target as HTMLElement).className) {
+        device.mouseDownInsideSelectionArea = device.checkSelectionArea({x: mouseX, y: mouseY})
       }
     })
   }
@@ -234,23 +232,22 @@ const mouseUp = (event: PointerEvent) => {
     circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
-        if (mosfet.selectedFocus.value) {
-          // mosfet.selected.value = !mosfet.selected.value
+        if (mosfet.selected.value) {
           mosfet.toggleSelected()
         }
-        mosfet.selectedFocus.value = true
+        mosfet.selected.value = true
         circuit.value.setSelectedDevice(mosfet)
       } else {
-        mosfet.selectedFocus.value = false // unselect everything when you click somewhere else
+        mosfet.selected.value = false // unselect everything when you click somewhere else
       }
       mosfet.mouseDownInsideSelectionArea = false
     })
     Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
       if (voltageSource.mouseDownInsideSelectionArea && voltageSource.checkSelectionArea({x: mouseX, y: mouseY})) {
-        voltageSource.selectedFocus.value = true
+        voltageSource.selected.value = true
         circuit.value.setSelectedDevice(voltageSource)
       } else {
-        voltageSource.selectedFocus.value = false // unselect everything when you click somewhere else
+        voltageSource.selected.value = false // unselect everything when you click somewhere else
       }
       voltageSource.mouseDownInsideSelectionArea = false
     })
@@ -262,6 +259,20 @@ const mouseUp = (event: PointerEvent) => {
 
   document.removeEventListener('pointermove', drag)
   document.removeEventListener('pointerup', mouseUp)
+}
+
+const onKeyDown = (event: KeyboardEvent) => {
+  if (['Tab', 'Enter', 'Up', 'ArrowUp', 'Down', 'ArrowDown'].includes(event.key)) {
+    lastSelectionEvent.value = 'keyboard'
+  }
+}
+
+const checkSelectedDevice = () => {
+  circuit.value.allDevices.forEach((device: Device) => {
+    if (device.selected.value) {
+      circuit.value.setSelectedDevice(device)
+    }
+  })
 }
 
 const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | CanvasRenderingContext2D>, myCanvasSize: Ref<{width: number, height: number}>): boolean => {
@@ -283,8 +294,9 @@ const setUpCtx = (myCanvas: Ref<null | HTMLCanvasElement>, myCtx: Ref<null | Can
 
 const draw = () => {
   if (!setUpCtx(canvas, ctx, canvasSize)) return
-  if (!setUpCtx(graphBarMosfetCanvas, graphBarMosfetCtx, graphBarMosfetCanvasSize)) return
   if (!setUpCtx(graphBarChartCanvas, graphBarChartCtx, graphBarChartCanvasSize)) return
+
+  checkSelectedDevice()
 
   const json = circuit.value.fixedNodeVoltagesToJson()
   worker.postMessage(json)
@@ -295,7 +307,6 @@ const draw = () => {
   // draw the graph bar canvases if active
   if (circuit.value.anyDevicesSelected && showSideBar) {
     CtxArtist.textTransformationMatrix.relativeScale = circuit.value.circuitCopy!.transformationMatrix.relativeScale / schematicScale
-    circuit.value.circuitCopy?.draw(graphBarMosfetCtx.value as CanvasRenderingContext2D)
     circuit.value.drawSelectedDeviceCharts(graphBarChartCtx.value as CanvasRenderingContext2D)
   }
 }
@@ -329,13 +340,11 @@ onMounted(() => {
     ctx.value = canvas.value.getContext('2d')
 
     document.addEventListener('click', handleClickOutside)
+    document.addEventListener('keydown', onKeyDown)
 
     draw()
     requestAnimationFrame(animate)
 
-  }
-  if (graphBarMosfetCanvas.value) {
-    graphBarMosfetCtx.value = graphBarMosfetCanvas.value.getContext('2d')
   }
   if (graphBarChartCanvas.value) {
     graphBarChartCtx.value = graphBarChartCanvas.value.getContext('2d')

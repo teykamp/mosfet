@@ -4,6 +4,17 @@ import { TectonicLine, TectonicPoint } from './classes/tectonicPlate';
 
 export type PublicInterface<T> = Pick<T, keyof T>;
 
+export type Named<T> = {
+  name: string,
+  selectionChanged: Ref<boolean>,
+  deviceSelected: Ref<boolean>,
+  deviceType: 'voltageSource' | 'mosfet' | 'other',
+  value: T,
+  adjacencyList: DeviceAdjacencyList,
+}
+
+export type DeviceAdjacencyList = { [direction: string]: string }
+
 export type Point = {
   x: number
   y: number
@@ -12,6 +23,21 @@ export type Point = {
 export type Visibility = 'hidden' | 'locked' | 'visible'
 
 export type canvasId = 'main' | 'mosfet' | 'chart'
+
+export type selectionEvent = 'canvas' | 'htmlSlider' | 'keyboard'
+export type mouseSelectionEvent = 'canvas' | 'htmlSlider'
+
+export const DIRECTIONS = ['up', 'down', 'left', 'right']
+export const keysToDirections: { [keyPress: string]: string } = {
+  'ArrowUp': 'up',
+  'ArrowDown': 'down',
+  'ArrowLeft': 'left',
+  'ArrowRight': 'right',
+  'Up': 'up',
+  'Down': 'down',
+  'Left': 'left',
+  'Right': 'right',
+}
 
 export type SchematicEffect = {
   node: Ref<Node>,

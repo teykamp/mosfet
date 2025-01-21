@@ -3,8 +3,9 @@ import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { between } from "../functions/extraMath"
 import { Node } from "./node"
-import { Ref } from "vue"
+import { ref, Ref, watch } from "vue"
 import { preciseSliderTickRange } from "../constants"
+// import { HtmlSlider } from "./htmlSlider"
 
 export class CtxSlider extends CtxArtist{
     visibility: Visibility
@@ -18,6 +19,9 @@ export class CtxSlider extends CtxArtist{
     value: number // a number between minValue and maxValue
     drivenNode: 'fromNode' | 'toNode'
     canvasId: canvasId
+    displayText: string = "sliderName"
+    selected: Ref<boolean> // TODO: selected and dragging essentially track the same thing; remove selected and make draggign a ref.
+    selectionChanged: Ref<boolean> = ref(false)
 
     preciseDragging: boolean = false
     temporaryMinValue: number
@@ -25,8 +29,7 @@ export class CtxSlider extends CtxArtist{
     previousValue: number
     valueRateOfChange: number = 0
 
-
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, originalVisibility: Visibility = 'visible', visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, selected: Ref<boolean>, originalVisibility: Visibility = 'visible', visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
         super(parentTransformations, localTransformationMatrix)
 
         this.originalVisibility = originalVisibility
@@ -38,9 +41,14 @@ export class CtxSlider extends CtxArtist{
         this.value = minValue
         this.temporaryMinValue = minValue
         this.temporaryMaxValue = maxValue
+        this.selected = selected
         this.previousValue = minValue
         this.drivenNode = drivenNode
         this.canvasId = canvasId
+
+        watch(this.selected, () => {
+            this.selectionChanged.value = true
+        })
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -55,12 +63,12 @@ export class CtxSlider extends CtxArtist{
 
     updateValueBasedOnMousePosition(localMousePosition: Point) {
         // to be implemented by child classes
-        throw new Error("updateValueBasedOnMousePosition is a virtual function on the CtxSlider class. (Received" + localMousePosition + ")")
+        throw new Error("updateValueBasedOnMousePosition is a virtual function on the CtxSlider class. (Received " + localMousePosition + ")")
     }
 
     mouseDownIntiatesDrag(localMousePosition: Point): Boolean {
         // to be implemented by child classes
-        throw new Error("mouseDownIntiatesDrag is a virtual function on the CtxSlider class. (Received" + localMousePosition + ")")
+        throw new Error("mouseDownIntiatesDrag is a virtual function on the CtxSlider class. (Received " + localMousePosition + ")")
     }
 
     updateValueBasedOnNodeVoltages() {
@@ -101,6 +109,7 @@ export class CtxSlider extends CtxArtist{
             this.updateLocationBasedOnValue()
             this.updateNodeVoltagesBasedOnValue()
             this.previousValue = this.value
+            this.react()
         }
     }
 
@@ -109,43 +118,48 @@ export class CtxSlider extends CtxArtist{
         this.temporaryMaxValue = this.maxValue
         this.preciseDragging = false
         this.dragging = false
+        // this.selected.value = false
         if (this.drivenNode == 'toNode') {
             this.toNode.value.fixed = false
         } else {
             this.fromNode.value.fixed = false
         }
+        this.react()
     }
 
     adjustPreciseSlider(timeDifference: number = 10) {
         if (this.dragging && this.preciseDragging) {
             if ((this.value >= this.maxValue) || (this.temporaryMaxValue > this.maxValue)) {
-                this.value = this.maxValue
+                this.value = between(this.minValue, this.maxValue, this.value)
                 this.temporaryMaxValue = this.maxValue
                 this.temporaryMinValue = this.maxValue - preciseSliderTickRange
                 this.valueRateOfChange = 0
             }
             else if ((this.value <= this.minValue) || (this.temporaryMinValue < this.minValue)) {
-                this.value = this.minValue
+                this.value = between(this.minValue, this.maxValue, this.value)
                 this.temporaryMinValue = this.minValue
                 this.temporaryMaxValue = this.minValue + preciseSliderTickRange
                 this.valueRateOfChange = 0
             }
             else {
-                this.temporaryMinValue += this.valueRateOfChange * (timeDifference / 1000) * 70
-                this.temporaryMaxValue += this.valueRateOfChange * (timeDifference / 1000) * 70
-                this.value += this.valueRateOfChange * (timeDifference / 1000) * 70
+                const valueChangeMagnitude = this.valueRateOfChange * (timeDifference / 1000) * 70
+                this.temporaryMinValue += valueChangeMagnitude
+                this.temporaryMaxValue += valueChangeMagnitude
+                this.value += valueChangeMagnitude
             }
+            this.react()
         }
     }
 
     checkDrag(mousePosition: Point, isPreciseDragging: boolean) {
         if (this.visibility != 'visible') {
-            return
+            return false
         }
 
         const transformedMousePos = this.transformationMatrix.inverse().transformPoint(mousePosition)
         if (this.mouseDownIntiatesDrag(transformedMousePos)) {
             this.dragging = true
+            // this.selected.value = true // handled in Diagram.vue, so we can call event.preventDefault()
         }
 
         if (this.dragging) {
@@ -161,6 +175,32 @@ export class CtxSlider extends CtxArtist{
                 this.temporaryMinValue = this.minValue
                 this.temporaryMaxValue = this.maxValue
             }
+            this.react()
         }
+    }
+
+    toHtmlSlider(): HtmlSlider {
+        const newHtmlSlider = new HtmlSlider(this.transformations, this.fromNode, this.toNode, this.drivenNode, this.minValue, this.maxValue, this.displayText, this.selected, this.visibility)
+        return newHtmlSlider
+    }
+}
+
+export class HtmlSlider extends CtxSlider{
+    name: string
+    tabIndex: Ref<number> = ref(-1)
+
+    constructor(transformations: Ref<TransformationMatrix>[], fromNode: Ref<Node>, toNode: Ref<Node>, drivenNode: 'fromNode' | 'toNode', minValue: number, maxValue: number, name: string, selected: Ref<boolean>, visibility: Visibility) {
+        super(transformations, new TransformationMatrix(), fromNode, toNode, drivenNode, minValue, maxValue, selected, visibility, visibility)
+        this.name = name
+    }
+
+    draw() {}
+
+    updateLocationBasedOnValue() {}
+
+    updateValueBasedOnMousePosition() {}
+
+    mouseDownIntiatesDrag(): Boolean {
+        return this.dragging // do not modify the existing state of the dragging property
     }
 }

@@ -3,8 +3,9 @@ import { TransformationMatrix } from "./transformationMatrix"
 import { GLOBAL_LINE_THICKNESS } from "../constants"
 import { computed, ComputedRef, ref, Ref } from "vue"
 import { foldl } from "../functions/extraMath"
+import { Watchable } from "./watchable"
 
-export class CtxArtist {
+export class CtxArtist extends Watchable {
     transformations: Ref<TransformationMatrix>[] = []
     anchorPoints: {[name: string]: Point} = {}
     _transformationMatrix: ComputedRef<TransformationMatrix>
@@ -16,6 +17,7 @@ export class CtxArtist {
     static allCtxArtists: CtxArtist[] = []
 
     constructor (parentTransformations: Ref<TransformationMatrix>[] = [], localTransformationMatrix: TransformationMatrix = new TransformationMatrix(), canvasId: canvasId = 'main') {
+        super()
         // this.transformations: [ ref(topLevelTM), ref(circuitTM), ref(mosfetTM), ref(angleSliderTM), ref(thisTM) ]
         // if you change the last element of this.transformations[this.transformations.length - 1], it will propagate down to all children
         parentTransformations.forEach(transformation => {this.transformations.push(transformation)}) // make a shallow copy of the array
@@ -36,7 +38,7 @@ export class CtxArtist {
 
     getAnchorPoint(name: string): Point {
         if (this.anchorPoints[name] == undefined) {
-            console.log("Cannot find anchor point", name, "on CtxArtist")
+            console.error("Cannot find anchor point", name, "on CtxArtist")
         }
         return CtxArtist.circuitTransformationMatrix.inverse().multiply(this.transformationMatrix).transformPoint(this.anchorPoints[name])
     }

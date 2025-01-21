@@ -53,12 +53,12 @@ export class Chart extends CtxSlider{
     yScale: number = 0
     boundingBox: TectonicPoint[]
 
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], mosfetType: 'nmos' | 'pmos', chartType: 'Vgs' | 'Vds', originX: number, originY: number, Vg: Ref<Node>, Vs: Ref<Node>, Vd: Ref<Node>, Vb: Ref<Node>, gnd: Ref<Node>, maxValue: number = 5, xAxisLabel: string = "x Var", yAxisLabel: string = "y Var", xUnit: string = "xUnit", yUnit: string = "yUnit", xScaleType: 'log' | 'linear' = 'linear', yScaleType: 'log' | 'linear' = 'log', width: number = 250, height: number = 200, selected: Ref<boolean>, visibility: Visibility = 'visible', canvasId: canvasId = 'main') {
         const fromNode = gnd
         const toNode = chartType == 'Vgs' ? Vg : Vd
         const drivenNode: 'fromNode' | 'toNode' = 'toNode'
 
-        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, 'hidden', visibility, canvasId)
+        super(parentTransformations, (new TransformationMatrix()).translate({x: originX, y: originY}), fromNode, toNode, drivenNode, 0, maxValue, selected, 'hidden', visibility, canvasId)
         if (this.transformationMatrix.isMirrored) {
             this.transformations[this.transformations.length - 1].value.mirror(true, false, true)
         }
@@ -70,6 +70,8 @@ export class Chart extends CtxSlider{
             this.transformations[this.transformations.length - 1].value.translate({x: -width / 2, y: -height}, true)
         }
         this.transformations[this.transformations.length - 1].value.translate({x: Chart.paddingL, y: Chart.paddingB}, true)
+
+        this.displayText = xAxisLabel
 
         this.points = []
         this.xAxisLabel = xAxisLabel // "←" + xAxisLabel + "→"
@@ -123,6 +125,7 @@ export class Chart extends CtxSlider{
             this.yScaleType,
             this.width,
             this.height,
+            this.selected,
             this.visibility,
             canvasId
         )

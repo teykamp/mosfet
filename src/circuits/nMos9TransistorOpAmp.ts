@@ -47,33 +47,33 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlatePmos: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return (circuit.devices.mosfets["M5"].selected.value || circuit.devices.mosfets["M6"].selected.value) ? {x: 0, y: circuit.devices.mosfets["M2"].selected.value ? -14 : -10} : {x: 0, y: -5}
+        return (circuit.devices.mosfets["M5"].showCharts.value || circuit.devices.mosfets["M6"].showCharts.value) ? {x: 0, y: circuit.devices.mosfets["M2"].showCharts.value ? -14 : -10} : {x: 0, y: -5}
         // return {x: 0, y: -10}
     }))
 
     const tectonicPlateOutput: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        let nChartsSelected = [circuit.devices.mosfets["M2"].selected.value, circuit.devices.mosfets["M5"].selected.value, circuit.devices.mosfets["M6"].selected.value, circuit.devices.mosfets["Mb"].selected.value, circuit.devices.mosfets["M7"].selected.value].filter(Boolean).length
-        if (nChartsSelected == 0) {
+        let nChartsShown = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
+        if (nChartsShown == 0) {
             return {x: 0, y: 0}
         }
-        if (nChartsSelected == 1) {
+        if (nChartsShown == 1) {
             return {x: 5, y: 0}
         }
-        if ((circuit.devices.mosfets["M5"].selected.value && circuit.devices.mosfets["M6"].selected.value) || (circuit.devices.mosfets["Mb"].selected.value && circuit.devices.mosfets["M7"].selected.value)) {
+        if ((circuit.devices.mosfets["M5"].showCharts.value && circuit.devices.mosfets["M6"].showCharts.value) || (circuit.devices.mosfets["Mb"].showCharts.value && circuit.devices.mosfets["M7"].showCharts.value)) {
             return {x: 10, y: 0}
         }
         return {x: 5, y: 0}
     }))
 
     const tectonicPlatePmosOutput: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
-        let nChartsSelected = [circuit.devices.mosfets["M2"].selected.value, circuit.devices.mosfets["M5"].selected.value, circuit.devices.mosfets["M6"].selected.value, circuit.devices.mosfets["Mb"].selected.value, circuit.devices.mosfets["M7"].selected.value].filter(Boolean).length
-        if (nChartsSelected == 0) {
+        let nChartsShown = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
+        if (nChartsShown == 0) {
             return {x: 0, y: 0}
         }
-        if (nChartsSelected == 1) {
+        if (nChartsShown == 1) {
             return {x: 5, y: 0}
         }
-        if ((circuit.devices.mosfets["M5"].selected.value && circuit.devices.mosfets["M6"].selected.value) || (circuit.devices.mosfets["Mb"].selected.value && circuit.devices.mosfets["M7"].selected.value)) {
+        if ((circuit.devices.mosfets["M5"].showCharts.value && circuit.devices.mosfets["M6"].showCharts.value) || (circuit.devices.mosfets["Mb"].showCharts.value && circuit.devices.mosfets["M7"].showCharts.value)) {
             return {x: 10, y: 0}
         }
         return {x: 5, y: 0}
@@ -85,24 +85,24 @@ const useNmos9TransistorOpAmp = () => {
     }))
 
     const tectonicPlateVout: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 8.5}, end: (circuit.devices.mosfets["M5"].selected.value || circuit.devices.mosfets["M6"].selected.value) ? {x: 0, y: circuit.devices.mosfets["M2"].selected.value ? -20 : -15} : {x: 0, y: -9}}],
+        return getPointAlongPath([{start: {x: 0, y: 8.5}, end: (circuit.devices.mosfets["M5"].showCharts.value || circuit.devices.mosfets["M6"].showCharts.value) ? {x: 0, y: circuit.devices.mosfets["M2"].showCharts.value ? -20 : -15} : {x: 0, y: -9}}],
             between(gndVoltage, vddVoltage, circuit.nodes["Vout"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 
     const tectonicPlateLowerCharts: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return (circuit.devices.mosfets["Mb"].selected.value || circuit.devices.mosfets["M7"].selected.value || circuit.devices.mosfets["M8"].selected.value) ? {x: 0, y: 2} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["Mb"].showCharts.value || circuit.devices.mosfets["M7"].showCharts.value || circuit.devices.mosfets["M8"].showCharts.value) ? {x: 0, y: 2} : {x: 0, y: 0}
     }))
     const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return (circuit.devices.mosfets["M1"].selected.value) ? {x: -8, y: 0} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["M1"].showCharts.value) ? {x: -8, y: 0} : {x: 0, y: 0}
     }))
     const tectonicPlateM3Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
-        return (circuit.devices.mosfets["M3"].selected.value) ? {x: -3, y: -4} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["M3"].showCharts.value) ? {x: -3, y: -4} : {x: 0, y: 0}
     }))
     const tectonicPlateM4Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmosOutput.transformations, computed(() => {
-        return (circuit.devices.mosfets["M4"].selected.value) ? {x: 2, y: -4} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["M4"].showCharts.value) ? {x: 2, y: -4} : {x: 0, y: 0}
     }))
     const tectonicPlateM8Chart: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
-        return (circuit.devices.mosfets["M8"].selected.value) ? {x: 2, y: 2} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["M8"].showCharts.value) ? {x: 2, y: 2} : {x: 0, y: 0}
     }))
 
 
@@ -433,6 +433,19 @@ const useNmos9TransistorOpAmp = () => {
             },
         ]
     )
+
+    circuit.devices.mosfets["Mb"].adjacentDevices =        { 'up': 'M1', 'down': 'Vb', 'left': '',   'right': 'Vb' }
+    circuit.devices.mosfets["M1"].adjacentDevices =        { 'up': 'M3', 'down': 'Mb', 'left': 'V1', 'right': 'M2' }
+    circuit.devices.mosfets["M2"].adjacentDevices =        { 'up': 'M5', 'down': 'Mb', 'left': 'M1', 'right': 'V2' }
+    circuit.devices.mosfets["M3"].adjacentDevices =        { 'up': '',   'down': 'M1', 'left': '',   'right': 'M4' }
+    circuit.devices.mosfets["M4"].adjacentDevices =        { 'up': '',   'down': 'M8', 'left': 'M3', 'right': ''   }
+    circuit.devices.mosfets["M5"].adjacentDevices =        { 'up': 'M3', 'down': 'M2', 'left': 'M3', 'right': 'M6' }
+    circuit.devices.mosfets["M6"].adjacentDevices =        { 'up': 'M4', 'down': 'M7', 'left': 'M5', 'right': 'M4' }
+    circuit.devices.mosfets["M7"].adjacentDevices =        { 'up': 'M6', 'down': '',   'left': 'V2', 'right': 'M8' }
+    circuit.devices.mosfets["M8"].adjacentDevices =        { 'up': 'M4', 'down': '',   'left': 'M7', 'right': ''   }
+    circuit.devices.voltageSources["Vb"].adjacentDevices = { 'up': 'Mb', 'down': '',   'left': 'Mb', 'right': 'M7' }
+    circuit.devices.voltageSources["V1"].adjacentDevices = { 'up': 'M1', 'down': 'Mb', 'left': '',   'right': 'M1' }
+    circuit.devices.voltageSources["V2"].adjacentDevices = { 'up': 'M2', 'down': 'Vb', 'left': 'M2', 'right': 'M7' }
 
     circuit.finishSetup()
     return circuit

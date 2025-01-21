@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vueuse/core": "^12.4.0",
     "fzero": "^0.2.4",
     "lru-cache": "^11.0.1",
     "mathjs": "^13.0.0",

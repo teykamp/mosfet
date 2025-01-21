@@ -47,13 +47,13 @@ const useNmosDiffPair = () => {
             }))
 
     const tectonicPlateMbChart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
-        return (circuit.devices.mosfets["Mb"].selected.value) ? {x: 5, y: 2} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["Mb"].showCharts.value) ? {x: 5, y: 2} : {x: 0, y: 0}
     }))
     const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
-        return (circuit.devices.mosfets["M1"].selected.value) ? {x: -8, y: 0} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["M1"].showCharts.value) ? {x: -8, y: 0} : {x: 0, y: 0}
     }))
     const tectonicPlateM2Chart: TectonicPlate = new TectonicPlate(tectonicPlateM2.transformations, computed(() => {
-        return (circuit.devices.mosfets["M2"].selected.value) ? {x: 8, y: 0} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["M2"].showCharts.value) ? {x: 8, y: 0} : {x: 0, y: 0}
     }))
 
     circuit.boundingBox = [
@@ -231,6 +231,13 @@ const useNmosDiffPair = () => {
             }
         ]
     )
+
+    circuit.devices.mosfets["M1"].adjacentDevices =        { 'up': '',   'down': 'Mb', 'left': 'V1', 'right': 'M2' }
+    circuit.devices.mosfets["Mb"].adjacentDevices =        { 'up': 'M1', 'down': 'Vb', 'left': '',   'right': 'Vb' }
+    circuit.devices.mosfets["M2"].adjacentDevices =        { 'up': '',   'down': 'Mb', 'left': 'M1', 'right': 'V2' }
+    circuit.devices.voltageSources["Vb"].adjacentDevices = { 'up': 'Mb', 'down': '',   'left': 'Mb', 'right': ''   }
+    circuit.devices.voltageSources["V1"].adjacentDevices = { 'up': 'M1', 'down': 'Mb', 'left': '',   'right': 'M1' }
+    circuit.devices.voltageSources["V2"].adjacentDevices = { 'up': 'M2', 'down': 'Vb', 'left': 'M2', 'right': ''   }
 
     circuit.finishSetup()
     return circuit

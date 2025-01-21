@@ -39,7 +39,7 @@ export const getPointAlongPath = (pathLines: Line[], percentage: number): Point 
         }
     }
     // this should never be triggered
-    console.log("Error finding point along path")
+    console.error("Error finding point along path")
     return {x: 0, y: 0}
 }
 

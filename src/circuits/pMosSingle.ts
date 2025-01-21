@@ -38,7 +38,7 @@ const usePmosSingle = () => {
         return {x: 0, y: 4}
     }))
     const tectonicPlateChart: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return (circuit.devices.mosfets["M1"].selected.value) ? {x: 7, y: 0} : {x: 0, y: 0}
+        return (circuit.devices.mosfets["M1"].showCharts.value) ? {x: 7, y: 0} : {x: 0, y: 0}
     }))
 
     circuit.boundingBox = [
@@ -117,6 +117,9 @@ const usePmosSingle = () => {
             },
         ]
     )
+
+    circuit.devices.mosfets["M1"].adjacentDevices =        { 'up': '', 'down': 'Vd', 'left': '', 'right': ''  }
+    circuit.devices.voltageSources["Vd"].adjacentDevices = {'up': 'M1', 'down': '',   'left': '', 'right': '' }
 
     circuit.finishSetup()
     return circuit
