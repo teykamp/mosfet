@@ -3,7 +3,7 @@
     <!-- :tabindex="sliderGroup.deviceType == 'voltageSource' ? -1 : 1" :class="{selected: sliderGroup.deviceSelected.value}" -->
     <div
       v-for="sliderGroup in htmlSliders"
-      style="border: 1px solid black"
+      style="border: 1px solid black; padding-bottom: 20px; border-radius: 10px; margin-bottom: 5px;"
       :tabindex="sliderGroup.deviceType == 'voltageSource' ? 1 : 1"
       :class="{ selected: sliderGroup.deviceSelected.value }"
       @focus="setDeviceSelected(sliderGroup)"

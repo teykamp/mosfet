@@ -47,7 +47,7 @@
       <canvas
         ref="canvas"
         @pointerdown="checkDrag"
-        :style="`border-color: blue; border-width: 2px; background-color: white; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px; touch-action: none`"
+        :style="`background-color: white; margin-right: 5px; border-radius: 10px; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px; touch-action: none`"
         class="main"
       ></canvas>
 
@@ -59,12 +59,12 @@
         <canvas
           ref="graphBarChartCanvas"
           @pointerdown="checkDrag"
-          :style="`border-color: blue; border-width: ${computedCanvasLayout.borderWidth}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
+          :style="`border-radius: 10px; margin-right: 5px;margin-top: 5px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="chart"
         ></canvas>
 
         <div v-if="showGraphBar" :style="{maxWidth: computedCanvasLayout.graphBarChartCanvas.width, maxHeight: computedCanvasLayout.graphBarChartCanvas.height}">
-          <div :style="`border-color: blue; border-style: solid; border-width: ${computedCanvasLayout.borderWidth}px; overflow-y: auto; overflow-x: hidden; height: ${computedCanvasLayout.graphBarChartCanvas.height}px;`">
+          <div :style="`margin-top: 5px; overflow-y: auto; overflow-x: hidden; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; border-radius: 10px; border: 1px solid black; padding: 5px;`">
             <AllVoltageSliders :html-sliders="circuit.htmlSliders"></AllVoltageSliders>
           </div>
         </div>
@@ -95,7 +95,7 @@ import { Device } from '../classes/device'
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
 const computedCanvasLayout = computed(() => {
-  const padding = 30
+  const padding = 40
   const bottomGraphHeight = screenHeight.value / 4
   const sideGraphWidth = screenWidth.value / 4
   const borderWidth = 2
@@ -107,12 +107,12 @@ const computedCanvasLayout = computed(() => {
   } :
   {
     width: showGraphBar.value ? screenWidth.value - padding - sideGraphWidth + 5 : screenWidth.value - padding,
-    height: screenHeight.value - padding
+    height: screenHeight.value - padding / 2 - 5
   }
 
   const graphBarChartCanvas = xs.value ?
   {
-    width: (screenWidth.value - padding) / 2 - borderWidth,
+    width: (screenWidth.value + 10) / 2 - borderWidth,
     height: bottomGraphHeight
   } :
   {
