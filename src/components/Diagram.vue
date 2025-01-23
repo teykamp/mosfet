@@ -59,7 +59,7 @@
         <canvas
           ref="graphBarChartCanvas"
           @pointerdown="checkDrag"
-          :style="`border-radius: 10px; margin-right: 5px;margin-top: 5px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
+          :style="`border-radius: 10px; margin-right: 5px; margin-top: ${xs ? 5 : 0}px; background-color: white; width: ${computedCanvasLayout.graphBarChartCanvas.width}px; height: ${computedCanvasLayout.graphBarChartCanvas.height}px; display: ${showGraphBar ? 'block' : 'none'}; touch-action: none`"
           class="chart"
         ></canvas>
 
