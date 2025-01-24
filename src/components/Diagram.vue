@@ -13,13 +13,15 @@
     <div v-show="showSideBar" ref="sideBar"
       style="display: flex; flex-direction: column; width: 250px; height: 95%; padding: 10px; background-color: whitesmoke; position: absolute; overflow: auto">
       <h3 style="text-align: center;">Circuits</h3>
-      <div style="border: 1px solid grey;"></div>
+      <div style="border: 1px solid grey; margin-bottom: 5px;"></div>
       <button v-for="circuit in circuitsToChooseFrom" @click.prevent="setCircuit(circuit)"
         :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`">{{
         circuit }}</button>
       <div style="border: 1px solid grey; margin-top: 20px; margin-bottom: 30px;"></div>
-      <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
-      <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
+      <button @click="showSettings = !showSettings">{{ showSettings ? 'Hide' : 'Show' }} Settings</button>
+      <div v-show="showSettings" style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
+        <p>Resolution</p>
+        <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
         <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
         <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" @click="updateSlidersActive()"/>
         <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
@@ -136,6 +138,7 @@ let previousTimestamp = 0
 
 const sideBar = ref<HTMLElement | null>(null)
 const showSideBar = ref(false)
+const showSettings = ref(false)
 const showGraphBar = ref(true)
 
 const handleClickOutside = (event: MouseEvent) => {
