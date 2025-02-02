@@ -261,6 +261,8 @@ export class Chart extends CtxSlider{
             this.yMax = Math.max(this.yMax, yVal)
         })
 
+        this.yMax = Math.max(this.yMax, 1e-14)
+
         if (this.memoize) {
             this.cacheAttempts += 1
             // console.log("cache hit ratio: ", (this.cacheHits / this.cacheAttempts).toFixed(5))
