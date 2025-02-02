@@ -1,7 +1,7 @@
 import { canvasId, Point, Visibility } from "../types"
 import { TransformationMatrix } from "./transformationMatrix"
 import { toSiPrefix } from "../functions/toSiPrefix"
-import { between, toRadians } from "../functions/extraMath"
+import { between, modulo, toRadians } from "../functions/extraMath"
 import { Node } from "./node"
 import { Ref } from "vue"
 import { CtxSlider } from "./ctxSlider"
@@ -121,8 +121,15 @@ export class AngleSlider extends CtxSlider{
 
     updateValueBasedOnMousePosition(localMousePosition: Point) {
         const mouseAngle = Math.atan2(localMousePosition.y, localMousePosition.x)
+        let percentValue = between(0, 1, mouseAngle / this.endAngle)
 
-        const percentValue = between(0, 1, mouseAngle / this.endAngle)
+        const angleGracePeriod = 0.5 // radians
+        if ((modulo(mouseAngle, 2 * Math.PI) > this.endAngle + angleGracePeriod) && (modulo(mouseAngle, 2 * Math.PI) < 2 * Math.PI - angleGracePeriod)) {
+            console.log("mouseAngle", modulo(mouseAngle, 2 * Math.PI))
+            console.log("endAngle", this.endAngle)
+            return
+        }
+
         this.value = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
         this.updateLocationBasedOnValue()
     }
