@@ -24,3 +24,5 @@ export const getCanvasSize = (myCtx: CanvasRenderingContext2D, myCanvasSize: Ref
         height: myCtx.canvas.clientHeight
     }
 }
+
+export const includeEarlyEffect = ref(false)

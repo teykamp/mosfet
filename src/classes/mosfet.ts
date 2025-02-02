@@ -270,7 +270,7 @@ export class Mosfet extends Device{
         // 100 % saturation -> 0   % maxGradientSize
         // 50  % saturation -> 50  % maxGradientSize
         // 0   % saturation -> 100 % maxGradientSize
-        return maxGradientSize * (1 - this.saturationLevel)
+        return maxGradientSize * between(0, 1, (1 - this.saturationLevel))
     }
 
     getForwardCurrentScaled(): number {

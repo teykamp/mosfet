@@ -1,4 +1,4 @@
-import { Named, Point } from "../types"
+import { incrementCircuitWorkerMessage, Named, Point } from "../types"
 import { CtxArtist } from "./ctxArtist"
 import { TransformationMatrix } from "./transformationMatrix"
 import { ref, Ref } from 'vue'
@@ -7,7 +7,7 @@ import { VoltageSource } from "./voltageSource"
 import { Mosfet } from "./mosfet"
 import { Node } from "./node"
 import { gndNodeId, schematicScale, vddNodeId } from "../constants"
-import { canvasSize } from '../globalState'
+import { canvasSize, includeEarlyEffect } from '../globalState'
 import { modulo } from "../functions/extraMath"
 import { drawCirclesFillSolid } from "../functions/drawFuncs"
 import { TectonicPlate, TectonicPoint } from "./tectonicPlate"
@@ -413,12 +413,13 @@ export class Circuit extends CtxArtist {
                 return [name, nodeRef.value.voltage]
             }
         ))
-        const json = JSON.stringify([this.name, nodeVoltages])
+        const message: incrementCircuitWorkerMessage = [this.name, nodeVoltages, {earlyEffect: includeEarlyEffect.value}]
+        const json = JSON.stringify(message)
         return json
     }
 
     nodeVoltagesFromJson(json: string) {
-        const parsedJson: [DefinedCircuits, {[key: string]: number}] = JSON.parse(json)
+        const parsedJson: incrementCircuitWorkerMessage = JSON.parse(json)
 
         // when switching circuits, the circuit incrementing worker may still be sending values for the previous circuit,
         // so we should ignore data unless it pertains to the circuit at hand.

@@ -1,6 +1,7 @@
 import { Ref } from 'vue'
 import { Node } from './classes/node'
 import { TectonicLine, TectonicPoint } from './classes/tectonicPlate';
+import { DefinedCircuits } from './circuits/circuits';
 
 export type PublicInterface<T> = Pick<T, keyof T>;
 
@@ -38,6 +39,12 @@ export const keysToDirections: { [keyPress: string]: string } = {
   'Left': 'left',
   'Right': 'right',
 }
+
+export type circuitParameters = {
+  earlyEffect: boolean,
+}
+
+export type incrementCircuitWorkerMessage = [DefinedCircuits, {[key: string]: number}, circuitParameters]
 
 export type SchematicEffect = {
   node: Ref<Node>,

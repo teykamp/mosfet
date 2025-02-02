@@ -25,6 +25,7 @@
         <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
         <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" @click="updateSlidersActive()"/>
         <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
+        <Switch label-up="On" label-down="Off" option="Early Effect" v-model="includeEarlyEffect" />
       </div>
       <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
     </div>
@@ -83,7 +84,7 @@ import { ref, onMounted, onBeforeUnmount, computed, type Ref } from 'vue'
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent, lastMouseSelectionEvent } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent, lastMouseSelectionEvent, includeEarlyEffect } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
