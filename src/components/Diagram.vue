@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef, onBeforeUnmount, computed, type Ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, type Ref } from 'vue'
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
@@ -93,6 +93,7 @@ import { toSiPrefix } from '../functions/toSiPrefix'
 import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPreciseDragging'
 import AllVoltageSliders from './AllVoltageSliders.vue'
 import { Device } from '../classes/device'
+import { circuit, circuitsToChooseFrom, currentCircuit } from '../globalCircuits'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -144,11 +145,6 @@ const showGraphBar = ref(true)
 const handleClickOutside = (event: MouseEvent) => {
   if (sideBar.value && !sideBar.value.contains(event.target as Node)) showSideBar.value = false
 }
-
-const currentCircuit = ref<DefinedCircuits>('nMosSingle')
-const circuitsToChooseFrom = Object.keys(circuits) as DefinedCircuits[]
-
-const circuit = shallowRef(circuits[currentCircuit.value])
 
 const updateSlidersActive = () => {
   Object.values(circuits).forEach((circuit: Circuit) => {circuit.setSlidersActive(slidersActive.value)})

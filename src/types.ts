@@ -68,3 +68,13 @@ export type Circle = {
   center: Point,
   outerDiameter: number,
 }
+
+export type TutorialData = {
+  title: string,
+  text: string,
+  location?: {
+    x: string,
+    y: string
+  },
+  reaction?: () => void,
+}
