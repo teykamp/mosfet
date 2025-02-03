@@ -120,17 +120,47 @@ export class AngleSlider extends CtxSlider{
     }
 
     updateValueBasedOnMousePosition(localMousePosition: Point) {
-        const mouseAngle = Math.atan2(localMousePosition.y, localMousePosition.x)
-        let percentValue = between(0, 1, mouseAngle / this.endAngle)
-
-        const angleGracePeriod = 0.5 // radians
-        if ((modulo(mouseAngle, 2 * Math.PI) > this.endAngle + angleGracePeriod) && (modulo(mouseAngle, 2 * Math.PI) < 2 * Math.PI - angleGracePeriod)) {
-            console.log("mouseAngle", modulo(mouseAngle, 2 * Math.PI))
-            console.log("endAngle", this.endAngle)
-            return
+        const mouseAngleIsWithinSliderAngle = (myAngle: number): boolean => {
+            const angleGracePeriod = 0.3 // radians
+            return (modulo(myAngle, 2 * Math.PI) < this.endAngle + angleGracePeriod) || (modulo(myAngle, 2 * Math.PI) > 2 * Math.PI - angleGracePeriod)
         }
 
-        this.value = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
+        let mouseAngle = Math.atan2(localMousePosition.y, localMousePosition.x)
+
+        if (!mouseAngleIsWithinSliderAngle(mouseAngle)) {
+            console.log("original mouse angle: ", mouseAngle)
+            mouseAngle = modulo(this.endAngle - mouseAngle - Math.PI, Math.PI)
+            console.log("switching angles once. New angle: ", mouseAngle)
+            if (!mouseAngleIsWithinSliderAngle(mouseAngle)) {
+                console.log("switching angles twice (failed)")
+                return
+            }
+        }
+
+        const percentValue = between(0, 1, mouseAngle / this.endAngle)
+
+        // const reduceFloatingNodeSliderBouncing = false // turn on and off easily in code. The downside is that it makes the sliders sluggish in low FPS browsers.
+
+        const mouseRadiusSquared = (localMousePosition.x) ** 2 + (localMousePosition.y) ** 2
+        const reduceFloatingNodeSliderBouncing = mouseRadiusSquared < 20 ** 2
+
+        if (reduceFloatingNodeSliderBouncing) {
+                    const targetValue = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
+                    const largestStepSize = Math.abs(this.maxValue - this.minValue) / 10
+                    // take a step in that direction
+                    if (Math.abs(targetValue - this.value) > largestStepSize) {
+                        if (targetValue - this.value > 0) {
+                            this.value += largestStepSize
+                        } else if (targetValue - this.value < 0) {
+                            this.value -= largestStepSize
+                        }
+                    } else {
+                        this.value = targetValue
+                    }
+        } else {
+            this.value = percentValue * (this.temporaryMaxValue - this.temporaryMinValue) + this.temporaryMinValue
+        }
+
         this.updateLocationBasedOnValue()
     }
 
