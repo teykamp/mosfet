@@ -5,6 +5,23 @@
     {{ JSON.stringify(Object.fromEntries(Object.entries(circuit.nodes).map((value: [string, Ref<NodeClass>]) => [value[0], toSiPrefix(value[1].value.voltage, "V", 3)])), null, 2) }}
   </div>
 
+  <div v-show="showContextMenu" :style="`left: ${contextMenuLocation.x}px; top: ${contextMenuLocation.y}px; position: absolute;`">
+    <ContextMenu :menu-options="[
+      {
+        name: 'Abra',
+        action: () => {console.log('Abra')},
+      },
+      {
+        name: 'Kadabra',
+        action: () => {console.log('Kadabra')},
+      },
+      {
+        name: 'Alakazam',
+        action: () => {console.log('Alakazam')},
+      },
+      ]"></ContextMenu>
+  </div>
+
   <div style="position: absolute; top: 10px; left: 10px;">
     <button @click.stop="showSideBar = !showSideBar">Menu</button>
   </div>
@@ -47,12 +64,13 @@
       display: 'flex',
       flexDirection: xs ? 'column' : 'row',
     }">
-      <canvas
-        ref="canvas"
-        @pointerdown="checkDrag"
-        :style="`background-color: white; margin-right: 5px; border-radius: 10px; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px; touch-action: none`"
-        class="main"
-      ></canvas>
+    <canvas
+      ref="canvas"
+      @pointerdown="checkDrag"
+      @contextmenu.prevent="checkContextMenu"
+      :style="`background-color: white; margin-right: 5px; border-radius: 10px; width: ${computedCanvasLayout.mainCanvas.width}px; height: ${computedCanvasLayout.mainCanvas.height}px; touch-action: none`"
+      class="main"
+    ></canvas>
 
       <div
       :style="{
@@ -95,6 +113,8 @@ import { eventInitiatesPreciseDragging } from '../functions/eventInitiatesPrecis
 import AllVoltageSliders from './AllVoltageSliders.vue'
 import { Device } from '../classes/device'
 import { circuit, circuitsToChooseFrom, currentCircuit } from '../globalCircuits'
+import ContextMenu from './ContextMenu.vue'
+import { Point } from '../types'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -178,7 +198,7 @@ const updateNodeVoltagesBasedOnSliders = () => {
   })
 }
 
-const getMousePos = (event: PointerEvent) => {
+const getMousePos = (event: PointerEvent | MouseEvent) => {
   const myCanvas = event.target as HTMLCanvasElement
   if (!myCanvas) return { mouseX: 0, mouseY: 0 }
   const rect = myCanvas.getBoundingClientRect()
@@ -187,9 +207,35 @@ const getMousePos = (event: PointerEvent) => {
   return { mouseX, mouseY }
 }
 
+const showContextMenu = ref(false)
+const contextMenuLocation: Ref<Point> = ref({x: 0, y: 0})
+
+const checkContextMenu = (event: MouseEvent) => {
+  const { mouseX, mouseY } = getMousePos(event)
+  contextMenuLocation.value = {x: event.clientX, y: event.clientY}
+
+  event.preventDefault()
+  Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
+    if (mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
+      console.log(contextMenuLocation.value)
+        showContextMenu.value = true
+      }
+    })
+    Object.values(circuit.value.devices.voltageSources).forEach(voltageSource => {
+      if (voltageSource.checkSelectionArea({x: mouseX, y: mouseY})) {
+        // pass
+      }
+    })
+
+}
+
 const checkDrag = (event: PointerEvent) => {
   lastSelectionEvent.value = 'canvas'
   lastMouseSelectionEvent.value = 'canvas'
+  showContextMenu.value = false
+  if (event.button == 2) { // right click
+    return
+  }
   const { mouseX, mouseY } = getMousePos(event)
   circuit.value.allSliders.forEach(slider => {
     if (slider.canvasId == (event.target as HTMLElement).className) {

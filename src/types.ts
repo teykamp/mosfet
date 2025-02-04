@@ -40,6 +40,11 @@ export const keysToDirections: { [keyPress: string]: string } = {
   'Right': 'right',
 }
 
+export type contextMenuOption = {
+  name: string,
+  action: () => void
+}
+
 export type circuitParameters = {
   earlyEffect: boolean,
 }
