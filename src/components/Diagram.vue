@@ -6,20 +6,7 @@
   </div>
 
   <div v-show="showContextMenu" :style="`left: ${contextMenuLocation.x}px; top: ${contextMenuLocation.y}px; position: absolute;`">
-    <ContextMenu :menu-options="[
-      {
-        name: 'Abra',
-        action: () => {console.log('Abra')},
-      },
-      {
-        name: 'Kadabra',
-        action: () => {console.log('Kadabra')},
-      },
-      {
-        name: 'Alakazam',
-        action: () => {console.log('Alakazam')},
-      },
-      ]"></ContextMenu>
+    <ContextMenu :menu-options="contextMenuOptions"></ContextMenu>
   </div>
 
   <div style="position: absolute; top: 10px; left: 10px;">
@@ -114,7 +101,7 @@ import AllVoltageSliders from './AllVoltageSliders.vue'
 import { Device } from '../classes/device'
 import { circuit, circuitsToChooseFrom, currentCircuit } from '../globalCircuits'
 import ContextMenu from './ContextMenu.vue'
-import { Point } from '../types'
+import { contextMenuOption, Point } from '../types'
 
 const { screenHeight, screenWidth, xs } = useBreakpoints()
 
@@ -209,6 +196,7 @@ const getMousePos = (event: PointerEvent | MouseEvent) => {
 
 const showContextMenu = ref(false)
 const contextMenuLocation: Ref<Point> = ref({x: 0, y: 0})
+const contextMenuOptions: Ref<contextMenuOption[]> = ref([])
 
 const checkContextMenu = (event: MouseEvent) => {
   const { mouseX, mouseY } = getMousePos(event)
@@ -217,7 +205,16 @@ const checkContextMenu = (event: MouseEvent) => {
   event.preventDefault()
   Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
     if (mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
-      console.log(contextMenuLocation.value)
+        contextMenuOptions.value = [
+          {
+            name: mosfet.showCharts.value ? "hide charts" : "show charts",
+            action: () => {
+              mosfet.toggleSelected()
+              showContextMenu.value = false
+            }
+          }
+        ]
+        console.log(mosfet.showCharts.value)
         showContextMenu.value = true
       }
     })
@@ -278,9 +275,9 @@ const mouseUp = (event: PointerEvent) => {
     circuit.value.resetSelectedDevice()
     Object.values(circuit.value.devices.mosfets).forEach(mosfet => {
       if (mosfet.mouseDownInsideSelectionArea && mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
-        if (mosfet.selected.value) {
-          mosfet.toggleSelected()
-        }
+        // if (mosfet.selected.value) {
+        //   mosfet.toggleSelected()
+        // }
         mosfet.selected.value = true
         circuit.value.setSelectedDevice(mosfet)
       } else {
