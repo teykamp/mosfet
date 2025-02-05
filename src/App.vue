@@ -4,7 +4,7 @@
     <Tutorial v-if="firstTimeLoad" :data="tutorialData[tutorialStep]" :setTutorialStep="setTutorialStep" />
     <button
       @click="resetTutorial"
-      style="position: absolute; bottom: 5px; left: 5px;"
+      :style="`position: absolute; bottom: 5px; left: ${showSideBar ? 285 : 5}px;`"
     >?</button>
   </div>
 </template>
@@ -14,6 +14,7 @@ import Diagram from './components/Diagram.vue'
 import Tutorial from './components/Tutorial.vue'
 import { ref } from 'vue'
 import { tutorialData } from './tutorialData'
+import { showSideBar } from './globalState'
 
 const tutorialStep = ref(1)
 

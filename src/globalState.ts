@@ -1,12 +1,13 @@
 import { Ref, ref } from "vue"
 import { mouseSelectionEvent, selectionEvent } from "./types"
 
-export const moveNodesInResponseToCircuitState = ref(true)
+export const moveNodesInResponseToCircuitState = ref(false)
 export const drawGrid = ref(false)
-export const slidersActive = ref(true)
+export const slidersActive = ref(false)
 export const canvasDpi = ref(2)
 export const lastSelectionEvent: Ref<selectionEvent> = ref('canvas')
 export const lastMouseSelectionEvent: Ref<mouseSelectionEvent> = ref('canvas')
+export const showSideBar = ref(false)
 
 export const canvasSize = ref({
     width: 1,

@@ -22,16 +22,19 @@
         :style="`margin-bottom: 10px; background-color: ${circuit === currentCircuit ? 'rgb(200, 200, 200)' : ''};`">{{
         circuit }}</button>
       <div style="border: 1px solid grey; margin-top: 20px; margin-bottom: 30px;"></div>
-      <button @click="showSettings = !showSettings">{{ showSettings ? 'Hide' : 'Show' }} Settings</button>
+      <button @click="showSettings = !showSettings">{{ showSettings ? 'Hide Settings' : 'Show Settings' }}</button>
       <div v-show="showSettings" style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
-        <p>Resolution</p>
-        <input type="range" min="1" max="5" step="1" v-model="canvasDpi">
-        <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
-        <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" @click="updateSlidersActive()"/>
-        <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
         <Switch label-up="On" label-down="Off" option="Early Effect" v-model="includeEarlyEffect" />
+        <Switch label-up="Free" label-down="Locked" option="Extra Sliders" v-model="slidersActive" @click="updateSlidersActive()"/>
+        <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
+        <Switch label-up="On" label-down="Off" option="Draw Grid (dev only)" v-model="drawGrid" />
+        <div style="display: flex; padding-top: 10px; padding-bottom: 10px;">
+          <span style="padding-right: 5px;">Grainy</span>
+          <input style="width: 75%;" type="range" min="1" max="5" step="1" v-model="canvasDpi">
+          <span style="padding-left: 5px;">Crisp</span>
+        </div>
       </div>
-      <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
+      <!-- <button @click="showSideBar = false" style="position: relative; bottom: 40px; right: 15px;">Close</button> -->
     </div>
   </Transition>
 
@@ -89,7 +92,7 @@ import { ref, onMounted, onBeforeUnmount, computed, type Ref } from 'vue'
 import { circuits, DefinedCircuits } from '../circuits/circuits'
 import { CtxSlider } from '../classes/ctxSlider'
 import Switch from './Switch.vue'
-import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent, lastMouseSelectionEvent, includeEarlyEffect } from '../globalState'
+import { moveNodesInResponseToCircuitState, drawGrid, slidersActive, canvasDpi, getCanvasSize, canvasSize, graphBarChartCanvasSize, lastSelectionEvent, lastMouseSelectionEvent, includeEarlyEffect, showSideBar } from '../globalState'
 import useBreakpoints from '../composables/useBreakpoints'
 import { CtxArtist } from '../classes/ctxArtist'
 import { schematicScale } from '../constants'
@@ -146,7 +149,6 @@ const graphBarChartCtx = ref<null | CanvasRenderingContext2D>(null)
 let previousTimestamp = 0
 
 const sideBar = ref<HTMLElement | null>(null)
-const showSideBar = ref(false)
 const showSettings = ref(false)
 const showGraphBar = ref(true)
 
