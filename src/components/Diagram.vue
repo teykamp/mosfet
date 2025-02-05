@@ -207,14 +207,13 @@ const checkContextMenu = (event: MouseEvent) => {
     if (mosfet.checkSelectionArea({x: mouseX, y: mouseY})) {
         contextMenuOptions.value = [
           {
-            name: mosfet.showCharts.value ? "hide charts" : "show charts",
+            name: mosfet.showCharts.value ? "Hide IV Characteristics" : "Show IV Characteristics",
             action: () => {
               mosfet.toggleSelected()
               showContextMenu.value = false
             }
           }
         ]
-        console.log(mosfet.showCharts.value)
         showContextMenu.value = true
       }
     })

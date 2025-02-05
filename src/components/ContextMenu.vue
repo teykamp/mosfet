@@ -25,19 +25,21 @@ import { contextMenuOption } from '../types';
 <style scoped>
 
 .menu {
-    background-color: blue;
-    padding: 5px;
+    background-color: whitesmoke;
+    padding: 4px;
+    border-radius: 5px;
     width: max-content;
 }
 
 .menuOption {
     background-color: lightgray;
-    border: 1px solid black;
+    padding: 5px;
+    border-radius: 5px;
     display: block;
 }
 
 .hovered {
-    background-color: red;
+    background-color: rgb(180, 180, 180);
 }
 
 .preventSelect {
