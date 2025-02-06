@@ -144,12 +144,14 @@ export class Circuit extends CtxArtist {
         this.setScaleBasedOnBoundingBox(ctx)
         this.transformationMatrix.transformCanvas(ctx)
 
-        if (moveNodesInResponseToCircuitState.value) {
-            if (!this.anySlidersDragging || this.moveTectonicPlatesWhileDragging) {
-                TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardDesiredLocation()})
-            }
-        } else {
-            TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {tectonicPlate.moveTowardLocation({x: 0, y: 0})})
+        if (!this.anySlidersDragging || this.moveTectonicPlatesWhileDragging) {
+            TectonicPlate.allTectonicPlates.forEach((tectonicPlate: TectonicPlate) => {
+                if (tectonicPlate.locationIsFunctionOfChartVisibility || moveNodesInResponseToCircuitState.value) {
+                    tectonicPlate.moveTowardDesiredLocation()
+                } else {
+                    tectonicPlate.moveTowardHomeLocation()
+                }
+            })
         }
 
         this.schematic.draw(ctx)

@@ -45,6 +45,7 @@ export class Mosfet extends Device{
         "voltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 0},
         "lowerVoltageSource": {x: Mosfet.chartWidth / 2 + 240, y: 100},
         "mirrorDriver": {x: Mosfet.chartWidth / 2 + 110, y: -this.chartHeight - 20},
+        "mirrorReceiver": {x: Mosfet.chartWidth / 2 + 50, y: -this.chartHeight - 20},
         "deviceOrigin": {x: 0, y: 0},
     }
 

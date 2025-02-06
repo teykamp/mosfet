@@ -7,16 +7,24 @@ import { getLineLength, getPointAlongLine } from "../functions/drawFuncs"
 export class TectonicPlate extends CtxArtist {
     static allTectonicPlates: TectonicPlate[] = []
     currentLocation: Point = {x: 0, y: 0}
+    homeLocation: ComputedRef<Point>
     desiredLocation: ComputedRef<Point>
-    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], desiredLocation: ComputedRef<Point> = computed(() => {return {x: 0, y: 0}}), anchorPoints: {[name: string]: Point} = {}) {
+    locationIsFunctionOfChartVisibility: boolean
+    constructor(parentTransformations: Ref<TransformationMatrix>[] = [], desiredLocation: ComputedRef<Point> = computed(() => {return {x: 0, y: 0}}), locationIsFunctionOfChartVisibility: boolean = false, homeLocation: ComputedRef<Point> = computed(() => {return {x: 0, y: 0}}), anchorPoints: {[name: string]: Point} = {}) {
         super(parentTransformations, new TransformationMatrix())
         this.desiredLocation = desiredLocation
+        this.locationIsFunctionOfChartVisibility = locationIsFunctionOfChartVisibility
+        this.homeLocation = homeLocation
         this.anchorPoints = anchorPoints
         TectonicPlate.allTectonicPlates.push(this)
     }
 
     moveTowardDesiredLocation() {
         this.moveTowardLocation(this.desiredLocation.value)
+    }
+
+    moveTowardHomeLocation() {
+        this.moveTowardLocation(this.homeLocation.value)
     }
 
     moveTowardLocation(desiredLocation: Point) {

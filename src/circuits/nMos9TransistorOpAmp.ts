@@ -10,6 +10,7 @@ import { TectonicLine, TectonicPlate, TectonicPoint } from '../classes/tectonicP
 import { getPointAlongPath } from '../functions/drawFuncs'
 import { between } from '../functions/extraMath'
 import { GndSymbol, VddSymbol } from '../classes/powerSymbols'
+import { moveNodesInResponseToCircuitState } from '../globalState'
 
 
 const useNmos9TransistorOpAmp = () => {
@@ -46,10 +47,24 @@ const useNmos9TransistorOpAmp = () => {
             between(gndVoltage, vddVoltage, Math.max(circuit.nodes["M2_gate"].value.voltage, circuit.nodes["Vnode"].value.voltage)) / (vddVoltage - gndVoltage))
     }))
 
-    const tectonicPlatePmos: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
-        return (circuit.devices.mosfets["M5"].showCharts.value || circuit.devices.mosfets["M6"].showCharts.value) ? {x: 0, y: circuit.devices.mosfets["M2"].showCharts.value ? -14 : -10} : {x: 0, y: -5}
-        // return {x: 0, y: -10}
+    const tectonicPlateMaxM1M2: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
+        return {x: 0, y: -3}
     }))
+
+    const tectonicPlatePmos: TectonicPlate = new TectonicPlate(tectonicPlateMaxM1M2.transformations, computed(() => {
+        let y_offset = 0
+        if (circuit.devices.mosfets["M5"].showCharts.value || circuit.devices.mosfets["M6"].showCharts.value) {
+            if (circuit.devices.mosfets["M2"].showCharts.value) {
+                y_offset = -7
+            } else {
+                y_offset = -4
+            }
+        }
+        if (moveNodesInResponseToCircuitState.value) {
+            y_offset -= 3
+        }
+        return {x: 0, y: y_offset}
+    }), true)
 
     const tectonicPlateOutput: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
         let nChartsShown = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
@@ -59,25 +74,18 @@ const useNmos9TransistorOpAmp = () => {
         if (nChartsShown == 1) {
             return {x: 5, y: 0}
         }
-        if ((circuit.devices.mosfets["M5"].showCharts.value && circuit.devices.mosfets["M6"].showCharts.value) || (circuit.devices.mosfets["Mb"].showCharts.value && circuit.devices.mosfets["M7"].showCharts.value)) {
+        if (circuit.devices.mosfets["Mb"].showCharts.value && circuit.devices.mosfets["M7"].showCharts.value) {
             return {x: 10, y: 0}
         }
+        if (circuit.devices.mosfets["M5"].showCharts.value && circuit.devices.mosfets["M6"].showCharts.value) {
+            return {x: 8, y: 0}
+        }
         return {x: 5, y: 0}
-    }))
+    }), true)
 
     const tectonicPlatePmosOutput: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
-        let nChartsShown = [circuit.devices.mosfets["M2"].showCharts.value, circuit.devices.mosfets["M5"].showCharts.value, circuit.devices.mosfets["M6"].showCharts.value, circuit.devices.mosfets["Mb"].showCharts.value, circuit.devices.mosfets["M7"].showCharts.value].filter(Boolean).length
-        if (nChartsShown == 0) {
-            return {x: 0, y: 0}
-        }
-        if (nChartsShown == 1) {
-            return {x: 5, y: 0}
-        }
-        if ((circuit.devices.mosfets["M5"].showCharts.value && circuit.devices.mosfets["M6"].showCharts.value) || (circuit.devices.mosfets["Mb"].showCharts.value && circuit.devices.mosfets["M7"].showCharts.value)) {
-            return {x: 10, y: 0}
-        }
-        return {x: 5, y: 0}
-    }))
+        return tectonicPlateOutput.desiredLocation.value
+    }), true)
 
     const tectonicPlateVnode: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
         return getPointAlongPath([{start: {x: 0, y: 0}, end: {x: 0, y: -8}}],
@@ -91,19 +99,19 @@ const useNmos9TransistorOpAmp = () => {
 
     const tectonicPlateLowerCharts: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
         return (circuit.devices.mosfets["Mb"].showCharts.value || circuit.devices.mosfets["M7"].showCharts.value || circuit.devices.mosfets["M8"].showCharts.value) ? {x: 0, y: 2} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
         return (circuit.devices.mosfets["M1"].showCharts.value) ? {x: -8, y: 0} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM3Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
         return (circuit.devices.mosfets["M3"].showCharts.value) ? {x: -3, y: -4} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM4Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmosOutput.transformations, computed(() => {
         return (circuit.devices.mosfets["M4"].showCharts.value) ? {x: 2, y: -4} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM8Chart: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
         return (circuit.devices.mosfets["M8"].showCharts.value) ? {x: 2, y: 2} : {x: 0, y: 0}
-    }))
+    }), true)
 
 
     circuit.boundingBox = [
@@ -236,7 +244,7 @@ const useNmos9TransistorOpAmp = () => {
             true,
             'locked',
             'locked',
-            'mirrorDriver'
+            'mirrorReceiver'
         ),
         "M7": new Mosfet(
             tectonicPlateOutput.transformations,
