@@ -39,7 +39,7 @@ const useNmosSingle = () => {
     }))
     const tectonicPlateChart: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
         return (circuit.devices.mosfets["M1"].showCharts.value) ? {x: 7, y: 0} : {x: 0, y: 0}
-    }))
+    }), true)
 
     circuit.boundingBox = [
         new TectonicPoint(tectonicPlateVdd.transformations, {x: -5, y: -12}),

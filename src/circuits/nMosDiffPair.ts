@@ -48,18 +48,19 @@ const useNmosDiffPair = () => {
 
     const tectonicPlateMbChart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
         return (circuit.devices.mosfets["Mb"].showCharts.value) ? {x: 5, y: 2} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
         return (circuit.devices.mosfets["M1"].showCharts.value) ? {x: -8, y: 0} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM2Chart: TectonicPlate = new TectonicPlate(tectonicPlateM2.transformations, computed(() => {
         return (circuit.devices.mosfets["M2"].showCharts.value) ? {x: 8, y: 0} : {x: 0, y: 0}
-    }))
+    }), true)
 
     circuit.boundingBox = [
         new TectonicPoint(tectonicPlateM1Chart.transformations, {x: -11, y: -6}),
         new TectonicPoint(tectonicPlateM2Chart.transformations, {x: 11, y: -6}),
-        new TectonicPoint(circuit.transformations, {x: -11, y: 13}),
+        new TectonicPoint(circuit.transformations, {x: -12, y: 13}),
+        new TectonicPoint(circuit.transformations, {x: 12, y: 13}),
         new TectonicPoint(tectonicPlateMbChart.transformations, {x: 11, y: 13}),
     ]
 

@@ -59,19 +59,19 @@ const useNmos5TransistorOpAmp = (): Circuit => {
 
     const tectonicPlateMbChart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
         return (circuit.devices.mosfets["Mb"].showCharts.value) ? {x: 5, y: 2} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM1Chart: TectonicPlate = new TectonicPlate(tectonicPlateM1.transformations, computed(() => {
         return (circuit.devices.mosfets["M1"].showCharts.value) ? {x: -8, y: 0} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM2Chart: TectonicPlate = new TectonicPlate(tectonicPlateM2.transformations, computed(() => {
         return (circuit.devices.mosfets["M2"].showCharts.value) ? {x: 8, y: 0} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM3Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
         return (circuit.devices.mosfets["M3"].showCharts.value) ? {x: -3, y: -3} : {x: 0, y: 0}
-    }))
+    }), true)
     const tectonicPlateM4Chart: TectonicPlate = new TectonicPlate(tectonicPlatePmos.transformations, computed(() => {
         return (circuit.devices.mosfets["M4"].showCharts.value) ? {x: 3, y: -3} : {x: 0, y: 0}
-    }))
+    }), true)
 
 
 
