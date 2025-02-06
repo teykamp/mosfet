@@ -92,9 +92,17 @@ const useNmos9TransistorOpAmp = () => {
             between(gndVoltage, vddVoltage, circuit.nodes["Vnode"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 
-    const tectonicPlateVout: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
-        return getPointAlongPath([{start: {x: 0, y: 8.5}, end: (circuit.devices.mosfets["M5"].showCharts.value || circuit.devices.mosfets["M6"].showCharts.value) ? {x: 0, y: circuit.devices.mosfets["M2"].showCharts.value ? -20 : -15} : {x: 0, y: -9}}],
+    const tectonicPlateVoutMidpoint: TectonicPlate = new TectonicPlate(tectonicPlateOutput.transformations, computed(() => {
+        return {x: 0, y: (tectonicPlatePmos.desiredLocation.value.y - tectonicPlateOutput.desiredLocation.value.y) / 2}
+    }), true)
+
+    const tectonicPlateVout: TectonicPlate = new TectonicPlate(tectonicPlateVoutMidpoint.transformations, computed(() => {
+        const outputNodeHeight = -(tectonicPlatePmos.desiredLocation.value.y - tectonicPlateOutput.desiredLocation.value.y)
+        console.log(outputNodeHeight)
+        return getPointAlongPath([{start: {x: 0, y: 7 + outputNodeHeight / 2}, end: {x: 0, y: -10 - outputNodeHeight / 2}}],
             between(gndVoltage, vddVoltage, circuit.nodes["Vout"].value.voltage) / (vddVoltage - gndVoltage))
+        // return getPointAlongPath([{start: {x: 0, y: 8.5}, end: (circuit.devices.mosfets["M5"].showCharts.value || circuit.devices.mosfets["M6"].showCharts.value) ? {x: 0, y: circuit.devices.mosfets["M2"].showCharts.value ? -20 : -15} : {x: 0, y: -9}}],
+        //     between(gndVoltage, vddVoltage, circuit.nodes["Vout"].value.voltage) / (vddVoltage - gndVoltage))
     }))
 
     const tectonicPlateLowerCharts: TectonicPlate = new TectonicPlate(circuit.transformations, computed(() => {
@@ -434,10 +442,10 @@ const useNmos9TransistorOpAmp = () => {
                 node: circuit.nodes["Vout"],
                 lines: [
                         new TectonicLine(...circuit.devices.mosfets["M8"].getAnchorPointWithTransformations("Vd"), ...circuit.devices.mosfets["M4"].getAnchorPointWithTransformations("Vd")),
-                        new TectonicLine(tectonicPlateVout.transformations, {x: 24, y: -5}, tectonicPlateVout.transformations, {x: 28, y: -5}),
+                        new TectonicLine(tectonicPlateVout.transformations, {x: 24, y: -3}, tectonicPlateVout.transformations, {x: 28, y: -3}),
                     ],
                 voltageDisplayLabel: "Vout",
-                voltageDisplayLocations: [new TectonicPoint(tectonicPlateVout.transformations, {x: 28.5, y: -5})]
+                voltageDisplayLocations: [new TectonicPoint(tectonicPlateVout.transformations, {x: 28.5, y: -3})]
             },
         ]
     )
