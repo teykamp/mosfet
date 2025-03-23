@@ -24,9 +24,11 @@
       </div>
 
       <div style="display: flex; flex-wrap: wrap; width: 210px; justify-content: end;">
+        <Switch label-up="On" label-down="Off" option="Early Effect" v-model="includeEarlyEffectGlobal" @change="updateEarlyEffect" />
         <Switch label-up="On" label-down="Off" option="Draw Grid" v-model="drawGrid" />
         <Switch label-up="On" label-down="Off" option="Sliders Active" v-model="slidersActive" @click="updateSlidersActive()"/>
         <Switch label-up="On" label-down="Off" option="Floating Nodes" v-model="moveNodesInResponseToCircuitState" />
+        
       </div>
       <button @click="showSideBar = false" style="position: absolute; bottom: 40px; right: 15px;">Close</button>
     </div>
@@ -163,6 +165,7 @@ const graphBarMosfetCtx = ref<null | CanvasRenderingContext2D>(null)
 const graphBarChartCanvas = ref<null | HTMLCanvasElement>(null)
 const graphBarChartCtx = ref<null | CanvasRenderingContext2D>(null)
 const isPlaying = ref(true); // play/stop buttoni initialize: true = playing
+const includeEarlyEffectGlobal = ref(false);
 const speed = ref(1);
 
 const toggleStopPlay = () => {
@@ -172,6 +175,12 @@ const toggleStopPlay = () => {
 
 const updateSpeed = () => {
   worker.postMessage(JSON.stringify({ action: "updateSpeed", speed: speed.value }));
+};
+
+const updateEarlyEffect = () => {
+  Object.values(circuit.value.devices.mosfets).forEach((mosfet: Mosfet) => {
+    mosfet.includeEarlyEffect = includeEarlyEffectGlobal.value;
+  });
 };
 
 

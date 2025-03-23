@@ -69,7 +69,7 @@ export const incrementCircuit = (circuit: Circuit, deltaT: number = 10) => {
         // place an upper and lower bound on how quickly the voltage is allowed to change, since the net current may vary on several orders of magnitude
         if (deltaV > 0.1) {
             deltaV = 0.1
-        }
+        }   
         else if (deltaV < -0.1) {
             deltaV = -0.1
         }

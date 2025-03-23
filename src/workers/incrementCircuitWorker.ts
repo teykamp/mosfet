@@ -46,7 +46,9 @@ const updateDeltaT = (speed: number) => {
 
 const repeatIncrementCircuit = () => {
     // if state is playing, incrementCircuit is called as normal
-    if (isPlaying) {incrementCircuit(circuit, deltaT)}
+    if (isPlaying) {
+        incrementCircuit(circuit, deltaT)
+    }
     printTimeElapsed()
     setTimeout(repeatIncrementCircuit, deltaT)
 }

@@ -17,6 +17,7 @@ import { Device } from "./device"
 export class Mosfet extends Device{
     mosfetType: 'nmos' | 'pmos'
     isDuplicate: boolean = false
+    includeEarlyEffect: boolean = false
     // mirror: boolean
     currentDots: CurrentDots
     gradientSize: number = 100
@@ -245,11 +246,14 @@ export class Mosfet extends Device{
     }
 
     getMosfetEkvResult(): { I: number, saturationLevel: number, IF: number } {
+        const Va = 100; // PLACEHOLDER
         if (this.mosfetType == 'pmos') {
-            return ekvPmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage)
+            return ekvPmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage,
+                this.includeEarlyEffect, Va)
         }
         else {
-            return ekvNmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage)
+            return ekvNmosNoUnits(this.Vg.value.voltage, this.Vs.value.voltage, this.Vd.value.voltage, this.Vb.value.voltage,
+                this.includeEarlyEffect, Va)
         }
     }
 
